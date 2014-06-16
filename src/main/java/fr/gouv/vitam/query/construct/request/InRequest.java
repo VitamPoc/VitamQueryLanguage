@@ -18,6 +18,7 @@
 package fr.gouv.vitam.query.construct.request;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,10 +32,10 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class InRequest extends Request {
-	protected HashSet<Boolean> booleanVals;
-	protected HashSet<Long> longVals;
-	protected HashSet<Double> doubleVals;
-	protected HashSet<String> stringVals;
+	protected Set<Boolean> booleanVals;
+	protected Set<Long> longVals;
+	protected Set<Double> doubleVals;
+	protected Set<String> stringVals;
 	
 	/**
 	 * Clean the object
