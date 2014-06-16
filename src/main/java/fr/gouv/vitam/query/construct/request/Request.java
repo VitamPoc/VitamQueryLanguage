@@ -124,6 +124,12 @@ public class Request {
 		return currentRequest;
 	}
 	/**
+	 * @return the currentObject (internal use only during parse)
+	 */
+	public JsonNode getCurrentObject() {
+		return currentObject;
+	}
+	/**
 	 * @return the currentREQUEST
 	 */
 	public REQUEST getCurrentREQUEST() {

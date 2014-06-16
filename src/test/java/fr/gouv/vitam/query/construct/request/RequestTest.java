@@ -42,7 +42,7 @@ public class RequestTest {
 			assertFalse(request.isReady());
 			request.addToBooleanRequest(arg1).addToBooleanRequest(arg2).addToBooleanRequest(arg1, arg2);
 			assertTrue(request.isReady());
-			assertEquals(4, request.getCurrentRequest().size());
+			assertEquals(4, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -56,7 +56,7 @@ public class RequestTest {
 			request.addToBooleanRequest(arg2);
 			request.addToBooleanRequest(arg1, arg2);
 			assertTrue(request.isReady());
-			assertEquals(4, request.getCurrentRequest().size());
+			assertEquals(4, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -70,7 +70,7 @@ public class RequestTest {
 			request.addToBooleanRequest(arg2);
 			request.addToBooleanRequest(arg1, arg2);
 			assertTrue(request.isReady());
-			assertEquals(4, request.getCurrentRequest().size());
+			assertEquals(4, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -84,7 +84,7 @@ public class RequestTest {
 			request.addToBooleanRequest(arg2);
 			request.addToBooleanRequest(arg1, arg2);
 			assertTrue(request.isReady());
-			assertEquals(4, request.getCurrentRequest().size());
+			assertEquals(4, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -98,7 +98,7 @@ public class RequestTest {
 			assertFalse(request.isReady());
 			request.addToBooleanRequest(arg1);
 			assertTrue(request.isReady());
-			assertEquals(1, request.getCurrentRequest().size());
+			assertEquals(1, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -107,7 +107,7 @@ public class RequestTest {
 			request.addToBooleanRequest(argIncomplete);
 			fail("Should have raized an exception due to incomplete argument");
 		} catch (InvalidCreateOperationException e) {
-			assertEquals(1, request.getCurrentRequest().size());
+			assertEquals(1, request.getCurrentObject().size());
 		}
 		// last
 		try {
@@ -124,9 +124,9 @@ public class RequestTest {
 		try {
 			request = new PathRequest("id1", "id2", "id3");
 			assertTrue(request.isReady());
-			assertEquals(3, request.getCurrentRequest().size());
+			assertEquals(3, request.getCurrentObject().size());
 			request.addPath("id4", "id5").addPath("id6");
-			assertEquals(6, request.getCurrentRequest().size());
+			assertEquals(6, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -272,19 +272,19 @@ public class RequestTest {
 			request = new MatchRequest(REQUEST.match, "var", "val");
 			assertTrue(request.isReady());
 			request.setMatchMaxExpansions(10);
-			assertTrue(request.getCurrentRequest().has(REQUESTARGS.max_expansions.exactToken()));
+			assertTrue(request.getCurrentObject().has(REQUESTARGS.max_expansions.exactToken()));
 			request = new MatchRequest(REQUEST.match_phrase, "var", "val");
 			assertTrue(request.isReady());
 			request.setMatchMaxExpansions(10);
-			assertTrue(request.getCurrentRequest().has(REQUESTARGS.max_expansions.exactToken()));
+			assertTrue(request.getCurrentObject().has(REQUESTARGS.max_expansions.exactToken()));
 			request = new MatchRequest(REQUEST.match_phrase_prefix, "var", "val");
 			assertTrue(request.isReady());
 			request.setMatchMaxExpansions(10);
-			assertTrue(request.getCurrentRequest().has(REQUESTARGS.max_expansions.exactToken()));
+			assertTrue(request.getCurrentObject().has(REQUESTARGS.max_expansions.exactToken()));
 			request = new MatchRequest(REQUEST.prefix, "var", "val");
 			assertTrue(request.isReady());
 			request.setMatchMaxExpansions(10);
-			assertTrue(request.getCurrentRequest().has(REQUESTARGS.max_expansions.exactToken()));
+			assertTrue(request.getCurrentObject().has(REQUESTARGS.max_expansions.exactToken()));
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -385,52 +385,52 @@ public class RequestTest {
 			InRequest request = null;
 			request = new InRequest(REQUEST.in, "var", "val1", "val2");
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.nin, "var", "val1", "val2");
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request.addInValue("val1", "val2").addInValue("val3");
 			assertTrue(request.isReady());
-			assertEquals(3, request.getCurrentRequest().size());
+			assertEquals(3, request.getCurrentObject().size());
 			request.addInValue(1).addInValue(1.0);
 			assertTrue(request.isReady());
-			assertEquals(5, request.getCurrentRequest().size());
+			assertEquals(5, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.in, "var", 1, 2);
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.nin, "var", 1, 2);
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request.addInValue("val1", "val2").addInValue("val3");
 			assertTrue(request.isReady());
-			assertEquals(5, request.getCurrentRequest().size());
+			assertEquals(5, request.getCurrentObject().size());
 			request.addInValue(1).addInValue(1.0);
 			assertTrue(request.isReady());
-			assertEquals(6, request.getCurrentRequest().size());
+			assertEquals(6, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.in, "var", 1.0, 2.0);
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.nin, "var", 1.0, 2.0);
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request.addInValue("val1", "val2").addInValue("val3");
 			assertTrue(request.isReady());
-			assertEquals(5, request.getCurrentRequest().size());
+			assertEquals(5, request.getCurrentObject().size());
 			request.addInValue(1).addInValue(1.0);
 			assertTrue(request.isReady());
-			assertEquals(6, request.getCurrentRequest().size());
+			assertEquals(6, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.in, "var", true, false);
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request = new InRequest(REQUEST.nin, "var", true, false);
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request.addInValue("val1", "val2").addInValue("val3");
 			assertTrue(request.isReady());
-			assertEquals(5, request.getCurrentRequest().size());
+			assertEquals(5, request.getCurrentObject().size());
 			request.addInValue(1).addInValue(1.0);
 			assertTrue(request.isReady());
-			assertEquals(7, request.getCurrentRequest().size());
+			assertEquals(7, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -446,13 +446,13 @@ public class RequestTest {
 		try {
 			MltRequest request = new MltRequest(REQUEST.mlt, "value", "var1", "var2");
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request = new MltRequest(REQUEST.flt, "value", "var1", "var2");
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request.addMltVariable("var1", "var2").addMltVariable("var3");
 			assertTrue(request.isReady());
-			assertEquals(3, request.getCurrentRequest().size());
+			assertEquals(3, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -477,14 +477,14 @@ public class RequestTest {
 			request = new TermRequest("var", "val");
 			assertTrue(request.isReady());
 			request = new TermRequest(map);
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			assertTrue(request.isReady());
 			request.addTermRequest("var2", "val2");
 			assertTrue(request.isReady());
-			assertEquals(2, request.getCurrentRequest().size());
+			assertEquals(2, request.getCurrentObject().size());
 			request.addTermRequest("var3", "val2");
 			assertTrue(request.isReady());
-			assertEquals(3, request.getCurrentRequest().size());
+			assertEquals(3, request.getCurrentObject().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
