@@ -19,6 +19,7 @@ package fr.gouv.vitam.query.parser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,31 +40,31 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
  * 
  */
 public abstract class AbstractQueryParser {
-	public static final int MongoDB = 0;
-	public static final int ElasticSearch = 1;
+	public static final int MONGODB = 0;
+	public static final int ELASTICSEARCH = 1;
 	public static enum ES_KEYWORDS {
 		range, like_text, simple_query_string, query, fields, regexp,
 		term, field, bool, must_not, should, must, 
 		missing, existence, null_value, script, max_expansions
 	}
 
-	public boolean usingMongoDb = false;
-	public boolean usingCouchBase = false;
-	public boolean usingElasticSearch = false;
+	protected boolean usingMongoDb = false;
+	protected boolean usingCouchBase = false;
+	protected boolean usingElasticSearch = false;
 	
 	public static boolean debug = false; 
-	public static int MAXDEPTH = 20;
+	public static int maxDepth = 20;
 	protected String request;
 	protected JsonNode nodeRootRequest;
 	
-	public ArrayList<String> sources = new ArrayList<String>();
-	public ArrayList<TypeRequest> requests = new ArrayList<TypeRequest>();
-	public long limit = 0;
-	public long offset = 0;
-	public ObjectNode orderBy = null;
-	public ObjectNode projection = null;
-	public String contractId;
-	public boolean hintCache = false;
+	protected List<String> sources = new ArrayList<String>();
+	private List<TypeRequest> requests = new ArrayList<TypeRequest>();
+	protected long limit = 0;
+	protected long offset = 0;
+	protected ObjectNode orderBy = null;
+	protected ObjectNode projection = null;
+	protected String contractId;
+	protected boolean hintCache = false;
 
 	protected boolean simulate = false;
 	protected int lastDepth = 0;
@@ -283,7 +284,7 @@ public abstract class AbstractQueryParser {
 			if (jdepth != null) {
 				depth = jdepth.asInt();
 				if (depth == 0) {
-					depth = MAXDEPTH;
+					depth = maxDepth;
 				}
 				isDepth = true;
 			}
@@ -312,7 +313,7 @@ public abstract class AbstractQueryParser {
 			checkRootTypeRequest(tr, command, prevDepth);
 			if (debug) System.out.println("Depth step: "+lastDepth+":"+(lastDepth-prevDepth));
 		}
-		requests.add(tr);
+		getRequests().add(tr);
 	}
 	
 	protected void checkRootTypeRequest(TypeRequest tr, JsonNode command, int prevDepth)
@@ -360,7 +361,7 @@ public abstract class AbstractQueryParser {
 		try {
 			req = REQUEST.valueOf(command);
 		} catch (IllegalArgumentException e) {
-			throw new InvalidParseOperationException("Invalid query command: "+command);
+			throw new InvalidParseOperationException("Invalid query command: "+command, e);
 		}
 		return req;
 	}
@@ -599,7 +600,7 @@ public abstract class AbstractQueryParser {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Request: ");
-		for (TypeRequest request : requests) {
+		for (TypeRequest request : getRequests()) {
 			builder.append("\n"+request.toString());
 		}
 		builder.append("\n\tLastLevel: "+lastDepth);
@@ -612,5 +613,26 @@ public abstract class AbstractQueryParser {
 
 		return builder.toString();
 	}
-	
+
+	/**
+	 * @return the requests
+	 */
+	public List<TypeRequest> getRequests() {
+		return requests;
+	}
+
+	/**
+	 * @return the orderBy
+	 */
+	public ObjectNode getOrderBy() {
+		return orderBy;
+	}
+
+	/**
+	 * @return the sources
+	 */
+	public List<String> getSources() {
+		return sources;
+	}
+
 }

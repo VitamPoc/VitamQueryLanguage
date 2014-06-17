@@ -37,6 +37,9 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class RequestHelper {
+	private RequestHelper() {
+		// empty
+	}
 	public static final PathRequest path(String ...pathes) throws InvalidCreateOperationException {
 		return new PathRequest(pathes);
 	}

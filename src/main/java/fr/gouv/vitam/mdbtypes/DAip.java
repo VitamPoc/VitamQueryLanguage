@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.BSONObject;
 
@@ -57,7 +58,7 @@ public class DAip extends VitamType {
 	 * Number of Immediate child (DAip)
 	 */
 	public static final String NBCHILD = "_nb";
-	public static HashMap<String, DAip> allmaipcreated = new HashMap<>();
+	public static Map<String, DAip> allmaipcreated = new HashMap<String, DAip>();
 	
 	/**
 	 * Number of Immediate child (DAip)
@@ -217,7 +218,7 @@ public class DAip extends VitamType {
 	 * Used in ingest (get the next dds including itself with depth +1 for all)
 	 * @return the new domdepth for children
 	 */
-	public HashMap<String, Integer> getSubDomDepth() {
+	public Map<String, Integer> getSubDomDepth() {
 		String id = (String) get(ID);
 		// must compute depth from parent
 		HashMap<String, Integer> newdepth = new HashMap<>();
@@ -234,7 +235,7 @@ public class DAip extends VitamType {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public HashMap<String, Integer> getDomDepth() {
+	public Map<String, Integer> getDomDepth() {
 		return (HashMap<String, Integer>) get(DAIPDEPTHS);
 	}
 	/**
@@ -348,16 +349,6 @@ public class DAip extends VitamType {
 			return (String) this.get(VitamLinks.DAip2PAip.field1to2);
 		}
 	}
-
-	@Override
-	public void getAfterLoad() {
-		super.getAfterLoad();
-	}
-
-	@Override
-	public void putBeforeSave() {
-		super.putBeforeSave();
-	}
 	
 	public final void cleanStructure(boolean all) {
 		removeField(VitamLinks.DAip2DAip.field1to2);
@@ -378,7 +369,7 @@ public class DAip extends VitamType {
 	 * Should be called only once saved (last time), but for the moment let the object as it is, next should remove not indexable entries
 	 * @param dbvitam
 	 */
-	public void addEsIndex(MongoDbAccess dbvitam, HashMap<String, String> indexes, String model) {
+	public void addEsIndex(MongoDbAccess dbvitam, Map<String, String> indexes, String model) {
 		BasicDBObject maip = (BasicDBObject) this.copy();
 		if (! maip.containsField(NBCHILD)) {
 			maip.append(NBCHILD, this.nb);
@@ -398,11 +389,11 @@ public class DAip extends VitamType {
 		//System.err.println(maip);
 		//System.err.println(this);
 		indexes.put((String) this.get(ID), maip.toString());
-		if (indexes.size() > GlobalDatas.limitESNewIndex) {
-			if (GlobalDatas.blocking) {
-				dbvitam.es.addEntryIndexesBlocking(GlobalDatas.indexName, model, indexes);
+		if (indexes.size() > GlobalDatas.LIMIT_ES_NEW_INDEX) {
+			if (GlobalDatas.BLOCKING) {
+				dbvitam.es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
 			} else {
-				dbvitam.es.addEntryIndexes(GlobalDatas.indexName, model, indexes);
+				dbvitam.es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
 			}
 			
 			//dbvitam.flushOnDisk();

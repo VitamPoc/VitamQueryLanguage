@@ -22,6 +22,7 @@ package fr.gouv.vitam.mdbtypes;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,14 +35,17 @@ public class GlobalDatas {
 	/**
 	 * set of Roots Domain : must be updated each time a new Domain is created
 	 */
-	public static final Set<String> roots = new HashSet<>();
+	public static final Set<String> ROOTS = new HashSet<>();
+	private GlobalDatas() {
+		// empty
+	}
 	/**
 	 * Number of nodes at a Max depth from each Domain : key = domID.depth, value = number of nodes
 	 * 
 	 * Should be updated each time a new node DAIP is created (but could be also by step). However, if not set, this is computed from 0.
 	 * Note however, that this is cost consuming, but maybe no more useful once we got indexes for depth search.
 	 */
-	public static HashMap<String, Long> maxDepth = new HashMap<>();
+	public static Map<String, Long> maxDepth = new HashMap<String, Long>();
 	public static int nbThread = 1;
 	public static int nb = 400;
 	public static int firstLevel = 10;// was 100
@@ -51,11 +55,11 @@ public class GlobalDatas {
 	public static boolean useFilter = true;
 	public static boolean useNewNode = false;
 	public static AtomicLong cptMaip = new AtomicLong();
-	public static final String indexName = "vitamidx";
+	public static final String INDEXNAME = "vitamidx";
 	public static long limitES = 10001; // limit before using ES in 1 level only
-	public static final long limitESNewIndex = 49999; // limit before flushing ES with Bulk
+	public static final long LIMIT_ES_NEW_INDEX = 49999; // limit before flushing ES with Bulk
 	public static final int MAXDEPTH = 100; // should be 20 but let a great margin
-	public static final boolean printRequest = false;
+	public static final boolean PRINT_REQUEST = false;
 	public static int minleveltofile = 0;
-	public static final boolean blocking = true;
+	public static final boolean BLOCKING = true;
 }

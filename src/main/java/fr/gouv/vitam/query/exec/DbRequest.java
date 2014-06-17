@@ -22,9 +22,9 @@ package fr.gouv.vitam.query.exec;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
@@ -106,7 +106,7 @@ public class DbRequest {
 	 */
 	public List<ResultCached> execQuery(AbstractQueryParser query, ResultCached startSet) 
 			throws InstantiationException, IllegalAccessException, InvalidExecOperationException {
-		List<ResultCached> list = new ArrayList<ResultCached>(query.requests.size()+1);
+		List<ResultCached> list = new ArrayList<ResultCached>(query.getRequests().size()+1);
 		StringBuilder curId = new StringBuilder();
 		// Init the list with startSet
 		ResultCached result = new ResultCached();
@@ -124,19 +124,19 @@ public class DbRequest {
 		}
 		
 		String orderBy = "";
-		if (query.orderBy != null) {
-			orderBy = REQUESTFILTER.orderby.name()+": {"+query.orderBy.toString()+"}";
+		if (query.getOrderBy() != null) {
+			orderBy = REQUESTFILTER.orderby.name()+": {"+query.getOrderBy().toString()+"}";
 		}
 		// Now from the lastlevel cached+1, execute each and every request
 		// Stops if no result (empty)
 		for (int rank = lastCacheRank+1; 
 				(!result.currentMaip.isEmpty()) &&
-				rank < query.requests.size(); rank++) {
-			TypeRequest request = query.requests.get(rank);
+				rank < query.getRequests().size(); rank++) {
+			TypeRequest request = query.getRequests().get(rank);
 			ResultCached newResult = executeRequest(request, result);
 			if (newResult != null && ! newResult.currentMaip.isEmpty()) {
 				// Compute next id
-				computeKey(curId, query.sources.get(rank));
+				computeKey(curId, query.getSources().get(rank));
 				String key = curId.toString()+orderBy;
 				newResult.setId(key);
 				list.add(newResult);
@@ -164,16 +164,16 @@ public class DbRequest {
 		// First one should check if previously the same (sub) request was already executed (cached)
 		// Cache concerns: request and orderBy, not limit, offset, projection
 		String orderBy = "";
-		if (query.orderBy != null) {
-			orderBy = REQUESTFILTER.orderby.name()+": {"+query.orderBy.toString()+"}";
+		if (query.getOrderBy() != null) {
+			orderBy = REQUESTFILTER.orderby.name()+": {"+query.getOrderBy().toString()+"}";
 		}
 		int lastCacheRank = -1;
-		for (int rank = 0; rank < query.requests.size(); rank++) {
-			TypeRequest subrequest = query.requests.get(rank);
+		for (int rank = 0; rank < query.getRequests().size(); rank++) {
+			TypeRequest subrequest = query.getRequests().get(rank);
 			if (subrequest.refId != null && ! subrequest.refId.isEmpty()) {
 				// ignore previous steps since results already known
 				curId.setLength(0);
-				computeKey(curId, query.sources.get(rank));
+				computeKey(curId, query.getSources().get(rank));
 				ResultCached start = createPathEntry(subrequest.refId);
 				start.setId(curId.toString()+orderBy);
 				lastCacheRank = rank;
@@ -181,7 +181,7 @@ public class DbRequest {
 				continue;
 			}
 			// build the cache id
-			computeKey(curId, query.sources.get(rank));
+			computeKey(curId, query.getSources().get(rank));
 			// now search into the cache
 			if (mdAccess.exists(VitamCollections.Crequests, curId.toString()+orderBy)) {
 				// Optimization: not loading from cache since next level could exist
@@ -217,7 +217,7 @@ public class DbRequest {
 		}
 		for (String id : nextFirstSet) {
 			DAip aip = DAip.findOne(mdAccess, id);
-			HashMap<String, Integer> fathers = aip.getDomDepth();
+			Map<String, Integer> fathers = aip.getDomDepth();
 			Set<String> fathersIds = fathers.keySet();
 			fathersIds.retainAll(previousLastSet);
 			if (fathers.isEmpty()) {
@@ -274,7 +274,7 @@ public class DbRequest {
 			throw new InvalidExecOperationException("Expression is not valid for Domain");
 		}
 		
-		String srequest = request.requestModel[AbstractQueryParser.MongoDB].toString();
+		String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
 		BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
 		BasicDBObject idProjection = new BasicDBObject("_id", 1).append(DAip.NBCHILD, 1);
 		ResultCached newResult = new ResultCached();
@@ -287,7 +287,7 @@ public class DbRequest {
 			return newResult;
 		}
 		if (debug) System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
-		if (GlobalDatas.printRequest) System.err.println("ReqDomain: "+condition+"\n\t"+idProjection);
+		if (GlobalDatas.PRINT_REQUEST) System.err.println("ReqDomain: "+condition+"\n\t"+idProjection);
 		DBCursor cursor = mdAccess.domains.collection.find(condition, idProjection);
 		long tempCount = 0;
 		while (cursor.hasNext()) {
@@ -312,8 +312,8 @@ public class DbRequest {
 		// must be ES
 		if ((previous.nbSubNodes > GlobalDatas.limitES) || request.isOnlyES) {
 			String [] aroots = previous.currentMaip.toArray(new String [1]);
-			String srequest = request.requestModel[AbstractQueryParser.ElasticSearch].toString();
-			String sfilter = request.filterModel[AbstractQueryParser.ElasticSearch].toString();
+			String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
+			String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
 			QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
 			FilterBuilder filter = (sfilter != null ? 
 					ElasticSearchAccess.getFilterFromString(sfilter) : null);
@@ -327,7 +327,7 @@ public class DbRequest {
 				return falseResult;
 			}
 			if (debug) System.out.println("Req1LevelES: "+srequest+"\n\t"+sfilter);
-			if (GlobalDatas.printRequest) System.err.println("Req1LevelES: "+srequest+"\n\tFilter: "+sfilter);
+			if (GlobalDatas.PRINT_REQUEST) System.err.println("Req1LevelES: "+srequest+"\n\tFilter: "+sfilter);
 			ResultCached subresult = 
 					mdAccess.es.getSubDepth(indexName, typeName, aroots, 1, query, filter);
 			if (subresult != null && ! subresult.isEmpty()) {
@@ -359,7 +359,7 @@ public class DbRequest {
 			query = getInClauseForField(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, 
 					previous.currentMaip);
 		}
-		String srequest = request.requestModel[AbstractQueryParser.MongoDB].toString();
+		String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
 		BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
 		query.putAll((BSONObject) condition);
 		ResultCached subresult = new ResultCached();
@@ -372,7 +372,7 @@ public class DbRequest {
 			return subresult;
 		}
 		if (debug) System.out.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
-		if (GlobalDatas.printRequest) System.err.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
+		if (GlobalDatas.PRINT_REQUEST) System.err.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
 		DBCursor cursor = mdAccess.daips.collection.find(query, idNbchildDomdepths);
 		long tempCount = 0;
 		while (cursor.hasNext()) {
@@ -395,8 +395,8 @@ public class DbRequest {
 		// request on MAIP with depth using ES
 		int subdepth = request.depth;
 		String [] aroots = previous.currentMaip.toArray(new String [1]);
-		String srequest = request.requestModel[AbstractQueryParser.ElasticSearch].toString();
-		String sfilter = request.filterModel[AbstractQueryParser.ElasticSearch].toString();
+		String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
+		String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
 		QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
 		FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
 		if (simulate) {
@@ -408,7 +408,7 @@ public class DbRequest {
 			return subresult;
 		}
 		if (debug) System.out.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
-		if (GlobalDatas.printRequest) System.err.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
+		if (GlobalDatas.PRINT_REQUEST) System.err.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
 		ResultCached subresult = 
 				mdAccess.es.getSubDepth(indexName, typeName, aroots, subdepth, query, filter);
 		if (subresult != null && ! subresult.isEmpty()) {

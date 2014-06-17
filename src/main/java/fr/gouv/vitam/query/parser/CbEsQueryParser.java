@@ -158,7 +158,7 @@ public class CbEsQueryParser extends EsQueryParser {
 					throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
 				}
 			} catch (IllegalArgumentException e) {
-				throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
+				throw new InvalidParseOperationException("Invalid Range query command: "+requestItem, e);
 			}
 			String op = null;
 			switch (arg) {

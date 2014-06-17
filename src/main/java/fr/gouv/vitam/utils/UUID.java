@@ -257,18 +257,20 @@ public final class UUID {
     	}
     	return uuids;
     }
-    private static final byte asByte(char a, char b) {
+    private static final byte asByte(final char a, final char b) {
+    	char a2 = a;
 		if (a >= HEX_CHARS[10]) {
-			a -= HEX_CHARS[10] - 10;
+			a2 -= HEX_CHARS[10] - 10;
 		} else {
-			a -= HEX_CHARS[0];
+			a2 -= HEX_CHARS[0];
 		}
+		char b2 = b;
 		if (b >= HEX_CHARS[10]) {
-			b -= HEX_CHARS[10] - 10;
+			b2 -= HEX_CHARS[10] - 10;
 		} else {
-			b -= HEX_CHARS[0];
+			b2 -= HEX_CHARS[0];
 		}
-		return (byte) ((a << 4) + b);
+		return (byte) ((a2 << 4) + b2);
     }
 
     public final String toBase64() {
@@ -436,9 +438,9 @@ public final class UUID {
         }
     }
 
-    private static final byte[] parseMachineId(String value) {
+    private static final byte[] parseMachineId(final String valueSource) {
         // Strip separators.
-        value = value.replaceAll("[:-]", "");
+        String value = valueSource.replaceAll("[:-]", "");
 
         byte[] machineId = new byte[MACHINE_ID_LEN];
         for (int i = 0; i < value.length() && i < MACHINE_ID_LEN; i += 2) {

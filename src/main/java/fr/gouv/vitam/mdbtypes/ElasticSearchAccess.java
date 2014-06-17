@@ -20,7 +20,6 @@
  */
 package fr.gouv.vitam.mdbtypes;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -146,11 +145,11 @@ public class ElasticSearchAccess {
 				return true;
 	}
 	
-	public final boolean addEntryIndexes(String indexName, String type, HashMap<String, String> id_json) {
+	public final boolean addEntryIndexes(String indexName, String type, Map<String, String> mapIdJson) {
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
 
 		// either use client#prepare, or use Requests# to directly build index/delete requests
-		for (Entry<String, String> val : id_json.entrySet()) {
+		for (Entry<String, String> val : mapIdJson.entrySet()) {
 			bulkRequest.add(client.prepareIndex(indexName, type, val.getKey())
 			        .setSource(val.getValue()));
 		}
@@ -160,11 +159,11 @@ public class ElasticSearchAccess {
 	    // Should process failures by iterating through each bulk response item
 	}
 	
-	public final boolean addEntryIndexesBlocking(String indexName, String type, HashMap<String, String> id_json) {
+	public final boolean addEntryIndexesBlocking(String indexName, String type, Map<String, String> mapIdJson) {
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
 
 		// either use client#prepare, or use Requests# to directly build index/delete requests
-		for (Entry<String, String> val : id_json.entrySet()) {
+		for (Entry<String, String> val : mapIdJson.entrySet()) {
 			bulkRequest.add(client.prepareIndex(indexName, type, val.getKey())
 			        .setSource(val.getValue()));
 		}
@@ -306,7 +305,7 @@ public class ElasticSearchAccess {
 		if (filter != null) {
 			request = request.setPostFilter(filter);   // Filter
 		}
-		if (GlobalDatas.printRequest) System.err.println(request.toString());
+		if (GlobalDatas.PRINT_REQUEST) System.err.println(request.toString());
 		//System.out.println("ESReq: "+request.toString());
 		SearchResponse response = request
 		        .execute()

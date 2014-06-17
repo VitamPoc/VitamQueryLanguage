@@ -50,7 +50,7 @@ public abstract class VitamType extends BasicDBObject {
 		} else {
 			uuid = new UUID(id);
 		}
-		GlobalDatas.roots.add(uuid.toString());
+		GlobalDatas.ROOTS.add(uuid.toString());
 	}
 	
 	public final void setNewId() {

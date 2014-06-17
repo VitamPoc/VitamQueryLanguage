@@ -28,7 +28,7 @@ public final class SystemPropertyUtil {
 	public static final String FILE_ENCODING = "file.encoding";
 	public static final String UTF_8 = "UTF-8";
 	
-	private static final Properties props = new Properties();
+	private static final Properties PROPS = new Properties();
 
     // Retrieve all system properties at once so that there's no need to deal with
     // security exceptions from next time.  Otherwise, we might end up with logging every
@@ -50,9 +50,9 @@ public final class SystemPropertyUtil {
             newProps = new Properties();
         }
 
-        synchronized (props) {
-            props.clear();
-            props.putAll(newProps);
+        synchronized (PROPS) {
+            PROPS.clear();
+            PROPS.putAll(newProps);
         }
         if (! contains(FILE_ENCODING) || ! get(FILE_ENCODING).equalsIgnoreCase(UTF_8)) {
     		try {
@@ -61,9 +61,9 @@ public final class SystemPropertyUtil {
                 Field charset = Charset.class.getDeclaredField("defaultCharset");
     	        charset.setAccessible(true);
     	        charset.set(null,null);
-    	        synchronized (props) {
-    	            props.clear();
-    	            props.putAll(newProps);
+    	        synchronized (PROPS) {
+    	            PROPS.clear();
+    	            PROPS.putAll(newProps);
     	        }
     		} catch (Exception e1) {
     			// ignore since it is a security issue and -Dfile.encoding=UTF-8 should be used
@@ -88,7 +88,7 @@ public final class SystemPropertyUtil {
         if (key == null) {
             throw new NullPointerException("key");
         }
-        return props.containsKey(key);
+        return PROPS.containsKey(key);
     }
 
     /**
@@ -115,7 +115,7 @@ public final class SystemPropertyUtil {
             throw new NullPointerException("key");
         }
 
-        String value = props.getProperty(key);
+        String value = PROPS.getProperty(key);
         if (value == null) {
             return def;
         }
@@ -137,7 +137,7 @@ public final class SystemPropertyUtil {
             throw new NullPointerException("key");
         }
 
-        String value = props.getProperty(key);
+        String value = PROPS.getProperty(key);
         if (value == null) {
             return def;
         }
@@ -176,7 +176,7 @@ public final class SystemPropertyUtil {
             throw new NullPointerException("key");
         }
 
-        String value = props.getProperty(key);
+        String value = PROPS.getProperty(key);
         if (value == null) {
             return def;
         }
@@ -211,7 +211,7 @@ public final class SystemPropertyUtil {
             throw new NullPointerException("key");
         }
 
-        String value = props.getProperty(key);
+        String value = PROPS.getProperty(key);
         if (value == null) {
             return def;
         }
@@ -233,7 +233,7 @@ public final class SystemPropertyUtil {
     }
 
     public static void debug() {
-    	props.list(System.out);
+    	PROPS.list(System.out);
     }
     
     private SystemPropertyUtil() {

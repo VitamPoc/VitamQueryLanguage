@@ -37,6 +37,9 @@ import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
  *
  */
 public class ActionHelper {
+	private ActionHelper() {
+		// empty
+	}
 	public static final AddAction add(String variableName, String ...value) throws InvalidCreateOperationException {
 		return new AddAction(variableName, value);
 	}

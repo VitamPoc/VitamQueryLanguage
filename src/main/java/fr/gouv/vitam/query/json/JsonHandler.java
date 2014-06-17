@@ -43,17 +43,17 @@ import fr.gouv.vitam.query.exception.InvalidParseOperationException;
  * @author "Frederic Bregier"
  *
  */
-public class JsonHandler {
+public final class JsonHandler {
 
-	public final static JsonFactory factory = new JsonFactory();
-	public final static ObjectMapper mapper;
+	public final static JsonFactory JSONFACTORY = new JsonFactory();
+	public final static ObjectMapper OBJECT_MAPPER;
 		
 	static {
-		mapper = new ObjectMapper(factory);
-		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		mapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+		OBJECT_MAPPER = new ObjectMapper(JSONFACTORY);
+		OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+		OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+		OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		OBJECT_MAPPER.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
 	}
 	
 	private JsonHandler() {
@@ -64,14 +64,14 @@ public class JsonHandler {
 	 * @return an empty ObjectNode
 	 */
 	public static final ObjectNode createObjectNode() {
-		return mapper.createObjectNode();
+		return OBJECT_MAPPER.createObjectNode();
 	}
 	
 	/**
 	 * @return an empty ArrayNode
 	 */
 	public static final ArrayNode createArrayNode() {
-		return mapper.createArrayNode();
+		return OBJECT_MAPPER.createArrayNode();
 	}
 	
 	/**
@@ -82,7 +82,7 @@ public class JsonHandler {
 	 */
 	public static final JsonNode getFromString(String value) throws InvalidParseOperationException {
 		try {
-			return mapper.readTree(value);
+			return OBJECT_MAPPER.readTree(value);
 		} catch (JsonProcessingException e) {
 			throw new InvalidParseOperationException(e);
 		} catch (IOException e) {
@@ -97,7 +97,7 @@ public class JsonHandler {
 	 */
 	public static final JsonNode getFromBytes(byte[] value) throws InvalidParseOperationException {
 		try {
-			return mapper.readTree(value);
+			return OBJECT_MAPPER.readTree(value);
 		} catch (JsonProcessingException e) {
 			throw new InvalidParseOperationException(e);
 		} catch (IOException e) {
@@ -112,7 +112,7 @@ public class JsonHandler {
 	 */
 	public static final String writeAsString(Object object) throws InvalidParseOperationException {
 		try {
-			return mapper.writeValueAsString(object);
+			return OBJECT_MAPPER.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
 			throw new InvalidParseOperationException(e);
 		}
@@ -189,7 +189,7 @@ public class JsonHandler {
 		if (value != null && ! value.isEmpty()) {
 			Map<String, Object> info = null;
 			try {
-				info = mapper.readValue(value, new TypeReference<Map<String, Object>>() {});
+				info = OBJECT_MAPPER.readValue(value, new TypeReference<Map<String, Object>>() {});
 			} catch (JsonParseException e) {
 				throw new InvalidParseOperationException(e);
 			} catch (JsonMappingException e) {
