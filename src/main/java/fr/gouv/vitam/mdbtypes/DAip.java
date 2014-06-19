@@ -36,6 +36,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.utils.UUID;
 
 
 /**
@@ -233,7 +234,10 @@ public class DAip extends VitamType {
 		newdepth.put(id, 1);
 		return newdepth;
 	}
-	
+	/**
+	 * 
+	 * @return the map of dds with depth
+	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, Integer> getDomDepth() {
 		return (HashMap<String, Integer>) get(DAIPDEPTHS);
@@ -288,6 +292,11 @@ public class DAip extends VitamType {
 			return (List<String>) this.get(VitamLinks.DAip2DAip.field1to2);
 		}
 	}
+	/**
+	 * 
+	 * @param dbvitam
+	 * @return the list of UUID of children (database access)
+	 */
 	public List<String> getChildrenDAipDBRefFromParent(MongoDbAccess dbvitam) {
 		DBCursor cid = dbvitam.daips.collection.find(
 				new BasicDBObject(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, this.get(ID)), new BasicDBObject(ID, 1));
@@ -299,6 +308,11 @@ public class DAip extends VitamType {
 		cid.close();
 		return ids;
 	}
+	/**
+	 * 
+	 * @param remove
+	 * @return the list of UUID of DAIP parents (immediate)
+	 */
 	@SuppressWarnings("unchecked")
 	public List<String> getFathersDAipDBRef(boolean remove) {
 		if (remove) {
@@ -307,6 +321,11 @@ public class DAip extends VitamType {
 			return (List<String>) this.get(VitamLinks.DAip2DAip.field2to1);
 		}
 	}
+	/**
+	 * 
+	 * @param remove
+	 * @return the list of UUID of DOMAIN parents (immediate)
+	 */
 	@SuppressWarnings("unchecked")
 	public List<String> getFathersDomaineDBRef(boolean remove) {
 		if (remove) {
@@ -342,12 +361,99 @@ public class DAip extends VitamType {
 			data.update(dbvitam.paips, update);
 		}
 	}
+	/**
+	 * 
+	 * @param remove
+	 * @return the PAIP UUID
+	 */
 	public String getPAipDBRef(boolean remove) {
 		if (remove) {
 			return (String) this.removeField(VitamLinks.DAip2PAip.field1to2);
 		} else {
 			return (String) this.get(VitamLinks.DAip2PAip.field1to2);
 		}
+	}
+	
+	/**
+	 * Check if the current DAip has path as immediate parent (either being a DAip or a Domain)
+	 * @param path
+	 * @return True if immediate parent, else False (however could be a grand parent)
+	 */
+	public boolean isImmediateParent(String path) {
+		String lastp = UUID.getLastAsString(path);
+		List<String> immediateParents = getFathersDomaineDBRef(false);
+		if (immediateParents != null && ! immediateParents.isEmpty()) {
+			if (immediateParents.contains(lastp)) {
+				return true;
+			}
+		}
+		immediateParents = getFathersDAipDBRef(false);
+		if (immediateParents != null && ! immediateParents.isEmpty()) {
+			if (immediateParents.contains(lastp)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * 
+	 * @param dbvitam
+	 * @param path
+	 * @return the list of valid pathes (protentiialy empty) from this DAip to path, final path not containing neither path, neither this DAip
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public List<String> getPathesToParent(MongoDbAccess dbvitam, String path) throws InstantiationException, IllegalAccessException {
+		List<String> pathes = new ArrayList<>();
+		if (isImmediateParent(path)) {
+			pathes.add("");
+			return pathes;
+		}
+		String lastp = UUID.getLastAsString(path);
+		List<String> result = new ArrayList<>();
+		List<String> subpath = new ArrayList<>();
+		subpath.add("");
+		getSubPathesToParent(dbvitam, lastp, this, result, subpath);
+		subpath.clear();
+		subpath = null;
+		return result;
+	}
+	/**
+	 * Compute all possible path from current to target (being Domaine or DAip)
+	 * @param dbvitam
+	 * @param target
+	 * @param current
+	 * @param pathResults final list containing all valid pathes (excluding target and current as implicit first and very last)
+	 * @param subpathesCurrent list of intermediary pathes from very first current (not included)
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	private static void getSubPathesToParent(MongoDbAccess dbvitam, String target, DAip current,
+			List<String> pathResults, List<String> subpathesCurrent)
+			throws InstantiationException, IllegalAccessException {
+		List<String> immediateParents = current.getFathersDAipDBRef(false);
+		List<String> newSubpathes = new ArrayList<>();
+		for (String immediateParent : immediateParents) {
+			DAip parent = DAip.findOne(dbvitam, immediateParent);
+			if (parent == null) {
+				continue;
+			}
+			if (parent.isImmediateParent(target)) {
+				// End of search for this parent: target/parent/current are directly attached
+				for (String subpath : subpathesCurrent) {
+					pathResults.add(immediateParent+subpath);
+				}
+			} else if (parent.getDomDepth().containsKey(target)) {
+				// Still in path: current becomes immediateParent and subpathesCurrent to new Subpathes
+				for (String subpath : subpathesCurrent) {
+					newSubpathes.add(immediateParent+subpath);
+				}
+				getSubPathesToParent(dbvitam, target, parent, pathResults, newSubpathes);
+				newSubpathes.clear();
+			}
+			// Else not in the path so ignore this parent
+		}
+		newSubpathes = null;
 	}
 	
 	public final void cleanStructure(boolean all) {

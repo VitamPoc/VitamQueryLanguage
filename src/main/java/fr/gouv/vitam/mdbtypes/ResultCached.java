@@ -23,6 +23,7 @@ package fr.gouv.vitam.mdbtypes;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
@@ -46,7 +47,7 @@ public class ResultCached extends VitamType {
 	public static final String NBSUBNODES = "__nbnd";
 	
 	public Set<String> currentMaip = new HashSet<String>();
-	public Set<String> previousMaip = new HashSet<String>();
+	private Set<String> previousMaip = new HashSet<String>();
 	public int minLevel = 0, maxLevel = 0;
 	public long nbSubNodes = -1;
 	public boolean loaded = false;
@@ -148,13 +149,50 @@ public class ResultCached extends VitamType {
 		loaded = true;
 	}
 	/**
-	 * Compute min and max from list of UUID in currentMaip
+	 * Compute min and max from list of UUID in currentMaip.
+	 * Note: this should not be called from a list of "short" UUID, but only with "path" UUIDs
 	 */
 	public void updateMinMax() {
 		minLevel = 0;
 		maxLevel = 0;
 		for (String id : currentMaip) {
 			int level = UUID.getUuidNb(id);
+			if (minLevel > level) {
+				minLevel = level;
+			}
+			if (maxLevel == 0 || maxLevel < level) {
+				maxLevel = level;
+			}
+		}
+	}
+	/**
+	 * Compute min and max from list of real MAIP (from UUID), so loaded from database (could be heavy)
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 */
+	public void updateLoadMinMax(MongoDbAccess dbvitam) throws InstantiationException, IllegalAccessException {
+		minLevel = 0;
+		maxLevel = 0;
+		for (String id : currentMaip) {
+			int level = UUID.getUuidNb(id);
+			if (UUID.getUuidNb(id) == 1) {
+				DAip daip = DAip.findOne(dbvitam, id);
+				if (daip == null) {
+					continue;
+				}
+				Map<String, Integer> domdepth = daip.getDomDepth();
+				if (domdepth == null || domdepth.isEmpty()) {
+					level = 1;
+				} else {
+					level = Integer.MAX_VALUE;
+					for (int lev : domdepth.values()) {
+						if (level > lev) {
+							level = lev;
+						}
+					}
+					level++;
+				}
+			}
 			if (minLevel > level) {
 				minLevel = level;
 			}

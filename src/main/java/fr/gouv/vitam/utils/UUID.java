@@ -223,12 +223,21 @@ public final class UUID {
     /**
      * 
      * @param idsource
+     * @return true if this idsource represents more than one UUID (path of UUIDs)
+     */
+    public static boolean isMultipleUUID(String idsource) {
+    	return idsource.trim().length() > KEYB64SIZE;
+    }
+    /**
+     * 
+     * @param idsource
      * @return the last UUID from this idsource
      */
     public static UUID getLast(String idsource) {
     	final String id = idsource.trim();
     	int nb = id.length()/KEYB64SIZE - 1;
-    	return new UUID(id.substring(KEYB64SIZE*nb));
+    	int pos = KEYB64SIZE*nb;
+    	return new UUID(id.substring(pos, pos+KEYB64SIZE));
     }
     /**
      * 
@@ -238,6 +247,25 @@ public final class UUID {
     public static UUID getFirst(String idsource) {
     	final String id = idsource.trim().substring(0, KEYB64SIZE);
     	return new UUID(id);
+    }
+    /**
+     * 
+     * @param idsource
+     * @return the last UUID from this idsource
+     */
+    public static String getLastAsString(String idsource) {
+    	final String id = idsource.trim();
+    	int nb = id.length()/KEYB64SIZE - 1;
+    	int pos = KEYB64SIZE*nb;
+    	return id.substring(pos, pos+KEYB64SIZE);
+    }
+    /**
+     * 
+     * @param idsource
+     * @return the first UUID from this idsource
+     */
+    public static String getFirstAsString(String idsource) {
+    	return idsource.trim().substring(0, KEYB64SIZE);
     }
     /**
      * 
