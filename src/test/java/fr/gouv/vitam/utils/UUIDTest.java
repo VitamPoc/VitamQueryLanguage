@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class UUIDTest {
 	private static final char VERSION           = 'd';
-	private static int NB = 1000000;
+	private static int NB = 100000;
 	
     @Test
     public void testStructure() {
