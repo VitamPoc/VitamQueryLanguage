@@ -196,6 +196,7 @@ public class MongoDbAccess {
     	paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(db, VitamCollections.Cpaip, recreate);
     	saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(db, VitamCollections.Csaip, recreate);
     	duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(db, VitamCollections.Cdua, recreate);
+    	requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(db, VitamCollections.Crequests, recreate);
     	DBCursor cursor = domains.collection.find();
 		for (DBObject dbObject : cursor) {
 			Domain dom = (Domain) dbObject;

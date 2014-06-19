@@ -148,7 +148,7 @@ public class Domain extends VitamType {
 			list.clear();
 			return true;
 		} else {
-			dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
+			dbvitam.updateLinks(this, null, VitamLinks.Domain2DAip, true);
 			this.append(NBCHILD, nb);
 			nb = 0;
 		}

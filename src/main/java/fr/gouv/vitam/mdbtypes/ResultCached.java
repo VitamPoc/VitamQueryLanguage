@@ -107,7 +107,7 @@ public class ResultCached extends VitamType {
 			List<String> slist = (List<String>) vt.get(CURRENTMAIP);
 			if (slist != null) {
 				Set<String> newset = new HashSet<String>(this.currentMaip);
-				newset.removeAll(list);
+				newset.removeAll(currentMaip);
 				if (! newset.isEmpty()) {
 					list.add(new BasicDBObject(CURRENTMAIP, new BasicDBObject("$each", newset)));
 				}
@@ -115,7 +115,7 @@ public class ResultCached extends VitamType {
 			slist = (List<String>) vt.get(PREVIOUSMAIP);
 			if (slist != null) {
 				Set<String> newset = new HashSet<String>(this.previousMaip);
-				newset.removeAll(list);
+				newset.removeAll(previousMaip);
 				if (! newset.isEmpty()) {
 					list.add(new BasicDBObject(PREVIOUSMAIP, new BasicDBObject("$each", newset)));
 				}

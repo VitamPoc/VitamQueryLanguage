@@ -100,7 +100,7 @@ public class PAip extends VitamType {
 			}
 			return true;
 		} else {
-			dbvitam.updateLinks(this, vt, VitamLinks.DAip2PAip, false);
+			dbvitam.updateLinks(this, null, VitamLinks.DAip2PAip, false);
 		}
 		return false;
 	}

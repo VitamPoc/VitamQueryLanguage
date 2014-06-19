@@ -299,7 +299,9 @@ public class DbRequest {
 		if (request.isOnlyES) {
 			throw new InvalidExecOperationException("Expression is not valid for Domain");
 		}
-		
+		if (request.requestModel[AbstractQueryParser.MONGODB] == null) {
+			throw new InvalidExecOperationException("Expression is not valid for Domain since no Request is available");
+		}
 		String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
 		BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
 		BasicDBObject idProjection = new BasicDBObject("_id", 1).append(DAip.NBCHILD, 1);
@@ -340,9 +342,13 @@ public class DbRequest {
 			ResultCached previous) throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
 		// must be ES
 		if ((previous.nbSubNodes > GlobalDatas.limitES) || request.isOnlyES) {
+			if (request.requestModel[AbstractQueryParser.ELASTICSEARCH] == null) {
+				throw new InvalidExecOperationException("Expression is not valid for Maip Level 1 with ES only since no ES request is available");
+			}
 			String [] aroots = previous.currentMaip.toArray(new String [1]);
 			String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
-			String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
+			String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH] == null ? null :
+				request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
 			QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
 			FilterBuilder filter = (sfilter != null ? 
 					ElasticSearchAccess.getFilterFromString(sfilter) : null);
@@ -383,6 +389,9 @@ public class DbRequest {
 	private final ResultCached getRequest1LevelMaipFromMD(TypeRequest request, 
 			ResultCached previous) throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
 		BasicDBObject query = null;
+		if (request.requestModel[AbstractQueryParser.MONGODB] == null) {
+			throw new InvalidExecOperationException("Expression is not valid for Maip Level 1 with MD only since no MD request is available");
+		}
 		if (previous.minLevel == 1) {
 			query = getInClauseForField(MongoDbAccess.VitamLinks.Domain2DAip.field2to1, 
 					previous.currentMaip);
@@ -429,10 +438,14 @@ public class DbRequest {
 	private final ResultCached getRequestDepth(TypeRequest request, 
 		ResultCached previous) throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
 		// request on MAIP with depth using ES
+		if (request.requestModel[AbstractQueryParser.ELASTICSEARCH] == null) {
+			throw new InvalidExecOperationException("Expression is not valid for Maip DepthRequest with ES only since no ES request is available");
+		}
 		int subdepth = request.depth;
 		String [] aroots = previous.currentMaip.toArray(new String [1]);
 		String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
-		String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
+		String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH] == null ? null :
+			request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
 		QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
 		FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
 		if (simulate) {

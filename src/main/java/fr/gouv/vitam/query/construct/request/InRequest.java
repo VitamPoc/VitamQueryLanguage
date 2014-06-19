@@ -179,9 +179,6 @@ public class InRequest extends Request {
 		switch (inRequest) {
 			case in:
 			case nin: {
-				if (variable == null || variable.trim().isEmpty()) {
-					throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
-				}
 				ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
 				ArrayNode array = sub.putArray(variable.trim());
 				stringVals = new HashSet<String>();

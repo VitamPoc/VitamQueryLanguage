@@ -170,9 +170,9 @@ public class DAip extends VitamType {
 			listset.clear();
 			return true;
 		} else {
-			//dbvitam.updateLinks(this, vt, VitamLinks.DAip2DAip, true);
-			dbvitam.updateLinks(this, vt, VitamLinks.DAip2DAip, false);
-			dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, false);
+			//dbvitam.updateLinks(this, null, VitamLinks.DAip2DAip, true);
+			dbvitam.updateLinks(this, null, VitamLinks.DAip2DAip, false);
+			dbvitam.updateLinks(this, null, VitamLinks.Domain2DAip, false);
 			this.append(NBCHILD, nb);
 			nb = 0;
 		}
