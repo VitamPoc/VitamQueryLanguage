@@ -70,13 +70,13 @@ public class ResultCached extends VitamType {
 		super.getAfterLoad();
 		if (this.containsField(CURRENTMAIP)) {
 			@SuppressWarnings("unchecked")
-			List<String> list = (List<String>) this.get(CURRENTMAIP);
+			Set<String> list = (Set<String>) this.get(CURRENTMAIP);
 			currentMaip.clear();
 			currentMaip.addAll(list);
 		}
 		if (this.containsField(PREVIOUSMAIP)) {
 			@SuppressWarnings("unchecked")
-			List<String> list = (List<String>) this.get(PREVIOUSMAIP);
+			Set<String> list = (Set<String>) this.get(PREVIOUSMAIP);
 			previousMaip.clear();
 			previousMaip.addAll(list);
 		}

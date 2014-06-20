@@ -70,7 +70,13 @@ public class DbRequest {
 		this.indexName = indexName;
 		this.typeName = typeName;
 	}
-	
+	/**
+	 * Constructor for Simulation (no DB access)
+	 */
+	public DbRequest() {
+		this.debug = true;
+		this.simulate = true;
+	}
 	/**
 	 * @param debug the debug to set
 	 */
@@ -91,6 +97,7 @@ public class DbRequest {
 		path.updateMinMax();
 		// Path list so as loaded (never cached)
 		path.loaded = true;
+		path.putBeforeSave();
 		return path;
 	}
 	private static final void computeKey(StringBuilder curId, String source) {
@@ -124,6 +131,9 @@ public class DbRequest {
 		result.loaded = true;
 		result.getAfterLoad();
 		list.add(result);
+		if (debug) {
+			System.out.println("StartResult: "+result);
+		}
 		// cache entry search
 		int lastCacheRank = searchCacheEntry(query, curId, list);
 		// Get last from list and load it if not already
@@ -157,6 +167,10 @@ public class DbRequest {
 				// clear also the list since no result
 				list.clear();
 			}
+			if (debug) {
+				result.putBeforeSave();
+				System.out.println("Request: "+request+"\n\tResult: "+result);
+			}
 		}
 		return list;
 	}
@@ -175,6 +189,7 @@ public class DbRequest {
 		// Cache concerns: request and orderBy, but not limit, offset, projection
 		String orderBy = getOrderByString(query);
 		int lastCacheRank = -1;
+		ResultCached previous = null;
 		for (int rank = 0; rank < query.getRequests().size(); rank++) {
 			TypeRequest subrequest = query.getRequests().get(rank);
 			if (subrequest.refId != null && ! subrequest.refId.isEmpty()) {
@@ -186,11 +201,41 @@ public class DbRequest {
 				start.setId(curId.toString()+orderBy);
 				lastCacheRank = rank;
 				list.add(start);
+				if (debug) {
+					if (previous != null && start.minLevel <= 0) {
+						start.minLevel = previous.minLevel+1;
+						start.maxLevel = previous.maxLevel+1;
+						previous = start;
+					}
+					start.putBeforeSave();
+					System.out.println("CacheResult: ("+rank+") "+start+"\n\t"+start.currentMaip);
+				}
+				previous = start;
 				continue;
 			}
 			// build the cache id
 			computeKey(curId, query.getSources().get(rank));
 			// now search into the cache
+			if (simulate) {
+				lastCacheRank = rank;
+				ResultCached start = new ResultCached();
+				start.setId(curId.toString()+orderBy);
+				start.currentMaip.add(new UUID().toString());
+				start.nbSubNodes = 1;
+				start.loaded = true;
+				list.add(start);
+				if (previous != null) {
+					start.minLevel = previous.minLevel+1;
+					start.maxLevel = previous.maxLevel+1;
+					previous = start;
+				}
+				if (debug) {
+					start.putBeforeSave();
+					System.out.println("CacheResult2: ("+rank+") "+start+"\n\t"+start.currentMaip);
+				}
+				// Only one step cached !
+				return lastCacheRank;
+			} else
 			if (mdAccess.exists(VitamCollections.Crequests, curId.toString()+orderBy)) {
 				// Optimization: not loading from cache since next level could exist
 				lastCacheRank = rank;
@@ -215,6 +260,9 @@ public class DbRequest {
 	 * @throws IllegalAccessException
 	 */
 	private final boolean checkAncestor(ResultCached previous, ResultCached next) throws InstantiationException, IllegalAccessException {
+		if (simulate) {
+			return true;
+		}
 		Set<String> previousLastSet = new HashSet<String>();
 		// Compute last Id from previous result
 		for (String id : previous.currentMaip) {
@@ -310,7 +358,10 @@ public class DbRequest {
 		newResult.maxLevel = 1;
 		if (simulate) {
 			System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
+			newResult.currentMaip.add(new UUID().toString());
+			newResult.loaded = true;
 			newResult.nbSubNodes = 1;
+			newResult.putBeforeSave();
 			return newResult;
 		}
 		if (debug) System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
@@ -358,6 +409,9 @@ public class DbRequest {
 				falseResult.minLevel = previous.minLevel+1;
 				falseResult.maxLevel = previous.maxLevel+1;
 				falseResult.nbSubNodes = 1;
+				falseResult.currentMaip.add(new UUID().toString());
+				falseResult.loaded = true;
+				falseResult.putBeforeSave();
 				return falseResult;
 			}
 			if (debug) System.out.println("Req1LevelES: "+srequest+"\n\t"+sfilter);
@@ -407,6 +461,10 @@ public class DbRequest {
 			System.out.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
 			subresult.minLevel = previous.minLevel+1;
 			subresult.maxLevel = previous.maxLevel+1;
+			subresult.nbSubNodes = 1;
+			subresult.currentMaip.add(new UUID().toString());
+			subresult.loaded = true;
+			subresult.putBeforeSave();
 			return subresult;
 		}
 		if (debug) System.out.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
@@ -453,6 +511,10 @@ public class DbRequest {
 			ResultCached subresult = new ResultCached();
 			subresult.minLevel = previous.minLevel+subdepth;
 			subresult.maxLevel = previous.maxLevel+subdepth;
+			subresult.nbSubNodes = 1;
+			subresult.currentMaip.add(new UUID().toString());
+			subresult.loaded = true;
+			subresult.putBeforeSave();
 			return subresult;
 		}
 		if (debug) System.out.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
@@ -519,7 +581,43 @@ public class DbRequest {
 		String originalKey = result.getId();
 		long subnodes = result.nbSubNodes;
 		paths.addAll(result.currentMaip);
-		for (int rank = results.size()-2; rank >= 0; rank --) {
+		if (simulate) {
+	 		for (int rank = results.size()-2; rank >= 0; rank --) {
+				result = results.get(rank);
+				// XXX FIXME should check if empty before !
+				boolean futureStop = (UUID.isMultipleUUID(result.currentMaip.iterator().next()));
+				futureStop |= result.maxLevel == 1;
+				current.addAll(paths);
+				paths.clear();
+				for (String node : current) {
+					for (String p : result.currentMaip) {
+						paths.add(p+node);
+					}
+				}
+				parents.clear();
+				current.clear();
+				if (debug) {
+					System.out.println("FinalizeResult: "+rank+"\n\tFrom Result: "+result+"\n\tPaths: "+paths);
+				}
+				if (futureStop) {
+					// Stop recursivity since path is a full path
+					break;
+				}
+	 		}
+			if (paths.isEmpty()) {
+				return null;
+			}
+			result = new ResultCached();
+			result.currentMaip = paths;
+			result.setId(originalKey);
+			result.nbSubNodes = subnodes;
+			result.updateMinMax();
+			result.loaded = true;
+			result.putBeforeSave();
+			System.out.println("FinalizeResult: "+result);
+			return result;
+		}
+ 		for (int rank = results.size()-2; rank >= 0; rank --) {
 			result = results.get(rank);
 			// XXX FIXME should check if empty before !
 			boolean futureStop = (UUID.isMultipleUUID(result.currentMaip.iterator().next()));
