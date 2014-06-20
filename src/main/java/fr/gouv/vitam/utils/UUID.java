@@ -88,7 +88,7 @@ public final class UUID {
     /**
      * Try to get Mac Address but could be also changed dynamically
      */
-    private static byte[] MAC = macAddress();
+    private static final byte[] MAC = macAddress();
     /**
      * Counter part
      */
@@ -98,24 +98,6 @@ public final class UUID {
      * real UUID
      */
     private final byte[] uuid;
-
-    
-    /**
-     * Up to the 6 first bytes will be used. If Null or less than 6 bytes, extra bytes will
-     * be randomly generated.
-     * 
-     * @param mac the MAC address in byte format (up to the 6 first bytes will be used)
-     */
-    public static synchronized void setMAC(final byte []mac) {
-    	if (mac == null) {
-        	MAC = getRandom(MACHINE_ID_LEN);
-    	} else {
-	    	MAC = Arrays.copyOf(mac, MACHINE_ID_LEN);
-	    	for (int i = mac.length; i < MACHINE_ID_LEN; i++) {
-	    		MAC[i] = (byte) RANDOM.nextInt(256);
-	    	}
-    	}
-    }
     
     /**
      * Constructor that generates a new UUID using the current process id, MAC address, and timestamp

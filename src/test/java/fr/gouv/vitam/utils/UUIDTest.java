@@ -2,7 +2,6 @@ package fr.gouv.vitam.utils;
 
 import org.junit.Test;
 
-import java.net.NetworkInterface;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -146,25 +145,6 @@ public class UUIDTest {
         UUID id = new UUID();
         assertTrue(id.getTimestamp() > new Date().getTime() - 100);
         assertTrue(id.getTimestamp() < new Date().getTime() + 100);
-    }
-
-    @Test
-    public void testMacAddressField() throws Exception{
-        byte[] mac = NetworkInterface.getNetworkInterfaces().nextElement().getHardwareAddress();
-
-        // if the machine is not connected to a network it has no active MAC address
-        if (mac == null || mac.length < 6) {
-            mac = UUID.getRandom(6);
-            UUID.setMAC(mac);
-        }
-        UUID id = new UUID();
-        byte[] field = id.getMacFragment();
-        assertEquals(mac[0] & 0x0F, field[0]);
-        assertEquals(mac[1], field[1]);
-        assertEquals(mac[2], field[2]);
-        assertEquals(mac[3], field[3]);
-        assertEquals(mac[4], field[4]);
-        assertEquals(mac[5], field[5]);
     }
     
     @Test

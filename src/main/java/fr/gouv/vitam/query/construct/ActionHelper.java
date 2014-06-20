@@ -36,7 +36,7 @@ import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
  * @author "Frederic Bregier"
  *
  */
-public class ActionHelper {
+public final class ActionHelper {
 	private ActionHelper() {
 		// empty
 	}

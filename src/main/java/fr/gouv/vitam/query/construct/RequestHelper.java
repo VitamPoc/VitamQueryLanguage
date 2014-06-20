@@ -36,7 +36,7 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  * @author "Frederic Bregier"
  *
  */
-public class RequestHelper {
+public final class RequestHelper {
 	private RequestHelper() {
 		// empty
 	}

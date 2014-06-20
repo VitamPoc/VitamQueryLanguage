@@ -316,7 +316,7 @@ So this filter will be less efficient than the "filtered" query.
 					throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
 				}
 			} catch (IllegalArgumentException e) {
-				throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
+				throw new InvalidParseOperationException("Invalid Range query command: "+requestItem, e);
 			}
 			objectES.set(arg.name(), requestItem.getValue());
 		}

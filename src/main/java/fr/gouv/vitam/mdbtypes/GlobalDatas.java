@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author "Frederic Bregier"
  *
  */
-public class GlobalDatas {
+public final class GlobalDatas {
 
 	/**
 	 * set of Roots Domain : must be updated each time a new Domain is created

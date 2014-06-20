@@ -52,4 +52,17 @@
           <version>2.10</version>
       </dependency>
   </dependencies>
+  <name>Vitam</name>
+  <scm>
+  	<url>https://192.168.56.103/scm/git/VitamQueryLanguage</url>
+  	<connection>https://192.168.56.103/scm/git/VitamQueryLanguage</connection>
+  </scm>
+  <issueManagement>
+  	<url>https://192.168.56.103/redmine/projects/vitamquerylanguage</url>
+  	<system>redmine</system>
+  </issueManagement>
+  <ciManagement>
+  	<system>jenkins</system>
+  	<url>https://192.168.56.103/jenkins/</url>
+  </ciManagement>
 </project>
