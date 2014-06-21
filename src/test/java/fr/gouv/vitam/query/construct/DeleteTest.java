@@ -17,26 +17,28 @@ public class DeleteTest {
 
 	@Test
 	public void testSetMult() {
-		Delete update = new Delete();
-		assertTrue(update.getFilter().size() == 0);
-		update.setMult(true);
-		assertTrue(update.getFilter().size() == 1);
-		update.setMult(false);
-		assertTrue(update.getFilter().size() == 1);
-		assertTrue(update.filter.has(ACTIONFILTER.mult.exactToken()));
-		update.resetFilter();
-		assertTrue(update.getFilter().size() == 0);
+		Delete delete = new Delete();
+		assertTrue(delete.getFilter().size() == 0);
+		delete.setMult(true);
+		assertTrue(delete.getFilter().size() == 1);
+		delete.setMult(false);
+		assertTrue(delete.getFilter().size() == 1);
+		assertTrue(delete.filter.has(ACTIONFILTER.mult.exactToken()));
+		delete.resetFilter();
+		assertTrue(delete.getFilter().size() == 0);
 	}
 
 	@Test
 	public void testAddRequests() {
-		Delete update = new Delete();
-		assertNull(update.requests);
+		Delete delete = new Delete();
+		assertNull(delete.requests);
 		try {
-			update.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA")).setRelativeDepthLimit(5));
-			update.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
-			update.addRequests(new PathRequest("path3"));
-			assertEquals(4, update.requests.size());
+			delete.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA")).setRelativeDepthLimit(5));
+			delete.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
+			delete.addRequests(new PathRequest("path3"));
+			assertEquals(4, delete.requests.size());
+			delete.resetRequests();
+			assertEquals(0, delete.requests.size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -45,13 +47,13 @@ public class DeleteTest {
 
 	@Test
 	public void testGetFinalDelete() {
-		Delete update = new Delete();
-		assertNull(update.requests);
+		Delete delete = new Delete();
+		assertNull(delete.requests);
 		try {
-			update.addRequests(new PathRequest("path3"));
-			assertEquals(1, update.requests.size());
-			update.setMult(true);
-			ObjectNode node = update.getFinalDelete();
+			delete.addRequests(new PathRequest("path3"));
+			assertEquals(1, delete.requests.size());
+			delete.setMult(true);
+			ObjectNode node = delete.getFinalDelete();
 			assertEquals(2, node.size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();

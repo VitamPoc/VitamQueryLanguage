@@ -52,7 +52,7 @@
           <version>2.10</version>
       </dependency>
   </dependencies>
-  <name>Vitam</name>
+  <name>VitamQueryLanguage</name>
   <scm>
   	<url>https://192.168.56.103/scm/git/VitamQueryLanguage</url>
   	<connection>https://192.168.56.103/scm/git/VitamQueryLanguage</connection>

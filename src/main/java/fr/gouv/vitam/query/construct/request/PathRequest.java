@@ -42,6 +42,9 @@ public class PathRequest extends Request {
 			}
 			array.add(elt.trim());
 		}
+		if (array.size() == 0) {
+			throw new InvalidCreateOperationException("No path to add");
+		}
 		currentREQUEST = REQUEST.path;
 		setReady(true);
 	}

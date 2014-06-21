@@ -36,6 +36,8 @@ public class InsertTest {
 		insert.addData(JsonHandler.createObjectNode().put("var1", 1));
 		insert.addData(JsonHandler.createObjectNode().put("var2", "val"));
 		assertEquals(2, insert.data.size());
+		insert.resetData();
+		assertEquals(0, insert.data.size());
 	}
 
 	@Test
@@ -47,6 +49,8 @@ public class InsertTest {
 			insert.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
 			insert.addRequests(new PathRequest("path3"));
 			assertEquals(4, insert.requests.size());
+			insert.resetRequests();
+			assertEquals(0, insert.requests.size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

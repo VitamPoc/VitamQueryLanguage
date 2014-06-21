@@ -178,6 +178,18 @@ public final class UUID {
     }
     /**
      * 
+     * @param uuids
+     * @return the assembly UUID of all given UUIDs
+     */
+    public static String assembleUuids(UUID ...uuids) {
+    	StringBuilder builder = new StringBuilder();
+    	for (UUID uuid : uuids) {
+			builder.append(uuid.toString());
+		}
+    	return builder.toString();
+    }
+    /**
+     * 
      * @param idsource
      * @return the array of UUID according to the source (concatenation of UUIDs)
      */

@@ -131,6 +131,12 @@ public class RequestTest {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
+		try {
+			request = new PathRequest("");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -150,6 +156,12 @@ public class RequestTest {
 		// last
 		try {
 			request = new ExistsRequest(REQUEST.and, "var");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new ExistsRequest(REQUEST.exists, "");
 			fail("Should have raized an exception due to incorrect argument");
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
@@ -185,6 +197,12 @@ public class RequestTest {
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
 		}
+		try {
+			request = new CompareRequest(REQUEST.lt, "", 1);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -210,6 +228,12 @@ public class RequestTest {
 		// last
 		try {
 			request = new CompareRequest(REQUEST.size, "var", 1.0);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new CompareRequest(REQUEST.lt, "", 1.0);
 			fail("Should have raized an exception due to incorrect argument");
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
@@ -243,6 +267,12 @@ public class RequestTest {
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
 		}
+		try {
+			request = new CompareRequest(REQUEST.lt, "", "val");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -260,6 +290,12 @@ public class RequestTest {
 		// last
 		try {
 			request = new SearchRequest(REQUEST.size, "var", "val");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new SearchRequest(REQUEST.search, "", "val");
 			fail("Should have raized an exception due to incorrect argument");
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
@@ -296,6 +332,12 @@ public class RequestTest {
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
 		}
+		try {
+			request = new MatchRequest(REQUEST.match, "", "val");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
 	}
 	@Test
 	public void testRequestIn() {
@@ -328,6 +370,30 @@ public class RequestTest {
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
 		}
+		try {
+			request = new InRequest(REQUEST.in, "", true);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new InRequest(REQUEST.in, "", 1);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new InRequest(REQUEST.in, "", 1.0);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new InRequest(REQUEST.in, "", "val");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
 	}
 	@Test
 	public void testRequestMlt() {
@@ -344,6 +410,12 @@ public class RequestTest {
 		// last
 		try {
 			request = new MltRequest(REQUEST.size, "var", "val");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new MltRequest(REQUEST.mlt, "", "val");
 			fail("Should have raized an exception due to incorrect argument");
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
@@ -373,6 +445,12 @@ public class RequestTest {
 		// last
 		try {
 			request = new CompareRequest(REQUEST.size, "var", true);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new CompareRequest(REQUEST.lt, "", true);
 			fail("Should have raized an exception due to incorrect argument");
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
@@ -465,6 +543,13 @@ public class RequestTest {
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);
 		}
+		try {
+			@SuppressWarnings("unused")
+			MltRequest request = new MltRequest(REQUEST.mlt, "", "val1", "val2");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -488,6 +573,12 @@ public class RequestTest {
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
+		}
+		try {
+			request = new TermRequest("", "val1");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
 		}
 	}
 
@@ -532,6 +623,12 @@ public class RequestTest {
 		}
 		try {
 			request = new RangeRequest("var", REQUEST.gt, 1, REQUEST.not, 2);
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+		try {
+			request = new RangeRequest("", REQUEST.gt, 1, REQUEST.lt, 2);
 			fail("Should have raized an exception due to incorrect argument");
 		} catch (InvalidCreateOperationException e) {
 			assertNotNull(e);

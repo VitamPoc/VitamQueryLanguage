@@ -50,6 +50,8 @@ public class UpdateTest {
 			update.addActions(new SetAction("varname8", "val").addSetAction("varname9", 1));
 			update.addActions(new UnsetAction("varname10", "varname11").addUnSetAction("varname12"));
 			assertEquals(8, update.actions.size());
+			update.resetAction();
+			assertEquals(0, update.actions.size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -65,6 +67,8 @@ public class UpdateTest {
 			update.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
 			update.addRequests(new PathRequest("path3"));
 			assertEquals(4, update.requests.size());
+			update.resetRequests();
+			assertEquals(0, update.requests.size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

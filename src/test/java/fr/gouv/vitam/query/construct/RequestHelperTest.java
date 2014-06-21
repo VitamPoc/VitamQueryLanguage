@@ -174,6 +174,8 @@ public class RequestHelperTest {
 			assertTrue(request.isReady());
 			request = RequestHelper.matchPhrasePrefix("var", "value");
 			assertTrue(request.isReady());
+			request = RequestHelper.prefix("var", "value");
+			assertTrue(request.isReady());
 			request = RequestHelper.regex("var", "value");
 			assertTrue(request.isReady());
 			request = RequestHelper.search("var", "value");

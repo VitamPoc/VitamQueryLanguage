@@ -134,6 +134,21 @@ public class UUIDTest {
     }
     
     @Test
+    public void testMultipleUuid() {
+    	UUID id1 = new UUID();
+    	UUID id2 = new UUID();
+    	UUID id3 = new UUID();
+    	String ids = UUID.assembleUuids(id1, id2, id3);
+    	assertTrue(UUID.isMultipleUUID(ids));
+    	assertFalse(UUID.isMultipleUUID(id1.toString()));
+    	assertEquals(id1, UUID.getFirst(ids));
+    	assertEquals(id3, UUID.getLast(ids));
+    	assertEquals(id2, UUID.getUuids(ids)[1]);
+    	assertEquals(3, UUID.getUuidNb(ids));
+    	assertEquals(id1.toString(), UUID.getFirstAsString(ids));
+    	assertEquals(id3.toString(), UUID.getLastAsString(ids));
+    }
+    @Test
     public void testPIDField() throws Exception {
         UUID id = new UUID();
 

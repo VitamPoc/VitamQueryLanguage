@@ -88,6 +88,33 @@ public class MdEsQueryParserTest {
 			fail(e.getMessage());
 		}
 	}
+	
+	@Test
+	public void testArrayParse() {
+		MdEsQueryParser command1 = new MdEsQueryParser(true);
+		try {
+			command1.parse("[{ $path : [ 'id1', 'id2'] },{},{}]");
+			assertNotNull(command1);
+			assertTrue(command1.projection == null);
+			assertTrue(command1.getOrderBy() == null);
+			assertTrue(command1.getRequests().size() == 1);
+			command1 = new MdEsQueryParser(true);
+			command1.parse("[[ { $path : [ 'id1', 'id2'] },"+
+					"{ $nin : { 'mavar5' : ['maval2', true] } } ],"
+					+ "{$offset : 100, $limit : 1000, $hint : ['cache'], $orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 }},"
+					+ "{$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' }]");
+			assertEquals(2, command1.projection.size());
+			assertEquals(3, command1.getOrderBy().size());
+			for (TypeRequest req : command1.getRequests()) {
+				System.out.println(req);
+			}
+			assertEquals(2, command1.getRequests().size());
+
+		} catch (InvalidParseOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 
 	@Test
 	public void testFilterParse() {

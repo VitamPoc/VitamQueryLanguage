@@ -33,6 +33,9 @@ public class QueryTest {
 		query.setLimitFilter(1, 1);
 		assertTrue(query.filter.has(REQUESTFILTER.limit.exactToken()));
 		assertTrue(query.filter.has(REQUESTFILTER.offset.exactToken()));
+		query.resetLimitFilter();
+		assertFalse(query.filter.has(REQUESTFILTER.limit.exactToken()));
+		assertFalse(query.filter.has(REQUESTFILTER.offset.exactToken()));
 	}
 
 	@Test
@@ -45,6 +48,8 @@ public class QueryTest {
 		query.addHintFilter(FILTERARGS.nocache.exactToken());
 		assertTrue(query.filter.has(REQUESTFILTER.hint.exactToken()));
 		assertEquals(2, query.filter.get(REQUESTFILTER.hint.exactToken()).size());
+		query.resetHintFilter();
+		assertFalse(query.filter.has(REQUESTFILTER.hint.exactToken()));
 	}
 
 	@Test
@@ -59,6 +64,8 @@ public class QueryTest {
 		assertEquals(4, query.filter.get(REQUESTFILTER.orderby.exactToken()).size());
 		query.addOrderByDescFilter("var3").addOrderByDescFilter("var4");
 		assertEquals(4, query.filter.get(REQUESTFILTER.orderby.exactToken()).size());
+		query.resetOrderByFilter();
+		assertFalse(query.filter.has(REQUESTFILTER.orderby.exactToken()));
 	}
 
 	@Test
@@ -74,6 +81,8 @@ public class QueryTest {
 		assertEquals(4, query.projection.get(PROJECTION.fields.exactToken()).size());
 		query.addUnusedProjection("var3").addUnusedProjection("var4");
 		assertEquals(4, query.projection.get(PROJECTION.fields.exactToken()).size());
+		query.resetUsedProjection();
+		assertFalse(query.projection.has(PROJECTION.fields.exactToken()));
 	}
 
 	@Test
@@ -82,6 +91,8 @@ public class QueryTest {
 		assertNull(query.projection);
 		query.setUsageProjection("usage");
 		assertTrue(query.projection.has(PROJECTION.usage.exactToken()));
+		query.resetUsageProjection();
+		assertFalse(query.projection.has(PROJECTION.usage.exactToken()));
 	}
 
 	@Test
@@ -92,7 +103,7 @@ public class QueryTest {
 			query.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA")).setRelativeDepthLimit(5));
 			query.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
 			query.addRequests(new PathRequest("path3"));
-			assertEquals(4, query.requests.size());
+			assertEquals(4, query.getRequests().size());
 			query.setLimitFilter(10, 10);
 			query.addHintFilter(FILTERARGS.cache.exactToken());
 			query.addOrderByAscFilter("var1").addOrderByDescFilter("var2");
@@ -100,6 +111,8 @@ public class QueryTest {
 			query.setUsageProjection("usageId");
 			ObjectNode node = query.getFinalQuery();
 			assertEquals(3, node.size());
+			query.resetRequests();
+			assertEquals(0, query.getRequests().size());
 		} catch (InvalidCreateOperationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
