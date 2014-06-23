@@ -21,6 +21,8 @@
 package fr.gouv.vitam.mdbtypes;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,9 +54,18 @@ public class ResultCached extends VitamType {
 	public long nbSubNodes = -1;
 	public boolean loaded = false;
 	
-	/* (non-Javadoc)
-	 * @see java.util.LinkedHashMap#clear()
-	 */
+	public ResultCached() {
+		
+	}
+	
+	public ResultCached(Collection<String> collection) {
+		currentMaip.addAll(collection);
+		updateMinMax();
+		// Path list so as loaded (never cached)
+		loaded = true;
+		putBeforeSave();
+	}
+	
 	@Override
 	public void clear() {
 		super.clear();
@@ -200,6 +211,58 @@ public class ResultCached extends VitamType {
 				maxLevel = level;
 			}
 		}
+	}
+	
+	/**
+	 * @param mdAccess if null, this method returns always True (simulate)
+	 * @param next
+	 * @return True if this contains ancestors for next current
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public boolean checkAncestor(MongoDbAccess mdAccess, ResultCached next) throws InstantiationException, IllegalAccessException {
+		if (mdAccess == null) {
+			return true;
+		}
+		Set<String> previousLastSet = new HashSet<String>();
+		// Compute last Id from previous result
+		for (String id : currentMaip) {
+			previousLastSet.add(UUID.getLastAsString(id));
+		}
+		Map<String, List<String>> nextFirstMap = new HashMap<String, List<String>>();
+		// Compute first Id from current result
+		for (String id : next.currentMaip) {
+			List<String> list = nextFirstMap.get(UUID.getFirstAsString(id));
+			if (list == null) {
+				list = new ArrayList<String>();
+				nextFirstMap.put(UUID.getFirstAsString(id),list);
+			}
+			list.add(id);
+		}
+		Map<String, List<String>> newMap = new HashMap<String, List<String>>(nextFirstMap);
+		for (String id : nextFirstMap.keySet()) {
+			DAip aip = DAip.findOne(mdAccess, id);
+			if (aip == null) {
+				continue;
+			}
+			Map<String, Integer> fathers = aip.getDomDepth();
+			Set<String> fathersIds = fathers.keySet();
+			// Check that parents of First Ids of Current result contains Last Ids from Previous result
+			fathersIds.retainAll(previousLastSet);
+			if (fathers.isEmpty()) {
+				// issue there except if First = Last
+				if (previousLastSet.contains(id)) {
+					continue;
+				}
+				newMap.remove(id);
+			}
+		}
+		next.currentMaip.clear();
+		for (List<String> list : newMap.values()) {
+			next.currentMaip.addAll(list);
+		}
+		next.putBeforeSave();
+		return ! next.currentMaip.isEmpty();
 	}
 	
 	public static void addIndexes(MongoDbAccess dbvitam) {

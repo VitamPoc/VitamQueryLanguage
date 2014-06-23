@@ -51,8 +51,8 @@ public final class GlobalDatas {
 	public static int firstLevel = 10;// was 100
 	public static int lastLevel = 1000; // was 1000
 	public static float nbr = 100; // could enhance the number of request with 1000
-	public static long waitBetweenQuery = 0;//200; // could be used to simulate Little's law, for instance = 100ms
-	public static boolean useFilter = true;
+	public static long waitBetweenQuery = 200; // could be used to simulate Little's law, for instance = 100ms
+	public static boolean useFilter = true; // Should we use filter to select from graph parents, or within query
 	public static boolean useNewNode = false;
 	public static AtomicLong cptMaip = new AtomicLong();
 	public static final String INDEXNAME = "vitamidx";

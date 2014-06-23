@@ -120,15 +120,18 @@ public class CbEsQueryParser extends EsQueryParser {
 		}
 		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
 		inEs(tr0, req, element);
-		String val = null;
+		StringBuilder bval = new StringBuilder(" [ ");
+		boolean notFirst = false;
 		for (JsonNode value : element.getValue()) {
-			if (val == null) {
-				val = " [ "+value;
+			if (notFirst) {
+				bval.append(", ");
 			} else {
-				val += ", "+value;
+				notFirst = true;
 			}
+			bval.append(value);
 		}
-		tr0.requestCb = " "+element.getKey()+(req == REQUEST.nin ? " NOT IN " : " IN ")+val+"] ";
+		bval.append("] ");
+		tr0.requestCb = " "+element.getKey()+(req == REQUEST.nin ? " NOT IN " : " IN ")+bval.toString();
 	}
 
 	/**

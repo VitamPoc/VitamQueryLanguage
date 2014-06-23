@@ -189,7 +189,16 @@ public class ElasticSearchAccess {
 	public static final FilterBuilder getFilterFromString(String sfilter) {
 		return FilterBuilders.wrapperFilter(sfilter);
 	}
-	
+	/**
+	 * 
+	 * @param indexName
+	 * @param type
+	 * @param currentNodes current parent nodes
+	 * @param subdepth (ignored)
+	 * @param condition
+	 * @param filterCond
+	 * @return the ResultCached associated with this request. Note that the exact depth is not checked, so it must be checked after (using checkAncestor method)
+	 */
 	public final ResultCached getSubDepth(String indexName, String type, String []currentNodes, int subdepth, QueryBuilder condition, FilterBuilder filterCond) {
 		QueryBuilder query = null;
 		FilterBuilder filter = null;

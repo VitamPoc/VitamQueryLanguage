@@ -22,7 +22,6 @@ package fr.gouv.vitam.query.exec;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +75,7 @@ public class DbRequest {
 	public DbRequest() {
 		this.debug = true;
 		this.simulate = true;
+		this.mdAccess = null;
 	}
 	/**
 	 * @param debug the debug to set
@@ -91,15 +91,6 @@ public class DbRequest {
 		this.simulate = simulate;
 	}
 
-	private static final ResultCached createPathEntry(Collection<String> collection) {
-		ResultCached path = new ResultCached();
-		path.currentMaip.addAll(collection);
-		path.updateMinMax();
-		// Path list so as loaded (never cached)
-		path.loaded = true;
-		path.putBeforeSave();
-		return path;
-	}
 	private static final void computeKey(StringBuilder curId, String source) {
 		curId.append('{');
 		curId.append(source);
@@ -197,7 +188,7 @@ public class DbRequest {
 				// ignore previous steps since results already known
 				curId.setLength(0);
 				computeKey(curId, query.getSources().get(rank));
-				ResultCached start = createPathEntry(subrequest.refId);
+				ResultCached start = new ResultCached(subrequest.refId);
 				start.setId(curId.toString()+orderBy);
 				lastCacheRank = rank;
 				list.add(start);
@@ -252,57 +243,6 @@ public class DbRequest {
 	}
 
 	/**
-	 * 
-	 * @param previous
-	 * @param next
-	 * @return True if previous contains ancestors for next current
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 */
-	private final boolean checkAncestor(ResultCached previous, ResultCached next) throws InstantiationException, IllegalAccessException {
-		if (simulate) {
-			return true;
-		}
-		Set<String> previousLastSet = new HashSet<String>();
-		// Compute last Id from previous result
-		for (String id : previous.currentMaip) {
-			previousLastSet.add(UUID.getLastAsString(id));
-		}
-		Map<String, List<String>> nextFirstMap = new HashMap<String, List<String>>();
-		// Compute first Id from current result
-		for (String id : next.currentMaip) {
-			List<String> list = nextFirstMap.get(UUID.getFirstAsString(id));
-			if (list == null) {
-				list = new ArrayList<String>();
-				nextFirstMap.put(UUID.getFirstAsString(id),list);
-			}
-			list.add(id);
-		}
-		Map<String, List<String>> newMap = new HashMap<String, List<String>>(nextFirstMap);
-		for (String id : nextFirstMap.keySet()) {
-			DAip aip = DAip.findOne(mdAccess, id);
-			if (aip == null) {
-				continue;
-			}
-			Map<String, Integer> fathers = aip.getDomDepth();
-			Set<String> fathersIds = fathers.keySet();
-			// Check that parents of First Ids of Current result contains Last Ids from Previous result
-			fathersIds.retainAll(previousLastSet);
-			if (fathers.isEmpty()) {
-				// issue there except if First = Last
-				if (previousLastSet.contains(id)) {
-					continue;
-				}
-				newMap.remove(id);
-			}
-		}
-		next.currentMaip.clear();
-		for (List<String> list : newMap.values()) {
-			next.currentMaip.addAll(list);
-		}
-		return ! next.currentMaip.isEmpty();
-	}
-	/**
 	 * Execute one request
 	 * @param request
 	 * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
@@ -315,9 +255,9 @@ public class DbRequest {
 			throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
 		if (request.refId != null && ! request.refId.isEmpty()) {
 			// path command
-			ResultCached result = createPathEntry(request.refId);
+			ResultCached result = new ResultCached(request.refId);
 			// now check if path is a correct successor of previous result
-			if (! checkAncestor(previous, result)) {
+			if (! previous.checkAncestor(mdAccess, result)) {
 				// issue since this path refers to incorrect successor
 				return null;
 			}
@@ -377,7 +317,7 @@ public class DbRequest {
 		cursor.close();
 		newResult.nbSubNodes = tempCount;
 		// filter on Ancestor
-		if (! checkAncestor(previous, newResult)) {
+		if (! previous.checkAncestor(mdAccess, newResult)) {
 			return null;
 		}
 		// Compute of MinMax if valid since path = 1 length (root)
@@ -420,7 +360,7 @@ public class DbRequest {
 					mdAccess.es.getSubDepth(indexName, typeName, aroots, 1, query, filter);
 			if (subresult != null && ! subresult.isEmpty()) {
 				// filter on Ancestor
-				if (! checkAncestor(previous, subresult)) {
+				if (! previous.checkAncestor(mdAccess, subresult)) {
 					return null;
 				}
 				// Not updateMinMax since result is not "valid" path but node UUID and not needed
@@ -480,7 +420,7 @@ public class DbRequest {
 		cursor.close();
 		subresult.nbSubNodes = tempCount;
 		// filter on Ancestor
-		if (! checkAncestor(previous, subresult)) {
+		if (! previous.checkAncestor(mdAccess, subresult)) {
 			return null;
 		}
 		// Not updateMinMax since result is not "valid" path but node UUID and not needed
@@ -523,7 +463,7 @@ public class DbRequest {
 				mdAccess.es.getSubDepth(indexName, typeName, aroots, subdepth, query, filter);
 		if (subresult != null && ! subresult.isEmpty()) {
 			// filter on Ancestor
-			if (! checkAncestor(previous, subresult)) {
+			if (! previous.checkAncestor(mdAccess, subresult)) {
 				return null;
 			}
 			subresult.updateLoadMinMax(mdAccess);
@@ -574,7 +514,9 @@ public class DbRequest {
 		Set<String> current = new HashSet<String>();
 		Set<String> parents = new HashSet<String>();
 		ResultCached result = results.get(results.size()-1);
-		// XXX FIXME should check if empty before !
+		if (result.currentMaip.isEmpty()) {
+			return null;
+		}
 		if (UUID.isMultipleUUID(result.currentMaip.iterator().next())) {
 			return result;
 		}
@@ -584,7 +526,9 @@ public class DbRequest {
 		if (simulate) {
 	 		for (int rank = results.size()-2; rank >= 0; rank --) {
 				result = results.get(rank);
-				// XXX FIXME should check if empty before !
+				if (result.currentMaip.isEmpty()) {
+					return null;
+				}
 				boolean futureStop = (UUID.isMultipleUUID(result.currentMaip.iterator().next()));
 				futureStop |= result.maxLevel == 1;
 				current.addAll(paths);
@@ -619,7 +563,9 @@ public class DbRequest {
 		}
  		for (int rank = results.size()-2; rank >= 0; rank --) {
 			result = results.get(rank);
-			// XXX FIXME should check if empty before !
+			if (result.currentMaip.isEmpty()) {
+				return null;
+			}
 			boolean futureStop = (UUID.isMultipleUUID(result.currentMaip.iterator().next()));
 			futureStop |= result.maxLevel == 1;
 			current.addAll(paths);

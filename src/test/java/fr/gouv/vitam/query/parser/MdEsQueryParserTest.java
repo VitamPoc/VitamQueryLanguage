@@ -105,9 +105,6 @@ public class MdEsQueryParserTest {
 					+ "{$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' }]");
 			assertEquals(2, command1.projection.size());
 			assertEquals(3, command1.getOrderBy().size());
-			for (TypeRequest req : command1.getRequests()) {
-				System.out.println(req);
-			}
 			assertEquals(2, command1.getRequests().size());
 
 		} catch (InvalidParseOperationException e) {
