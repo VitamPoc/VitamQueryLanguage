@@ -23,25 +23,25 @@ package fr.gouv.vitam.query.exception;
  */
 public class InvalidParseOperationException extends Exception {
 
-	private static final long serialVersionUID = -2365283080814579299L;
+    private static final long serialVersionUID = -2365283080814579299L;
 
-	public InvalidParseOperationException() {
-	}
+    public InvalidParseOperationException() {
+    }
 
-	public InvalidParseOperationException(String arg0) {
-		super(arg0);
-	}
+    public InvalidParseOperationException(String arg0) {
+        super(arg0);
+    }
 
-	public InvalidParseOperationException(Throwable arg0) {
-		super(arg0);
-	}
+    public InvalidParseOperationException(Throwable arg0) {
+        super(arg0);
+    }
 
-	public InvalidParseOperationException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    public InvalidParseOperationException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
-	public InvalidParseOperationException(String arg0, Throwable arg1, boolean arg2, boolean arg3) {
-		super(arg0, arg1, arg2, arg3);
-	}
+    public InvalidParseOperationException(String arg0, Throwable arg1, boolean arg2, boolean arg3) {
+        super(arg0, arg1, arg2, arg3);
+    }
 
 }

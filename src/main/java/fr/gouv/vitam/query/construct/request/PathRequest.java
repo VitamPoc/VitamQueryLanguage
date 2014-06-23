@@ -27,44 +27,44 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class PathRequest extends Request {
-	/**
-	 * Path Request constructor
-	 * @param pathes
-	 * @throws InvalidCreateOperationException
-	 */
-	public PathRequest(String ... pathes) throws InvalidCreateOperationException {
-		super();
-		createRequestArray(REQUEST.path);
-		ArrayNode array = ((ArrayNode) currentObject);
-		for (String elt : pathes) {
-			if (elt == null || elt.trim().isEmpty()) {
-				continue;
-			}
-			array.add(elt.trim());
-		}
-		if (array.size() == 0) {
-			throw new InvalidCreateOperationException("No path to add");
-		}
-		currentREQUEST = REQUEST.path;
-		setReady(true);
-	}
-	/**
-	 * Add other paths (at end) to a PATH Request
-	 * @param pathes
-	 * @return this PathRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final PathRequest addPath(String ... pathes) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.path) {
-			throw new InvalidCreateOperationException("Path cannot be added since this is not a path query: "+currentREQUEST);			
-		}
-		ArrayNode array = ((ArrayNode) currentObject);
-		for (String elt : pathes) {
-			if (elt == null || elt.trim().isEmpty()) {
-				continue;
-			}
-			array.add(elt.trim());
-		}
-		return this;
-	}
+    /**
+     * Path Request constructor
+     * @param pathes
+     * @throws InvalidCreateOperationException
+     */
+    public PathRequest(String ... pathes) throws InvalidCreateOperationException {
+        super();
+        createRequestArray(REQUEST.path);
+        ArrayNode array = ((ArrayNode) currentObject);
+        for (String elt : pathes) {
+            if (elt == null || elt.trim().isEmpty()) {
+                continue;
+            }
+            array.add(elt.trim());
+        }
+        if (array.size() == 0) {
+            throw new InvalidCreateOperationException("No path to add");
+        }
+        currentREQUEST = REQUEST.path;
+        setReady(true);
+    }
+    /**
+     * Add other paths (at end) to a PATH Request
+     * @param pathes
+     * @return this PathRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final PathRequest addPath(String ... pathes) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.path) {
+            throw new InvalidCreateOperationException("Path cannot be added since this is not a path query: "+currentREQUEST);            
+        }
+        ArrayNode array = ((ArrayNode) currentObject);
+        for (String elt : pathes) {
+            if (elt == null || elt.trim().isEmpty()) {
+                continue;
+            }
+            array.add(elt.trim());
+        }
+        return this;
+    }
 }

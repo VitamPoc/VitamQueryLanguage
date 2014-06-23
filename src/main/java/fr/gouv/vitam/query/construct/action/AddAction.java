@@ -27,133 +27,133 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class AddAction extends Action {
-	/**
-	 * Add Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public AddAction(String variableName, String ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.add, variableName);
-		for (String val : value) {
-			if (val != null && ! val.trim().isEmpty()) {
-				((ArrayNode) currentObject).add(val.trim());
-			}
-		}
-		currentUPDATE = UPDATE.add;
-		setReady(true);
-	}
-	/**
-	 * Add Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public AddAction(String variableName, long ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.add, variableName);
-		for (long val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		currentUPDATE = UPDATE.add;
-		setReady(true);
-	}
-	/**
-	 * Add Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public AddAction(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.add, variableName);
-		for (boolean val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		currentUPDATE = UPDATE.add;
-		setReady(true);
-	}
-	/**
-	 * Add Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public AddAction(String variableName, double ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.add, variableName);
-		for (double val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		currentUPDATE = UPDATE.add;
-		setReady(true);
-	}
-	/**
-	 * Add other Add sub actions to Add Request
-	 * @param variableName
-	 * @param value
-	 * @return the AddAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final AddAction addAddAction(String ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.add) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
-		}
-		for (String val : value) {
-			if (val != null && ! val.trim().isEmpty()) {
-				((ArrayNode) currentObject).add(val.trim());
-			}
-		}
-		return this;
-	}
-	/**
-	 * Add other Add sub actions to Add Request
-	 * @param variableName
-	 * @param value
-	 * @return the AddAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final AddAction addAddAction(boolean ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.add) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
-		}
-		for (boolean val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		return this;
-	}
-	/**
-	 * Add other Add sub actions to Add Request
-	 * @param variableName
-	 * @param value
-	 * @return the AddAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final AddAction addAddAction(long ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.add) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
-		}
-		for (long val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		return this;
-	}
-	/**
-	 * Add other Add sub actions to Add Request
-	 * @param variableName
-	 * @param value
-	 * @return the AddAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final AddAction addAddAction(double ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.add) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
-		}
-		for (double val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		return this;
-	}
+    /**
+     * Add Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public AddAction(String variableName, String ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.add, variableName);
+        for (String val : value) {
+            if (val != null && ! val.trim().isEmpty()) {
+                ((ArrayNode) currentObject).add(val.trim());
+            }
+        }
+        currentUPDATE = UPDATE.add;
+        setReady(true);
+    }
+    /**
+     * Add Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public AddAction(String variableName, long ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.add, variableName);
+        for (long val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        currentUPDATE = UPDATE.add;
+        setReady(true);
+    }
+    /**
+     * Add Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public AddAction(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.add, variableName);
+        for (boolean val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        currentUPDATE = UPDATE.add;
+        setReady(true);
+    }
+    /**
+     * Add Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public AddAction(String variableName, double ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.add, variableName);
+        for (double val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        currentUPDATE = UPDATE.add;
+        setReady(true);
+    }
+    /**
+     * Add other Add sub actions to Add Request
+     * @param variableName
+     * @param value
+     * @return the AddAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final AddAction addAddAction(String ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.add) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
+        }
+        for (String val : value) {
+            if (val != null && ! val.trim().isEmpty()) {
+                ((ArrayNode) currentObject).add(val.trim());
+            }
+        }
+        return this;
+    }
+    /**
+     * Add other Add sub actions to Add Request
+     * @param variableName
+     * @param value
+     * @return the AddAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final AddAction addAddAction(boolean ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.add) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
+        }
+        for (boolean val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        return this;
+    }
+    /**
+     * Add other Add sub actions to Add Request
+     * @param variableName
+     * @param value
+     * @return the AddAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final AddAction addAddAction(long ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.add) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
+        }
+        for (long val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        return this;
+    }
+    /**
+     * Add other Add sub actions to Add Request
+     * @param variableName
+     * @param value
+     * @return the AddAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final AddAction addAddAction(double ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.add) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Add Action: "+currentUPDATE);
+        }
+        for (double val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        return this;
+    }
 
 }

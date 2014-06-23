@@ -25,16 +25,16 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class RenameAction extends Action {
-	/**
-	 * Rename Action constructor
-	 * @param variableName 
-	 * @param newName
-	 * @throws InvalidCreateOperationException 
-	 */
-	public RenameAction(String variableName, String newName) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.rename, variableName, newName);
-		currentUPDATE = UPDATE.rename;
-		setReady(true);
-	}
+    /**
+     * Rename Action constructor
+     * @param variableName 
+     * @param newName
+     * @throws InvalidCreateOperationException 
+     */
+    public RenameAction(String variableName, String newName) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.rename, variableName, newName);
+        currentUPDATE = UPDATE.rename;
+        setReady(true);
+    }
 }

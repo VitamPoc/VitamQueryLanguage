@@ -45,166 +45,166 @@ import fr.gouv.vitam.query.exception.InvalidParseOperationException;
  */
 public final class JsonHandler {
 
-	public final static JsonFactory JSONFACTORY = new JsonFactory();
-	public final static ObjectMapper OBJECT_MAPPER;
-		
-	static {
-		OBJECT_MAPPER = new ObjectMapper(JSONFACTORY);
-		OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-		OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-		OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		OBJECT_MAPPER.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
-	}
-	
-	private JsonHandler() {
-	}
-	
-	/**
-	 * 
-	 * @return an empty ObjectNode
-	 */
-	public static final ObjectNode createObjectNode() {
-		return OBJECT_MAPPER.createObjectNode();
-	}
-	
-	/**
-	 * @return an empty ArrayNode
-	 */
-	public static final ArrayNode createArrayNode() {
-		return OBJECT_MAPPER.createArrayNode();
-	}
-	
-	/**
-	 * 
-	 * @param value
-	 * @return the jsonNode (ObjectNode or ArrayNode)
-	 * @throws InvalidParseOperationException 
-	 */
-	public static final JsonNode getFromString(String value) throws InvalidParseOperationException {
-		try {
-			return OBJECT_MAPPER.readTree(value);
-		} catch (JsonProcessingException e) {
-			throw new InvalidParseOperationException(e);
-		} catch (IOException e) {
-			throw new InvalidParseOperationException(e);
-		}
-	}
-	/**
-	 * 
-	 * @param value
-	 * @return the jsonNode (ObjectNode or ArrayNode)
-	 * @throws InvalidParseOperationException 
-	 */
-	public static final JsonNode getFromBytes(byte[] value) throws InvalidParseOperationException {
-		try {
-			return OBJECT_MAPPER.readTree(value);
-		} catch (JsonProcessingException e) {
-			throw new InvalidParseOperationException(e);
-		} catch (IOException e) {
-			throw new InvalidParseOperationException(e);
-		}
-	}
-	/**
-	 * 
-	 * @param object
-	 * @return the Json representation of the object
-	 * @throws InvalidParseOperationException 
-	 */
-	public static final String writeAsString(Object object) throws InvalidParseOperationException {
-		try {
-			return OBJECT_MAPPER.writeValueAsString(object);
-		} catch (JsonProcessingException e) {
-			throw new InvalidParseOperationException(e);
-		}
-	}
-	
-	/**
-	 * node should have only one property
-	 * @param nodeName
-	 * @param node
-	 * @return the couple property name and property value
-	 * @throws InvalidParseOperationException
-	 */
-	public static final Entry<String, JsonNode> checkUnicity(final String nodeName, final JsonNode node) throws InvalidParseOperationException {
-		if (node == null || node.isMissingNode()) {
-			throw new InvalidParseOperationException("The current Node is missing(empty): "+nodeName+":"+node);
-		}
-		if (node.isValueNode()) {
-			// not allowed
-			throw new InvalidParseOperationException("The current Node is a simple value and should not: "+nodeName+":"+node);
-		}
-		int size = node.size();
-		if (size > 1) {
-			throw new InvalidParseOperationException("More than one element in current Node: "+nodeName+":"+node);
-		}
-		if (size == 0) {
-			throw new InvalidParseOperationException("Not enough element (0) in current Node: "+nodeName+":"+node);
-		}
-		Iterator<Entry<String, JsonNode>> iterator = node.fields();
-		return iterator.next();
-	}
-	/**
-	 * node should have only one property ; simple value is allowed
-	 * @param nodeName
-	 * @param node
-	 * @return the couple property name and property value
-	 * @throws InvalidParseOperationException
-	 */
-	public static final Entry<String, JsonNode> checkLaxUnicity(final String nodeName, final JsonNode node) throws InvalidParseOperationException {
-		if (node == null || node.isMissingNode()) {
-			throw new InvalidParseOperationException("The current Node is missing(empty): "+nodeName+":"+node);
-		}
-		if (node.isValueNode()) {
-			// already one node
-			return new Entry<String, JsonNode>() {
-				public JsonNode setValue(JsonNode value) {
-					throw new IllegalArgumentException("Cannot set Value");
-				}
-				public JsonNode getValue() {
-					return node;
-				}
-				public String getKey() {
-					return null;
-				}
-			};
-		}
-		int size = node.size();
-		if (size > 1) {
-			throw new InvalidParseOperationException("More than one element in current Node: "+nodeName+":"+node);
-		}
-		if (size == 0) {
-			throw new InvalidParseOperationException("Not enough element (0) in current Node: "+nodeName+":"+node);
-		}
-		Iterator<Entry<String, JsonNode>> iterator = node.fields();
-		return iterator.next();
-	}
-	
-	/**
-	 * 
-	 * @param value
-	 * @return the corresponding HashMap
-	 * @throws InvalidParseOperationException 
-	 */
-	public static final Map<String, Object> getMapFromString(String value) throws InvalidParseOperationException {
-		if (value != null && ! value.isEmpty()) {
-			Map<String, Object> info = null;
-			try {
-				info = OBJECT_MAPPER.readValue(value, new TypeReference<Map<String, Object>>() {});
-			} catch (JsonParseException e) {
-				throw new InvalidParseOperationException(e);
-			} catch (JsonMappingException e) {
-				throw new InvalidParseOperationException(e);
-			} catch (IOException e) {
-				throw new InvalidParseOperationException(e);
-			}
-			if (info == null) {
-				info = new HashMap<String, Object>();
-			}
-			return info;
-		} else {
-			return new HashMap<String, Object>();
-		}
-	}
-	
-	
+    public final static JsonFactory JSONFACTORY = new JsonFactory();
+    public final static ObjectMapper OBJECT_MAPPER;
+        
+    static {
+        OBJECT_MAPPER = new ObjectMapper(JSONFACTORY);
+        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        OBJECT_MAPPER.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+    }
+    
+    private JsonHandler() {
+    }
+    
+    /**
+     * 
+     * @return an empty ObjectNode
+     */
+    public static final ObjectNode createObjectNode() {
+        return OBJECT_MAPPER.createObjectNode();
+    }
+    
+    /**
+     * @return an empty ArrayNode
+     */
+    public static final ArrayNode createArrayNode() {
+        return OBJECT_MAPPER.createArrayNode();
+    }
+    
+    /**
+     * 
+     * @param value
+     * @return the jsonNode (ObjectNode or ArrayNode)
+     * @throws InvalidParseOperationException 
+     */
+    public static final JsonNode getFromString(String value) throws InvalidParseOperationException {
+        try {
+            return OBJECT_MAPPER.readTree(value);
+        } catch (JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        } catch (IOException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+    /**
+     * 
+     * @param value
+     * @return the jsonNode (ObjectNode or ArrayNode)
+     * @throws InvalidParseOperationException 
+     */
+    public static final JsonNode getFromBytes(byte[] value) throws InvalidParseOperationException {
+        try {
+            return OBJECT_MAPPER.readTree(value);
+        } catch (JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        } catch (IOException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+    /**
+     * 
+     * @param object
+     * @return the Json representation of the object
+     * @throws InvalidParseOperationException 
+     */
+    public static final String writeAsString(Object object) throws InvalidParseOperationException {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+    
+    /**
+     * node should have only one property
+     * @param nodeName
+     * @param node
+     * @return the couple property name and property value
+     * @throws InvalidParseOperationException
+     */
+    public static final Entry<String, JsonNode> checkUnicity(final String nodeName, final JsonNode node) throws InvalidParseOperationException {
+        if (node == null || node.isMissingNode()) {
+            throw new InvalidParseOperationException("The current Node is missing(empty): "+nodeName+":"+node);
+        }
+        if (node.isValueNode()) {
+            // not allowed
+            throw new InvalidParseOperationException("The current Node is a simple value and should not: "+nodeName+":"+node);
+        }
+        int size = node.size();
+        if (size > 1) {
+            throw new InvalidParseOperationException("More than one element in current Node: "+nodeName+":"+node);
+        }
+        if (size == 0) {
+            throw new InvalidParseOperationException("Not enough element (0) in current Node: "+nodeName+":"+node);
+        }
+        Iterator<Entry<String, JsonNode>> iterator = node.fields();
+        return iterator.next();
+    }
+    /**
+     * node should have only one property ; simple value is allowed
+     * @param nodeName
+     * @param node
+     * @return the couple property name and property value
+     * @throws InvalidParseOperationException
+     */
+    public static final Entry<String, JsonNode> checkLaxUnicity(final String nodeName, final JsonNode node) throws InvalidParseOperationException {
+        if (node == null || node.isMissingNode()) {
+            throw new InvalidParseOperationException("The current Node is missing(empty): "+nodeName+":"+node);
+        }
+        if (node.isValueNode()) {
+            // already one node
+            return new Entry<String, JsonNode>() {
+                public JsonNode setValue(JsonNode value) {
+                    throw new IllegalArgumentException("Cannot set Value");
+                }
+                public JsonNode getValue() {
+                    return node;
+                }
+                public String getKey() {
+                    return null;
+                }
+            };
+        }
+        int size = node.size();
+        if (size > 1) {
+            throw new InvalidParseOperationException("More than one element in current Node: "+nodeName+":"+node);
+        }
+        if (size == 0) {
+            throw new InvalidParseOperationException("Not enough element (0) in current Node: "+nodeName+":"+node);
+        }
+        Iterator<Entry<String, JsonNode>> iterator = node.fields();
+        return iterator.next();
+    }
+    
+    /**
+     * 
+     * @param value
+     * @return the corresponding HashMap
+     * @throws InvalidParseOperationException 
+     */
+    public static final Map<String, Object> getMapFromString(String value) throws InvalidParseOperationException {
+        if (value != null && ! value.isEmpty()) {
+            Map<String, Object> info = null;
+            try {
+                info = OBJECT_MAPPER.readValue(value, new TypeReference<Map<String, Object>>() {});
+            } catch (JsonParseException e) {
+                throw new InvalidParseOperationException(e);
+            } catch (JsonMappingException e) {
+                throw new InvalidParseOperationException(e);
+            } catch (IOException e) {
+                throw new InvalidParseOperationException(e);
+            }
+            if (info == null) {
+                info = new HashMap<String, Object>();
+            }
+            return info;
+        } else {
+            return new HashMap<String, Object>();
+        }
+    }
+    
+    
 }

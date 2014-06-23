@@ -27,110 +27,110 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class RangeRequest extends Request {
-	/**
-	 * Range Query constructor
-	 * 
-	 * @param variableName
-	 * @param from gt, gte
-	 * @param valueFrom
-	 * @param to lt, lte
-	 * @param valueTo
-	 * @throws InvalidCreateOperationException 
-	 * 
-	 */
-	public RangeRequest(String variableName, REQUEST from, long valueFrom, REQUEST to, long valueTo) throws InvalidCreateOperationException {
-		super();
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
-		}
-		switch (from) {
-			case gt:
-			case gte:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+from+" is not a valid Compare Request");
-		}
-		switch (to) {
-			case lt:
-			case lte:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+to+" is not a valid Compare Request");
-		}
-		ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
-		sub.put(from.exactToken(), valueFrom);
-		sub.put(to.exactToken(), valueTo);
-		currentREQUEST = REQUEST.range;
-		setReady(true);
-	}
-	/**
-	 * Range Query constructor
-	 * 
-	 * @param variableName
-	 * @param from gt, gte
-	 * @param valueFrom
-	 * @param to lt, lte
-	 * @param valueTo
-	 * @throws InvalidCreateOperationException 
-	 */
-	public RangeRequest(String variableName, REQUEST from, double valueFrom, REQUEST to, double valueTo) throws InvalidCreateOperationException {
-		super();
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
-		}
-		switch (from) {
-			case gt:
-			case gte:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+from+" is not a valid Compare Request");
-		}
-		switch (to) {
-			case lt:
-			case lte:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+to+" is not a valid Compare Request");
-		}
-		ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
-		sub.put(from.exactToken(), valueFrom);
-		sub.put(to.exactToken(), valueTo);
-		currentREQUEST = REQUEST.range;
-		setReady(true);
-	}
-	/**
-	 * Range Query constructor
-	 * 
-	 * @param variableName
-	 * @param from gt, gte
-	 * @param valueFrom
-	 * @param to lt, lte
-	 * @param valueTo
-	 * @throws InvalidCreateOperationException 
-	 */
-	public RangeRequest(String variableName, REQUEST from, String valueFrom, REQUEST to, String valueTo) throws InvalidCreateOperationException {
-		super();
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
-		}
-		switch (from) {
-			case gt:
-			case gte:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+from+" is not a valid Compare Request");
-		}
-		switch (to) {
-			case lt:
-			case lte:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+to+" is not a valid Compare Request");
-		}
-		ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
-		sub.put(from.exactToken(), valueFrom);
-		sub.put(to.exactToken(), valueTo);
-		currentREQUEST = REQUEST.range;
-		setReady(true);
-	}
+    /**
+     * Range Query constructor
+     * 
+     * @param variableName
+     * @param from gt, gte
+     * @param valueFrom
+     * @param to lt, lte
+     * @param valueTo
+     * @throws InvalidCreateOperationException 
+     * 
+     */
+    public RangeRequest(String variableName, REQUEST from, long valueFrom, REQUEST to, long valueTo) throws InvalidCreateOperationException {
+        super();
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
+        }
+        switch (from) {
+            case gt:
+            case gte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+from+" is not a valid Compare Request");
+        }
+        switch (to) {
+            case lt:
+            case lte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+to+" is not a valid Compare Request");
+        }
+        ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
+        sub.put(from.exactToken(), valueFrom);
+        sub.put(to.exactToken(), valueTo);
+        currentREQUEST = REQUEST.range;
+        setReady(true);
+    }
+    /**
+     * Range Query constructor
+     * 
+     * @param variableName
+     * @param from gt, gte
+     * @param valueFrom
+     * @param to lt, lte
+     * @param valueTo
+     * @throws InvalidCreateOperationException 
+     */
+    public RangeRequest(String variableName, REQUEST from, double valueFrom, REQUEST to, double valueTo) throws InvalidCreateOperationException {
+        super();
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
+        }
+        switch (from) {
+            case gt:
+            case gte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+from+" is not a valid Compare Request");
+        }
+        switch (to) {
+            case lt:
+            case lte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+to+" is not a valid Compare Request");
+        }
+        ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
+        sub.put(from.exactToken(), valueFrom);
+        sub.put(to.exactToken(), valueTo);
+        currentREQUEST = REQUEST.range;
+        setReady(true);
+    }
+    /**
+     * Range Query constructor
+     * 
+     * @param variableName
+     * @param from gt, gte
+     * @param valueFrom
+     * @param to lt, lte
+     * @param valueTo
+     * @throws InvalidCreateOperationException 
+     */
+    public RangeRequest(String variableName, REQUEST from, String valueFrom, REQUEST to, String valueTo) throws InvalidCreateOperationException {
+        super();
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
+        }
+        switch (from) {
+            case gt:
+            case gte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+from+" is not a valid Compare Request");
+        }
+        switch (to) {
+            case lt:
+            case lte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+to+" is not a valid Compare Request");
+        }
+        ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
+        sub.put(from.exactToken(), valueFrom);
+        sub.put(to.exactToken(), valueTo);
+        currentREQUEST = REQUEST.range;
+        setReady(true);
+    }
 }

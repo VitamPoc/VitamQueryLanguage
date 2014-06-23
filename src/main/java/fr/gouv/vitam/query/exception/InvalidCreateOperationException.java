@@ -23,25 +23,25 @@ package fr.gouv.vitam.query.exception;
  */
 public class InvalidCreateOperationException extends Exception {
 
-	private static final long serialVersionUID = 8781463864293772663L;
+    private static final long serialVersionUID = 8781463864293772663L;
 
-	public InvalidCreateOperationException() {
-	}
+    public InvalidCreateOperationException() {
+    }
 
-	public InvalidCreateOperationException(String arg0) {
-		super(arg0);
-	}
+    public InvalidCreateOperationException(String arg0) {
+        super(arg0);
+    }
 
-	public InvalidCreateOperationException(Throwable arg0) {
-		super(arg0);
-	}
+    public InvalidCreateOperationException(Throwable arg0) {
+        super(arg0);
+    }
 
-	public InvalidCreateOperationException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    public InvalidCreateOperationException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 
-	public InvalidCreateOperationException(String arg0, Throwable arg1, boolean arg2, boolean arg3) {
-		super(arg0, arg1, arg2, arg3);
-	}
+    public InvalidCreateOperationException(String arg0, Throwable arg1, boolean arg2, boolean arg3) {
+        super(arg0, arg1, arg2, arg3);
+    }
 
 }

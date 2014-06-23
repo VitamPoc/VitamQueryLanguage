@@ -27,33 +27,33 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class UnsetAction extends Action {
-	/**
-	 * UnSet Action constructor from list of variable names
-	 * @param variableNames
-	 * @throws InvalidCreateOperationException 
-	 */
-	public UnsetAction(String ...variableNames) throws InvalidCreateOperationException {
-		super();
-		createActionVariables(UPDATE.unset, variableNames);
-		currentUPDATE = UPDATE.unset;
-		setReady(true);
-	}
-	/**
-	 * Add other UnSet sub actions to UnSet Request
-	 * @param variableNames
-	 * @return the UnSetAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final UnsetAction addUnSetAction(String ... variableNames) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.unset) {
-			throw new InvalidCreateOperationException("Cannot add an unset element since this is not a UnSet Action: "+currentUPDATE);
-		}
-		for (String name : variableNames) {
-			if (name != null && ! name.trim().isEmpty()) {
-				((ArrayNode) currentObject).add(name);
-			}
-		}
-		return this;
-	}
+    /**
+     * UnSet Action constructor from list of variable names
+     * @param variableNames
+     * @throws InvalidCreateOperationException 
+     */
+    public UnsetAction(String ...variableNames) throws InvalidCreateOperationException {
+        super();
+        createActionVariables(UPDATE.unset, variableNames);
+        currentUPDATE = UPDATE.unset;
+        setReady(true);
+    }
+    /**
+     * Add other UnSet sub actions to UnSet Request
+     * @param variableNames
+     * @return the UnSetAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final UnsetAction addUnSetAction(String ... variableNames) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.unset) {
+            throw new InvalidCreateOperationException("Cannot add an unset element since this is not a UnSet Action: "+currentUPDATE);
+        }
+        for (String name : variableNames) {
+            if (name != null && ! name.trim().isEmpty()) {
+                ((ArrayNode) currentObject).add(name);
+            }
+        }
+        return this;
+    }
 
 }

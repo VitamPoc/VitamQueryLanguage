@@ -26,22 +26,22 @@ package fr.gouv.vitam.cdbtypes;
  */
 public class Result extends VitamType {
 
-	@Override
-	public void save(MongoDbAccess dbvitam) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void save(MongoDbAccess dbvitam) {
+        // TODO Auto-generated method stub
+        
+    }
 
-	@Override
-	public boolean updated(MongoDbAccess dbvitam) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean updated(MongoDbAccess dbvitam) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public void load(MongoDbAccess dbvitam) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void load(MongoDbAccess dbvitam) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

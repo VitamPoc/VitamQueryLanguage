@@ -25,24 +25,24 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class ExistsRequest extends Request {
-	/**
-	 * Exists, Missing, IsNull Request constructor
-	 * @param existsRequest exists, missing, isNull
-	 * @param variableName
-	 * @throws InvalidCreateOperationException 
-	 */
-	public ExistsRequest(REQUEST existsRequest, String variableName) throws InvalidCreateOperationException {
-		super();
-		switch (existsRequest) {
-			case exists:
-			case isNull:
-			case missing:
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+existsRequest+" is not an Exists/Missing/IsNull Request");
-		}
-		createRequestVariable(existsRequest, variableName);
-		currentREQUEST = existsRequest;
-		setReady(true);
-	}
+    /**
+     * Exists, Missing, IsNull Request constructor
+     * @param existsRequest exists, missing, isNull
+     * @param variableName
+     * @throws InvalidCreateOperationException 
+     */
+    public ExistsRequest(REQUEST existsRequest, String variableName) throws InvalidCreateOperationException {
+        super();
+        switch (existsRequest) {
+            case exists:
+            case isNull:
+            case missing:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+existsRequest+" is not an Exists/Missing/IsNull Request");
+        }
+        createRequestVariable(existsRequest, variableName);
+        currentREQUEST = existsRequest;
+        setReady(true);
+    }
 }

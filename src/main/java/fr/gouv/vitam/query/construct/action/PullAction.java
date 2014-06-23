@@ -25,25 +25,25 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class PullAction extends Action {
-	/**
-	 * Pull Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public PullAction(String variableName, long value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.pull, variableName, value);
-		currentUPDATE = UPDATE.pull;
-		setReady(true);
-	}
-	/**
-	 * Pull Action constructor from variable name only (value to 1)
-	 * @param variableName
-	 * @throws InvalidCreateOperationException 
-	 */
-	public PullAction(String variableName) throws InvalidCreateOperationException {
-		this(variableName, 1);
-	}
+    /**
+     * Pull Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public PullAction(String variableName, long value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.pull, variableName, value);
+        currentUPDATE = UPDATE.pull;
+        setReady(true);
+    }
+    /**
+     * Pull Action constructor from variable name only (value to 1)
+     * @param variableName
+     * @throws InvalidCreateOperationException 
+     */
+    public PullAction(String variableName) throws InvalidCreateOperationException {
+        this(variableName, 1);
+    }
 
 }

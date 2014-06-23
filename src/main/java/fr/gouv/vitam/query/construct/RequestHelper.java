@@ -37,175 +37,175 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public final class RequestHelper {
-	private RequestHelper() {
-		// empty
-	}
-	public static final PathRequest path(String ...pathes) throws InvalidCreateOperationException {
-		return new PathRequest(pathes);
-	}
-	public static final BooleanRequest and() throws InvalidCreateOperationException {
-		return new BooleanRequest(REQUEST.and);
-	}
-	public static final BooleanRequest or() throws InvalidCreateOperationException {
-		return new BooleanRequest(REQUEST.or);
-	}
-	public static final BooleanRequest not() throws InvalidCreateOperationException {
-		return new BooleanRequest(REQUEST.not);
-	}
-	public static final BooleanRequest nor() throws InvalidCreateOperationException {
-		return new BooleanRequest(REQUEST.nor);
-	}
-	public static final CompareRequest eq(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.eq, variableName, value);
-	}
-	public static final CompareRequest eq(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.eq, variableName, value);
-	}
-	public static final CompareRequest eq(String variableName, double value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.eq, variableName, value);
-	}
-	public static final CompareRequest eq(String variableName, String value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.eq, variableName, value);
-	}
-	public static final CompareRequest ne(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.ne, variableName, value);
-	}
-	public static final CompareRequest ne(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.ne, variableName, value);
-	}
-	public static final CompareRequest ne(String variableName, double value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.ne, variableName, value);
-	}
-	public static final CompareRequest ne(String variableName, String value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.ne, variableName, value);
-	}
-	public static final CompareRequest lt(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lt, variableName, value);
-	}
-	public static final CompareRequest lt(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lt, variableName, value);
-	}
-	public static final CompareRequest lt(String variableName, double value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lt, variableName, value);
-	}
-	public static final CompareRequest lt(String variableName, String value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lt, variableName, value);
-	}
-	public static final CompareRequest lte(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lte, variableName, value);
-	}
-	public static final CompareRequest lte(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lte, variableName, value);
-	}
-	public static final CompareRequest lte(String variableName, double value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lte, variableName, value);
-	}
-	public static final CompareRequest lte(String variableName, String value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.lte, variableName, value);
-	}
-	public static final CompareRequest gt(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gt, variableName, value);
-	}
-	public static final CompareRequest gt(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gt, variableName, value);
-	}
-	public static final CompareRequest gt(String variableName, double value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gt, variableName, value);
-	}
-	public static final CompareRequest gt(String variableName, String value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gt, variableName, value);
-	}
-	public static final CompareRequest gte(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gte, variableName, value);
-	}
-	public static final CompareRequest gte(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gte, variableName, value);
-	}
-	public static final CompareRequest gte(String variableName, double value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gte, variableName, value);
-	}
-	public static final CompareRequest gte(String variableName, String value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.gte, variableName, value);
-	}
-	public static final CompareRequest size(String variableName, long value) throws InvalidCreateOperationException {
-		return new CompareRequest(REQUEST.size, variableName, value);
-	}
-	public static final ExistsRequest exists(String variableName) throws InvalidCreateOperationException {
-		return new ExistsRequest(REQUEST.exists, variableName);
-	}
-	public static final ExistsRequest missing(String variableName) throws InvalidCreateOperationException {
-		return new ExistsRequest(REQUEST.missing, variableName);
-	}
-	public static final ExistsRequest isNull(String variableName) throws InvalidCreateOperationException {
-		return new ExistsRequest(REQUEST.isNull, variableName);
-	}
-	public static final InRequest in(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.in, variableName, value);
-	}
-	public static final InRequest in(String variableName, long ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.in, variableName, value);
-	}
-	public static final InRequest in(String variableName, double ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.in, variableName, value);
-	}
-	public static final InRequest in(String variableName, String ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.in, variableName, value);
-	}
-	public static final InRequest nin(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.nin, variableName, value);
-	}
-	public static final InRequest nin(String variableName, long ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.nin, variableName, value);
-	}
-	public static final InRequest nin(String variableName, double ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.nin, variableName, value);
-	}
-	public static final InRequest nin(String variableName, String ...value) throws InvalidCreateOperationException {
-		return new InRequest(REQUEST.nin, variableName, value);
-	}
-	public static final MatchRequest match(String variableName, String value) throws InvalidCreateOperationException {
-		return new MatchRequest(REQUEST.match, variableName, value);
-	}
-	public static final MatchRequest matchPhrase(String variableName, String value) throws InvalidCreateOperationException {
-		return new MatchRequest(REQUEST.match_phrase, variableName, value);
-	}
-	public static final MatchRequest matchPhrasePrefix(String variableName, String value) throws InvalidCreateOperationException {
-		return new MatchRequest(REQUEST.match_phrase_prefix, variableName, value);
-	}
-	public static final MatchRequest prefix(String variableName, String value) throws InvalidCreateOperationException {
-		return new MatchRequest(REQUEST.prefix, variableName, value);
-	}
-	public static final SearchRequest regex(String variableName, String value) throws InvalidCreateOperationException {
-		return new SearchRequest(REQUEST.regex, variableName, value);
-	}
-	public static final SearchRequest search(String variableName, String value) throws InvalidCreateOperationException {
-		return new SearchRequest(REQUEST.search, variableName, value);
-	}
-	public static final TermRequest term(String variableName, String value) throws InvalidCreateOperationException {
-		return new TermRequest(variableName, value);
-	}
-	public static final TermRequest term(Map<String, String> variableNameValue) throws InvalidCreateOperationException {
-		return new TermRequest(variableNameValue);
-	}
-	public static final MltRequest flt(String value, String ...variableName) throws InvalidCreateOperationException {
-		return new MltRequest(REQUEST.flt, value, variableName);
-	}
-	public static final MltRequest mlt(String value, String ...variableName) throws InvalidCreateOperationException {
-		return new MltRequest(REQUEST.mlt, value, variableName);
-	}
-	public static final RangeRequest range(String variableName, long min, boolean includeMin, long max, boolean includeMax) throws InvalidCreateOperationException {
-		REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
-		REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
-		return new RangeRequest(variableName, rmin, min, rmax, max);
-	}
-	public static final RangeRequest range(String variableName, double min, boolean includeMin, double max, boolean includeMax) throws InvalidCreateOperationException {
-		REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
-		REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
-		return new RangeRequest(variableName, rmin, min, rmax, max);
-	}
-	public static final RangeRequest range(String variableName, String min, boolean includeMin, String max, boolean includeMax) throws InvalidCreateOperationException {
-		REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
-		REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
-		return new RangeRequest(variableName, rmin, min, rmax, max);
-	}
+    private RequestHelper() {
+        // empty
+    }
+    public static final PathRequest path(String ...pathes) throws InvalidCreateOperationException {
+        return new PathRequest(pathes);
+    }
+    public static final BooleanRequest and() throws InvalidCreateOperationException {
+        return new BooleanRequest(REQUEST.and);
+    }
+    public static final BooleanRequest or() throws InvalidCreateOperationException {
+        return new BooleanRequest(REQUEST.or);
+    }
+    public static final BooleanRequest not() throws InvalidCreateOperationException {
+        return new BooleanRequest(REQUEST.not);
+    }
+    public static final BooleanRequest nor() throws InvalidCreateOperationException {
+        return new BooleanRequest(REQUEST.nor);
+    }
+    public static final CompareRequest eq(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.eq, variableName, value);
+    }
+    public static final CompareRequest eq(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.eq, variableName, value);
+    }
+    public static final CompareRequest eq(String variableName, double value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.eq, variableName, value);
+    }
+    public static final CompareRequest eq(String variableName, String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.eq, variableName, value);
+    }
+    public static final CompareRequest ne(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.ne, variableName, value);
+    }
+    public static final CompareRequest ne(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.ne, variableName, value);
+    }
+    public static final CompareRequest ne(String variableName, double value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.ne, variableName, value);
+    }
+    public static final CompareRequest ne(String variableName, String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.ne, variableName, value);
+    }
+    public static final CompareRequest lt(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lt, variableName, value);
+    }
+    public static final CompareRequest lt(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lt, variableName, value);
+    }
+    public static final CompareRequest lt(String variableName, double value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lt, variableName, value);
+    }
+    public static final CompareRequest lt(String variableName, String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lt, variableName, value);
+    }
+    public static final CompareRequest lte(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lte, variableName, value);
+    }
+    public static final CompareRequest lte(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lte, variableName, value);
+    }
+    public static final CompareRequest lte(String variableName, double value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lte, variableName, value);
+    }
+    public static final CompareRequest lte(String variableName, String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lte, variableName, value);
+    }
+    public static final CompareRequest gt(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gt, variableName, value);
+    }
+    public static final CompareRequest gt(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gt, variableName, value);
+    }
+    public static final CompareRequest gt(String variableName, double value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gt, variableName, value);
+    }
+    public static final CompareRequest gt(String variableName, String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gt, variableName, value);
+    }
+    public static final CompareRequest gte(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gte, variableName, value);
+    }
+    public static final CompareRequest gte(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gte, variableName, value);
+    }
+    public static final CompareRequest gte(String variableName, double value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gte, variableName, value);
+    }
+    public static final CompareRequest gte(String variableName, String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gte, variableName, value);
+    }
+    public static final CompareRequest size(String variableName, long value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.size, variableName, value);
+    }
+    public static final ExistsRequest exists(String variableName) throws InvalidCreateOperationException {
+        return new ExistsRequest(REQUEST.exists, variableName);
+    }
+    public static final ExistsRequest missing(String variableName) throws InvalidCreateOperationException {
+        return new ExistsRequest(REQUEST.missing, variableName);
+    }
+    public static final ExistsRequest isNull(String variableName) throws InvalidCreateOperationException {
+        return new ExistsRequest(REQUEST.isNull, variableName);
+    }
+    public static final InRequest in(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.in, variableName, value);
+    }
+    public static final InRequest in(String variableName, long ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.in, variableName, value);
+    }
+    public static final InRequest in(String variableName, double ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.in, variableName, value);
+    }
+    public static final InRequest in(String variableName, String ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.in, variableName, value);
+    }
+    public static final InRequest nin(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.nin, variableName, value);
+    }
+    public static final InRequest nin(String variableName, long ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.nin, variableName, value);
+    }
+    public static final InRequest nin(String variableName, double ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.nin, variableName, value);
+    }
+    public static final InRequest nin(String variableName, String ...value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.nin, variableName, value);
+    }
+    public static final MatchRequest match(String variableName, String value) throws InvalidCreateOperationException {
+        return new MatchRequest(REQUEST.match, variableName, value);
+    }
+    public static final MatchRequest matchPhrase(String variableName, String value) throws InvalidCreateOperationException {
+        return new MatchRequest(REQUEST.match_phrase, variableName, value);
+    }
+    public static final MatchRequest matchPhrasePrefix(String variableName, String value) throws InvalidCreateOperationException {
+        return new MatchRequest(REQUEST.match_phrase_prefix, variableName, value);
+    }
+    public static final MatchRequest prefix(String variableName, String value) throws InvalidCreateOperationException {
+        return new MatchRequest(REQUEST.prefix, variableName, value);
+    }
+    public static final SearchRequest regex(String variableName, String value) throws InvalidCreateOperationException {
+        return new SearchRequest(REQUEST.regex, variableName, value);
+    }
+    public static final SearchRequest search(String variableName, String value) throws InvalidCreateOperationException {
+        return new SearchRequest(REQUEST.search, variableName, value);
+    }
+    public static final TermRequest term(String variableName, String value) throws InvalidCreateOperationException {
+        return new TermRequest(variableName, value);
+    }
+    public static final TermRequest term(Map<String, String> variableNameValue) throws InvalidCreateOperationException {
+        return new TermRequest(variableNameValue);
+    }
+    public static final MltRequest flt(String value, String ...variableName) throws InvalidCreateOperationException {
+        return new MltRequest(REQUEST.flt, value, variableName);
+    }
+    public static final MltRequest mlt(String value, String ...variableName) throws InvalidCreateOperationException {
+        return new MltRequest(REQUEST.mlt, value, variableName);
+    }
+    public static final RangeRequest range(String variableName, long min, boolean includeMin, long max, boolean includeMax) throws InvalidCreateOperationException {
+        REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
+        REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
+        return new RangeRequest(variableName, rmin, min, rmax, max);
+    }
+    public static final RangeRequest range(String variableName, double min, boolean includeMin, double max, boolean includeMax) throws InvalidCreateOperationException {
+        REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
+        REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
+        return new RangeRequest(variableName, rmin, min, rmax, max);
+    }
+    public static final RangeRequest range(String variableName, String min, boolean includeMin, String max, boolean includeMax) throws InvalidCreateOperationException {
+        REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
+        REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
+        return new RangeRequest(variableName, rmin, min, rmax, max);
+    }
 }

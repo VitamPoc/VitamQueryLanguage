@@ -25,25 +25,25 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class SearchRequest extends Request {
-	/**
-	 * Search Request constructor
-	 * @param searchRequest search, regex
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public SearchRequest(REQUEST searchRequest, String variableName, String value) throws InvalidCreateOperationException {
-		super();
-		switch (searchRequest) {
-			case regex:
-			case search: {
-				createRequestVariableValue(searchRequest, variableName, value);
-				currentREQUEST = searchRequest;
-				setReady(true);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+searchRequest+" is not an Search Request");
-		}
-	}
+    /**
+     * Search Request constructor
+     * @param searchRequest search, regex
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public SearchRequest(REQUEST searchRequest, String variableName, String value) throws InvalidCreateOperationException {
+        super();
+        switch (searchRequest) {
+            case regex:
+            case search: {
+                createRequestVariableValue(searchRequest, variableName, value);
+                currentREQUEST = searchRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+searchRequest+" is not an Search Request");
+        }
+    }
 }

@@ -44,316 +44,317 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.utils.GlobalDatas;
 
 /**
  * @author "Frederic Bregier"
  *
  */
 public class ElasticSearchAccess {
-	
-	public static void registerShutdownHook(final Node node ) {
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			public void run() {
-				node.close();
-			}
-		});
-	}
-	
-	public static final String IDS = "_id";
-	public static final String TODEL = "_td";
-	public static final String PREVIDS = "#PREVIDS#";
-	public static final char SEPARATOR = '#';
-	
-	static Node node;
-	Node localNode;
-	Client client;
-	
-	public ElasticSearchAccess(String clusterName, String unicast) {
-		Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
-				.put("discovery.zen.ping.multicast.enabled", false)
-				.put("discovery.zen.ping.unicast.hosts", unicast)
-				.build();
-		if (GlobalDatas.useNewNode) {
-			localNode = NodeBuilder.nodeBuilder().clusterName(clusterName).client(true).settings(settings).node();
-			registerShutdownHook(localNode);
-		} else if (node == null) {
-			node = NodeBuilder.nodeBuilder().clusterName(clusterName).client(true).settings(settings).node();
-			registerShutdownHook(node);
-			localNode = node;
-		} else {
-			localNode = node;
-		}
-		client = localNode.client();
-	}
-	
-	public void close() {
-		client.close();
-		if (GlobalDatas.useNewNode) {
-			localNode.close();
-		}
-	}
-	
-	public final boolean deleteIndex(String idxName) {
-		try {
-			if (client.admin().indices().prepareExists(idxName).execute().actionGet().isExists()) {
-	            if (!client.admin().indices().prepareDelete(idxName).execute().actionGet().isAcknowledged()) {
-	            	System.err.println("Error on index delete");
-	            }
-	        }
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return true;
-		}
-	}
-	
-	public final boolean addIndex(String indexName, String type) {
-		if (! client.admin().indices().prepareExists(indexName).execute().actionGet().isExists()) {
+    
+    public static void registerShutdownHook(final Node node ) {
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            public void run() {
+                node.close();
+            }
+        });
+    }
+    
+    public static final String IDS = "_id";
+    public static final String TODEL = "_td";
+    public static final String PREVIDS = "#PREVIDS#";
+    public static final char SEPARATOR = '#';
+    
+    static Node node;
+    Node localNode;
+    Client client;
+    
+    public ElasticSearchAccess(String clusterName, String unicast) {
+        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
+                .put("discovery.zen.ping.multicast.enabled", false)
+                .put("discovery.zen.ping.unicast.hosts", unicast)
+                .build();
+        if (GlobalDatas.useNewNode) {
+            localNode = NodeBuilder.nodeBuilder().clusterName(clusterName).client(true).settings(settings).node();
+            registerShutdownHook(localNode);
+        } else if (node == null) {
+            node = NodeBuilder.nodeBuilder().clusterName(clusterName).client(true).settings(settings).node();
+            registerShutdownHook(node);
+            localNode = node;
+        } else {
+            localNode = node;
+        }
+        client = localNode.client();
+    }
+    
+    public void close() {
+        client.close();
+        if (GlobalDatas.useNewNode) {
+            localNode.close();
+        }
+    }
+    
+    public final boolean deleteIndex(String idxName) {
+        try {
+            if (client.admin().indices().prepareExists(idxName).execute().actionGet().isExists()) {
+                if (!client.admin().indices().prepareDelete(idxName).execute().actionGet().isAcknowledged()) {
+                    System.err.println("Error on index delete");
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+    
+    public final boolean addIndex(String indexName, String type) {
+        if (! client.admin().indices().prepareExists(indexName).execute().actionGet().isExists()) {
             client.admin().indices().prepareCreate(indexName).execute().actionGet();
-		}
-//		if (! client.admin().indices().prepareTypesExists(type).execute().actionGet().isExists()) {
+        }
+//        if (! client.admin().indices().prepareTypesExists(type).execute().actionGet().isExists()) {
             PutMappingResponse response = client.admin().indices().preparePutMapping().setIndices(indexName).setType(type)
-				.setSource("{"+type+
-						// Will keep DAIPDEPTHS and NBCHILD as value to get (_id is implicit)
-// Change since DAIPDEPTHS not useful as source						" : { _source : { includes : [\""+DAip.DAIPDEPTHS+".*\", \""+DAip.NBCHILD+"\"] },"+
-						" : { _source : { includes : [\""+DAip.NBCHILD+"\"] },"+
-						// DAIPDEPTHS will not be parsed and analyzed since it cannot be requested efficiently { UUID1 : depth2, UUID2 : depth2 }
-						"properties : { "+DAip.DAIPDEPTHS+" : { type : \"object\", enabled : false }, "+
-						// DAIPPARENTS will be included but not tokenized [ UUID1, UUID2 ]
-						DAip.DAIPPARENTS+" : { type : \"string\", index : \"not_analyzed\" }, "+
-						// NBCHILD as the number of immediate child
-						DAip.NBCHILD+" : { type : \"long\" },"+
-						//"_id : { type : \"object\", enabled : false }, " +
-						// All following items will neither be integrated neither analyzed
-						VitamLinks.DAip2DAip.field1to2+" : { type : \"object\", enabled : false }, " +
-						VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
-						VitamLinks.Domain2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
-						VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
-						VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
-						" } }").execute().actionGet();
-    		System.out.println(type+":"+response.isAcknowledged());
-    		return response.isAcknowledged();
+                .setSource("{"+type+
+                        // Will keep DAIPDEPTHS and NBCHILD as value to get (_id is implicit)
+// Change since DAIPDEPTHS not useful as source                        " : { _source : { includes : [\""+DAip.DAIPDEPTHS+".*\", \""+DAip.NBCHILD+"\"] },"+
+                        " : { _source : { includes : [\""+DAip.NBCHILD+"\"] },"+
+                        // DAIPDEPTHS will not be parsed and analyzed since it cannot be requested efficiently { UUID1 : depth2, UUID2 : depth2 }
+                        "properties : { "+DAip.DAIPDEPTHS+" : { type : \"object\", enabled : false }, "+
+                        // DAIPPARENTS will be included but not tokenized [ UUID1, UUID2 ]
+                        DAip.DAIPPARENTS+" : { type : \"string\", index : \"not_analyzed\" }, "+
+                        // NBCHILD as the number of immediate child
+                        DAip.NBCHILD+" : { type : \"long\" },"+
+                        //"_id : { type : \"object\", enabled : false }, " +
+                        // All following items will neither be integrated neither analyzed
+                        VitamLinks.DAip2DAip.field1to2+" : { type : \"object\", enabled : false }, " +
+                        VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
+                        VitamLinks.Domain2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
+                        VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
+                        VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
+                        " } }").execute().actionGet();
+            System.out.println(type+":"+response.isAcknowledged());
+            return response.isAcknowledged();
 //        }
-		//System.err.println("not needed add Index");
-//		return true;
-	}
-	
-	public final boolean addEntryIndex(String indexName, String type, String id, String json) {
-		client.prepareIndex(indexName, type, id)
-		        .setSource(json)
-		        .execute();
-				return true;
-	}
-	
-	public final boolean addEntryIndexes(String indexName, String type, Map<String, String> mapIdJson) {
-		BulkRequestBuilder bulkRequest = client.prepareBulk();
+        //System.err.println("not needed add Index");
+//        return true;
+    }
+    
+    public final boolean addEntryIndex(String indexName, String type, String id, String json) {
+        client.prepareIndex(indexName, type, id)
+                .setSource(json)
+                .execute();
+                return true;
+    }
+    
+    public final boolean addEntryIndexes(String indexName, String type, Map<String, String> mapIdJson) {
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
 
-		// either use client#prepare, or use Requests# to directly build index/delete requests
-		for (Entry<String, String> val : mapIdJson.entrySet()) {
-			bulkRequest.add(client.prepareIndex(indexName, type, val.getKey())
-			        .setSource(val.getValue()));
-		}
-		        
-		bulkRequest.execute(); // new thread
-		return true; //!bulkResponse.hasFailures();
-	    // Should process failures by iterating through each bulk response item
-	}
-	
-	public final boolean addEntryIndexesBlocking(String indexName, String type, Map<String, String> mapIdJson) {
-		BulkRequestBuilder bulkRequest = client.prepareBulk();
+        // either use client#prepare, or use Requests# to directly build index/delete requests
+        for (Entry<String, String> val : mapIdJson.entrySet()) {
+            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey())
+                    .setSource(val.getValue()));
+        }
+                
+        bulkRequest.execute(); // new thread
+        return true; //!bulkResponse.hasFailures();
+        // Should process failures by iterating through each bulk response item
+    }
+    
+    public final boolean addEntryIndexesBlocking(String indexName, String type, Map<String, String> mapIdJson) {
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
 
-		// either use client#prepare, or use Requests# to directly build index/delete requests
-		for (Entry<String, String> val : mapIdJson.entrySet()) {
-			bulkRequest.add(client.prepareIndex(indexName, type, val.getKey())
-			        .setSource(val.getValue()));
-		}
-		        
-		BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
-		return !bulkResponse.hasFailures();
-	    // Should process failures by iterating through each bulk response item
-	}
-	
+        // either use client#prepare, or use Requests# to directly build index/delete requests
+        for (Entry<String, String> val : mapIdJson.entrySet()) {
+            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey())
+                    .setSource(val.getValue()));
+        }
+                
+        BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
+        return !bulkResponse.hasFailures();
+        // Should process failures by iterating through each bulk response item
+    }
+    
 
-	/**
-	 * @param squery
-	 * @return the wrapped query
-	 */
-	public static final QueryBuilder getQueryFromString(String squery) {
-		return QueryBuilders.wrapperQuery(squery);
-	}
-	/**
-	 * 
-	 * @param sfilter
-	 * @return the wrapped filter
-	 */
-	public static final FilterBuilder getFilterFromString(String sfilter) {
-		return FilterBuilders.wrapperFilter(sfilter);
-	}
-	/**
-	 * 
-	 * @param indexName
-	 * @param type
-	 * @param currentNodes current parent nodes
-	 * @param subdepth (ignored)
-	 * @param condition
-	 * @param filterCond
-	 * @return the ResultCached associated with this request. Note that the exact depth is not checked, so it must be checked after (using checkAncestor method)
-	 */
-	public final ResultCached getSubDepth(String indexName, String type, String []currentNodes, int subdepth, QueryBuilder condition, FilterBuilder filterCond) {
-		QueryBuilder query = null;
-		FilterBuilder filter = null;
-		if (GlobalDatas.useFilter) {
-			filter = getSubDepthFilter(filterCond, currentNodes, subdepth);
-			query = condition;
-		} else {
-			/*
-			 * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
-			 */
-			QueryBuilder domdepths = QueryBuilders.termsQuery(DAip.DAIPPARENTS, currentNodes);
-			/*QueryBuilder domdepths = null;
-			if (subdepth == 1) {
-				domdepths = QueryBuilders.multiMatchQuery(1, currentNodes);
-			} else {
-				if (currentNodes.length > 1) {
-					BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-					for (String node : currentNodes) {
-						boolQuery = boolQuery.should(QueryBuilders.rangeQuery(MetaAip.DOMDEPTHS+"."+node).lte(subdepth));
-					}
-					domdepths = boolQuery;
-				} else {
-					domdepths = QueryBuilders.rangeQuery(MetaAip.DOMDEPTHS+"."+currentNodes[0]).lte(subdepth);
-				}
-			}*/
-			/*
-			 * Condition query
-			 */
-			query = QueryBuilders.boolQuery().must(domdepths).must(condition);
-			filter = filterCond;
-		}
-		return search(indexName, type, query, filter, currentNodes, subdepth);
-	}
-	/**
-	 * Build the filter and facet filter for subdepth and currentNodes
-	 * @param filterCond
-	 * @param currentNodes
-	 * @param key
-	 * @param subdepth
-	 * @return the associated filter
-	 */
-	private final FilterBuilder getSubDepthFilter(FilterBuilder filterCond, String []currentNodes, int subdepth) {
-		/*
-		 * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
-		 */
-		FilterBuilder domdepths = null;
-		if (filterCond != null) {
-			domdepths = FilterBuilders.boolFilter()
-					.must(FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes)).must(filterCond);
-		} else {
-			domdepths = FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes);
-		}
-		/*if (currentNodes.length > 1) {
-			BoolFilterBuilder boolQuery = FilterBuilders.boolFilter();
-			if (subdepth > 1) {
-				for (String node : currentNodes) {
-					boolQuery = boolQuery.should(FilterBuilders.numericRangeFilter(MetaAip.DOMDEPTHS+"."+node).lte(subdepth));
-				}
-			} else {
-				for (String node : currentNodes) {
-					boolQuery = boolQuery.should(FilterBuilders.termFilter(MetaAip.DOMDEPTHS+"."+node, subdepth));
-				}
-			}
-			if (filterCond != null) {
-				boolQuery = boolQuery.must(filterCond);
-			} else if (GlobalDatas.useFilterCache) {
-				boolQuery = boolQuery.cache(true).cacheKey(newkey);
-			}
-			domdepths = boolQuery;
-		} else {
-			if (subdepth > 1) {
-				if (GlobalDatas.useFilterCache && filterCond == null) {
-					domdepths = 
-						FilterBuilders.numericRangeFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0]).lte(subdepth)
-						.cache(true).cacheKey(newkey);
-				} else {
-					domdepths = 
-							FilterBuilders.numericRangeFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0]).lte(subdepth);
-				}
-			} else {
-				if (GlobalDatas.useFilterCache && filterCond == null) {
-					domdepths = FilterBuilders.termFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0], subdepth)
-							.cache(true).cacheKey(newkey);
-				} else {
-					domdepths = FilterBuilders.termFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0], subdepth);
-				}
-			}
-			if (filterCond != null) {
-				domdepths = FilterBuilders.boolFilter().must(filterCond).must(domdepths);
-			}
-		}*/
-		return domdepths;
-	}
-	
-	/**
-	 * 
-	 * @param indexName global index name (or split if needed)
-	 * @param type name of "1 model" within 1 global index
-	 * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "values" : [list of id] } }" 
-	 * @param filter
-	 * @param currentNodes
-	 * @param subdepth
-	 * @return a structure as ResultCached
-	 */
-	protected final ResultCached search(String indexName, String type, 
-			QueryBuilder query, FilterBuilder filter, String [] currentNodes, int subdepth) {
-		SearchRequestBuilder request = client.prepareSearch(indexName)
-		        .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-		        .setTypes(type)
-		        .setQuery(query)             // Query
-		        .setExplain(false)
-		        .setSize(1001);
-		if (filter != null) {
-			request = request.setPostFilter(filter);   // Filter
-		}
-		if (GlobalDatas.PRINT_REQUEST) System.err.println(request.toString());
-		//System.out.println("ESReq: "+request.toString());
-		SearchResponse response = request
-		        .execute()
-		        .actionGet();
-		if (response.status() != RestStatus.OK) {
-			System.err.println("Error "+response.status()+" from : "+request+":"+query+" # "+filter);
-			return null;
-		}
-		SearchHits hits = response.getHits();
-		if (hits.getTotalHits() > 1000) {
-			System.err.println("Warning, more than 1000 hits: "+hits.getTotalHits());
-		}
-		if (hits.getTotalHits() == 0) {
-			System.err.println("No result from : "+request+":"+query+" # "+filter);
-			return null;
-		}
-		long nb = 0;
-		ResultCached resultRequest = new ResultCached();
-		Iterator<SearchHit> iterator = hits.iterator();
-		while (iterator.hasNext()) {
-			SearchHit hit = iterator.next();
-			String id = hit.getId();
-			Map<String, Object> src = hit.getSource();
-			if (src != null) {
-				/*System.out.println(src.keySet());
-				System.out.println(src.values());*/
-				Object val = src.get(DAip.NBCHILD);
-				if (val == null) {
-					System.err.println("Not found "+DAip.NBCHILD);
-				} else if (val instanceof Integer) {
-					nb += (Integer) val;
-				} else {
-					System.err.println("Not Integer: "+val.getClass().getName());
-				}
-			}
-			resultRequest.currentMaip.add(id);
-		}
-		resultRequest.nbSubNodes = nb;
-		return resultRequest;
-	}
-	
+    /**
+     * @param squery
+     * @return the wrapped query
+     */
+    public static final QueryBuilder getQueryFromString(String squery) {
+        return QueryBuilders.wrapperQuery(squery);
+    }
+    /**
+     * 
+     * @param sfilter
+     * @return the wrapped filter
+     */
+    public static final FilterBuilder getFilterFromString(String sfilter) {
+        return FilterBuilders.wrapperFilter(sfilter);
+    }
+    /**
+     * 
+     * @param indexName
+     * @param type
+     * @param currentNodes current parent nodes
+     * @param subdepth (ignored)
+     * @param condition
+     * @param filterCond
+     * @return the ResultCached associated with this request. Note that the exact depth is not checked, so it must be checked after (using checkAncestor method)
+     */
+    public final ResultCached getSubDepth(String indexName, String type, String []currentNodes, int subdepth, QueryBuilder condition, FilterBuilder filterCond) {
+        QueryBuilder query = null;
+        FilterBuilder filter = null;
+        if (GlobalDatas.useFilter) {
+            filter = getSubDepthFilter(filterCond, currentNodes, subdepth);
+            query = condition;
+        } else {
+            /*
+             * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
+             */
+            QueryBuilder domdepths = QueryBuilders.termsQuery(DAip.DAIPPARENTS, currentNodes);
+            /*QueryBuilder domdepths = null;
+            if (subdepth == 1) {
+                domdepths = QueryBuilders.multiMatchQuery(1, currentNodes);
+            } else {
+                if (currentNodes.length > 1) {
+                    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+                    for (String node : currentNodes) {
+                        boolQuery = boolQuery.should(QueryBuilders.rangeQuery(MetaAip.DOMDEPTHS+"."+node).lte(subdepth));
+                    }
+                    domdepths = boolQuery;
+                } else {
+                    domdepths = QueryBuilders.rangeQuery(MetaAip.DOMDEPTHS+"."+currentNodes[0]).lte(subdepth);
+                }
+            }*/
+            /*
+             * Condition query
+             */
+            query = QueryBuilders.boolQuery().must(domdepths).must(condition);
+            filter = filterCond;
+        }
+        return search(indexName, type, query, filter, currentNodes, subdepth);
+    }
+    /**
+     * Build the filter and facet filter for subdepth and currentNodes
+     * @param filterCond
+     * @param currentNodes
+     * @param key
+     * @param subdepth
+     * @return the associated filter
+     */
+    private final FilterBuilder getSubDepthFilter(FilterBuilder filterCond, String []currentNodes, int subdepth) {
+        /*
+         * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
+         */
+        FilterBuilder domdepths = null;
+        if (filterCond != null) {
+            domdepths = FilterBuilders.boolFilter()
+                    .must(FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes)).must(filterCond);
+        } else {
+            domdepths = FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes);
+        }
+        /*if (currentNodes.length > 1) {
+            BoolFilterBuilder boolQuery = FilterBuilders.boolFilter();
+            if (subdepth > 1) {
+                for (String node : currentNodes) {
+                    boolQuery = boolQuery.should(FilterBuilders.numericRangeFilter(MetaAip.DOMDEPTHS+"."+node).lte(subdepth));
+                }
+            } else {
+                for (String node : currentNodes) {
+                    boolQuery = boolQuery.should(FilterBuilders.termFilter(MetaAip.DOMDEPTHS+"."+node, subdepth));
+                }
+            }
+            if (filterCond != null) {
+                boolQuery = boolQuery.must(filterCond);
+            } else if (GlobalDatas.useFilterCache) {
+                boolQuery = boolQuery.cache(true).cacheKey(newkey);
+            }
+            domdepths = boolQuery;
+        } else {
+            if (subdepth > 1) {
+                if (GlobalDatas.useFilterCache && filterCond == null) {
+                    domdepths = 
+                        FilterBuilders.numericRangeFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0]).lte(subdepth)
+                        .cache(true).cacheKey(newkey);
+                } else {
+                    domdepths = 
+                            FilterBuilders.numericRangeFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0]).lte(subdepth);
+                }
+            } else {
+                if (GlobalDatas.useFilterCache && filterCond == null) {
+                    domdepths = FilterBuilders.termFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0], subdepth)
+                            .cache(true).cacheKey(newkey);
+                } else {
+                    domdepths = FilterBuilders.termFilter(MetaAip.DOMDEPTHS+"."+currentNodes[0], subdepth);
+                }
+            }
+            if (filterCond != null) {
+                domdepths = FilterBuilders.boolFilter().must(filterCond).must(domdepths);
+            }
+        }*/
+        return domdepths;
+    }
+    
+    /**
+     * 
+     * @param indexName global index name (or split if needed)
+     * @param type name of "1 model" within 1 global index
+     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "values" : [list of id] } }" 
+     * @param filter
+     * @param currentNodes
+     * @param subdepth
+     * @return a structure as ResultCached
+     */
+    protected final ResultCached search(String indexName, String type, 
+            QueryBuilder query, FilterBuilder filter, String [] currentNodes, int subdepth) {
+        SearchRequestBuilder request = client.prepareSearch(indexName)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setTypes(type)
+                .setQuery(query)             // Query
+                .setExplain(false)
+                .setSize(GlobalDatas.limitLoad);
+        if (filter != null) {
+            request = request.setPostFilter(filter);   // Filter
+        }
+        if (GlobalDatas.PRINT_REQUEST) System.err.println(request.toString());
+        //System.out.println("ESReq: "+request.toString());
+        SearchResponse response = request
+                .execute()
+                .actionGet();
+        if (response.status() != RestStatus.OK) {
+            System.err.println("Error "+response.status()+" from : "+request+":"+query+" # "+filter);
+            return null;
+        }
+        SearchHits hits = response.getHits();
+        if (hits.getTotalHits() > GlobalDatas.limitLoad) {
+            System.err.println("Warning, more than "+GlobalDatas.limitLoad+" hits: "+hits.getTotalHits());
+        }
+        if (hits.getTotalHits() == 0) {
+            System.err.println("No result from : "+request+":"+query+" # "+filter);
+            return null;
+        }
+        long nb = 0;
+        ResultCached resultRequest = new ResultCached();
+        Iterator<SearchHit> iterator = hits.iterator();
+        while (iterator.hasNext()) {
+            SearchHit hit = iterator.next();
+            String id = hit.getId();
+            Map<String, Object> src = hit.getSource();
+            if (src != null) {
+                /*System.out.println(src.keySet());
+                System.out.println(src.values());*/
+                Object val = src.get(DAip.NBCHILD);
+                if (val == null) {
+                    System.err.println("Not found "+DAip.NBCHILD);
+                } else if (val instanceof Integer) {
+                    nb += (Integer) val;
+                } else {
+                    System.err.println("Not Integer: "+val.getClass().getName());
+                }
+            }
+            resultRequest.currentMaip.add(id);
+        }
+        resultRequest.nbSubNodes = nb;
+        return resultRequest;
+    }
+    
 }

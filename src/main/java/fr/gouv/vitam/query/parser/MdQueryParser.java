@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.bson.BSON;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,307 +40,307 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  * 
  */
 public class MdQueryParser extends AbstractQueryParser {
-	public MdQueryParser(boolean simul) {
-		super(simul);
-		usingMongoDb = true;
-	}
-	
-	/*
-		In MongoDB : find(Query, Projection).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
-		In addition, one shall limit the scan by: find(Query, Projection)._addSpecial( "$maxscan", highlimit ).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
-	 */
-	
-	protected void checkRootTypeRequest(TypeRequest tr, JsonNode command, int prevDepth)
-			throws InvalidParseOperationException {
-		if (tr.depth > 1 || lastDepth - prevDepth > 1) {
-			// MongoDB not allowed
-			if (debug) System.err.println("ES only: "+command);
-			//throw new InvalidParseOperationException("Command not allowed with MongoDB while Depth step: "+(lastDepth-prevDepth));
-		}
-	}
+    public MdQueryParser(boolean simul) {
+        super(simul);
+        usingMongoDb = true;
+    }
+    
+    /*
+        In MongoDB : find(Query, Projection).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
+        In addition, one shall limit the scan by: find(Query, Projection)._addSpecial( "$maxscan", highlimit ).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
+     */
+    
+    protected void checkRootTypeRequest(TypeRequest tr, JsonNode command, int prevDepth)
+            throws InvalidParseOperationException {
+        if (tr.depth > 1 || lastDepth - prevDepth > 1) {
+            // MongoDB not allowed
+            if (debug) System.err.println("ES only: "+command);
+            //throw new InvalidParseOperationException("Command not allowed with MongoDB while Depth step: "+(lastDepth-prevDepth));
+        }
+    }
 
-	/**
-	 * $size : { name : length }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeSize(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
-	}
+    /**
+     * $size : { name : length }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeSize(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
+    }
 
-	/**
-	 * $gt : { name : value }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeCompare(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
-	}
+    /**
+     * $gt : { name : value }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeCompare(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
+    }
 
-	/**
-	 * $flt : { $fields : [ name1, name2 ], $like : like_text }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeXlt(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		throw new InvalidParseOperationException("Command not allowed with MongoDB: "+refCommand);
-	}
+    /**
+     * $flt : { $fields : [ name1, name2 ], $like : like_text }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeXlt(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        throw new InvalidParseOperationException("Command not allowed with MongoDB: "+refCommand);
+    }
 
-	/**
-	 * $search : { name : searchParameter }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeSearch(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		throw new InvalidParseOperationException("Command not allowed with MongoDB: "+refCommand);
-	}
+    /**
+     * $search : { name : searchParameter }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeSearch(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        throw new InvalidParseOperationException("Command not allowed with MongoDB: "+refCommand);
+    }
 
-	/**
-	 * $match : { name : words, $max_expansions : n }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeMatch(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		throw new InvalidParseOperationException("Command not allowed with MongoDB: "+refCommand);
-	}
+    /**
+     * $match : { name : words, $max_expansions : n }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeMatch(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        throw new InvalidParseOperationException("Command not allowed with MongoDB: "+refCommand);
+    }
 
-	/**
-	 * $in : { name : [ value1, value2, ... ] }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeIn(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		ArrayNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey()).putArray(refCommand);
-		for (JsonNode value : element.getValue()) {
-			objectMD.add(value);
-		}
-	}
+    /**
+     * $in : { name : [ value1, value2, ... ] }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeIn(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        ArrayNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey()).putArray(refCommand);
+        for (JsonNode value : element.getValue()) {
+            objectMD.add(value);
+        }
+    }
 
-	/**
-	 * $range : { name : { $gte : value, $lte : value } }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeRange(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		ObjectNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey());
-		for (Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
-			Entry<String, JsonNode> requestItem = iterator.next();
-			RANGEARGS arg = null;
-			try {
-				String key = requestItem.getKey();
-				if (key.startsWith("$")) {
-					arg = RANGEARGS.valueOf(requestItem.getKey().substring(1));
-				} else {
-					throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
-				}
-			} catch (IllegalArgumentException e) {
-				throw new InvalidParseOperationException("Invalid Range query command: "+requestItem, e);
-			}
-			objectMD.set(arg.exactToken(), requestItem.getValue());
-		}
-	}
+    /**
+     * $range : { name : { $gte : value, $lte : value } }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeRange(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        ObjectNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey());
+        for (Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
+            Entry<String, JsonNode> requestItem = iterator.next();
+            RANGEARGS arg = null;
+            try {
+                String key = requestItem.getKey();
+                if (key.startsWith("$")) {
+                    arg = RANGEARGS.valueOf(requestItem.getKey().substring(1));
+                } else {
+                    throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
+                }
+            } catch (IllegalArgumentException e) {
+                throw new InvalidParseOperationException("Invalid Range query command: "+requestItem, e);
+            }
+            objectMD.set(arg.exactToken(), requestItem.getValue());
+        }
+    }
 
-	/**
-	 * $regex : { name : regex }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeRegex(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
-	}
+    /**
+     * $regex : { name : regex }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeRegex(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
+    }
 
-	/**
-	 * $term : { name : term, name : term }
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeTerm(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		tr0.requestModel[MONGODB].setAll((ObjectNode) command);
-	}
+    /**
+     * $term : { name : term, name : term }
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeTerm(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel[MONGODB].setAll((ObjectNode) command);
+    }
 
-	/**
-	 * $eq : { name : value }
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeEq(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		if (req == REQUEST.ne) {
-			tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
-		} else {
-			tr0.requestModel[MONGODB].set(entry.getKey(), entry.getValue());
-		}
-	}
+    /**
+     * $eq : { name : value }
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeEq(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        if (req == REQUEST.ne) {
+            tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
+        } else {
+            tr0.requestModel[MONGODB].set(entry.getKey(), entry.getValue());
+        }
+    }
 
-	/**
-	 * $exists : name
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeExistsMissing(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		// only fieldname
-		String fieldname = command.asText();
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		tr0.requestModel[MONGODB].putObject(fieldname).put(REQUEST.exists.exactToken(), req == REQUEST.exists);
-	}
+    /**
+     * $exists : name
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeExistsMissing(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        // only fieldname
+        String fieldname = command.asText();
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel[MONGODB].putObject(fieldname).put(REQUEST.exists.exactToken(), req == REQUEST.exists);
+    }
 
-	/**
-	 * $isNull : name
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeIsNull(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		// only fieldname
-		String fieldname = command.asText();
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		tr0.requestModel[MONGODB].putObject(fieldname).put("$type", 10);
-	}
-	
-	/**
-	 * $and : [ expression1, expression2, ... ]
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeAndNotNorOr(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		List<TypeRequest> trlist = new ArrayList<>();
-		if (command.isArray()) {
-			// multiple elements in array
-			for (JsonNode subcommand : command) {
-				// one item
-				Entry<String, JsonNode> requestItem = JsonHandler.checkUnicity(refCommand, subcommand);
-				TypeRequest tr = analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
-				trlist.add(tr);
-				unionTransaction(tr0, tr);
-			}
-		} else {
-			throw new InvalidParseOperationException("Boolean operator needs an array of expression: "+command);
-		}
-		// MD
-		tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-		ArrayNode array = null;
-		if (req == REQUEST.not) {
-			if (trlist.size() == 1) {
-				tr0.requestModel[MONGODB].set(REQUEST.not.exactToken(), trlist.get(0).requestModel[MONGODB]);
-			} else {
-				array = tr0.requestModel[MONGODB].putObject(REQUEST.not.exactToken()).putArray(REQUEST.and.exactToken());
-			}
-		} else {
-			array = tr0.requestModel[MONGODB].putArray(refCommand);
-		}
-		if (array != null) {
-			for (int i = 0; i < trlist.size(); i++) {
-				TypeRequest tr = trlist.get(i);
-				if (tr.requestModel[MONGODB] != null) {
-					array.add(tr.requestModel[MONGODB]);
-				}
-			}
-		}
-	}
+    /**
+     * $isNull : name
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeIsNull(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        // only fieldname
+        String fieldname = command.asText();
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel[MONGODB].putObject(fieldname).put("$type", BSON.NULL);
+    }
+    
+    /**
+     * $and : [ expression1, expression2, ... ]
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeAndNotNorOr(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        List<TypeRequest> trlist = new ArrayList<>();
+        if (command.isArray()) {
+            // multiple elements in array
+            for (JsonNode subcommand : command) {
+                // one item
+                Entry<String, JsonNode> requestItem = JsonHandler.checkUnicity(refCommand, subcommand);
+                TypeRequest tr = analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
+                trlist.add(tr);
+                unionTransaction(tr0, tr);
+            }
+        } else {
+            throw new InvalidParseOperationException("Boolean operator needs an array of expression: "+command);
+        }
+        // MD
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        ArrayNode array = null;
+        if (req == REQUEST.not) {
+            if (trlist.size() == 1) {
+                tr0.requestModel[MONGODB].set(REQUEST.not.exactToken(), trlist.get(0).requestModel[MONGODB]);
+            } else {
+                array = tr0.requestModel[MONGODB].putObject(REQUEST.not.exactToken()).putArray(REQUEST.and.exactToken());
+            }
+        } else {
+            array = tr0.requestModel[MONGODB].putArray(refCommand);
+        }
+        if (array != null) {
+            for (int i = 0; i < trlist.size(); i++) {
+                TypeRequest tr = trlist.get(i);
+                if (tr.requestModel[MONGODB] != null) {
+                    array.add(tr.requestModel[MONGODB]);
+                }
+            }
+        }
+    }
 }

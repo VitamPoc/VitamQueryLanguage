@@ -31,88 +31,88 @@ import fr.gouv.vitam.query.parser.ParserTokens.GLOBAL;
  *
  */
 public class Delete {
-	protected ArrayNode requests;
-	protected ObjectNode filter;
-	/**
-	 * 
-	 * @return this Delete
-	 */
-	public final Delete resetFilter() {
-		if (filter != null) {
-			filter.removeAll();
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Delete
-	 */
-	public final Delete resetRequests() {
-		if (requests != null) {
-			requests.removeAll();
-		}
-		return this;
-	}
-	/**
-	 * @param mult True to act on multiple elements, False to act only on 1 element
-	 * @return this Delete
-	 */
-	public final Delete setMult(boolean mult) {
-		if (filter == null) {
-			filter = JsonHandler.createObjectNode();
-		}
-		filter.put(ACTIONFILTER.mult.exactToken(), mult);
-		return this;
-	}
+    protected ArrayNode requests;
+    protected ObjectNode filter;
+    /**
+     * 
+     * @return this Delete
+     */
+    public final Delete resetFilter() {
+        if (filter != null) {
+            filter.removeAll();
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Delete
+     */
+    public final Delete resetRequests() {
+        if (requests != null) {
+            requests.removeAll();
+        }
+        return this;
+    }
+    /**
+     * @param mult True to act on multiple elements, False to act only on 1 element
+     * @return this Delete
+     */
+    public final Delete setMult(boolean mult) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        filter.put(ACTIONFILTER.mult.exactToken(), mult);
+        return this;
+    }
 
-	/**
-	 * 
-	 * @param requests
-	 * @return this Delete
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final Delete addRequests(Request ... requests) throws InvalidCreateOperationException {
-		if (this.requests == null) {
-			this.requests = JsonHandler.createArrayNode();
-		}
-		for (Request request : requests) {
-			if (! request.isReady()) {
-				throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
-			}
-			this.requests.add(request.getCurrentRequest());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return the Final Delete containing all 2 parts: requests array and filter
-	 */
-	public final ObjectNode getFinalDelete() {
-		ObjectNode node = JsonHandler.createObjectNode();
-		if (requests != null && requests.size() > 0) {
-			node.set(GLOBAL.query.exactToken(), requests);
-		}
-		if (filter != null && filter.size() > 0) {
-			node.set(GLOBAL.filter.exactToken(), filter);
-		}
-		return node;
-	}
-	/**
-	 * @return the requests array
-	 */
-	public final ArrayNode getRequests() {
-		if (requests == null) {
-			return JsonHandler.createArrayNode();
-		}
-		return requests;
-	}
-	/**
-	 * @return the filter
-	 */
-	public final ObjectNode getFilter() {
-		if (filter == null) {
-			return JsonHandler.createObjectNode();
-		}
-		return filter;
-	}
+    /**
+     * 
+     * @param requests
+     * @return this Delete
+     * @throws InvalidCreateOperationException 
+     */
+    public final Delete addRequests(Request ... requests) throws InvalidCreateOperationException {
+        if (this.requests == null) {
+            this.requests = JsonHandler.createArrayNode();
+        }
+        for (Request request : requests) {
+            if (! request.isReady()) {
+                throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
+            }
+            this.requests.add(request.getCurrentRequest());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return the Final Delete containing all 2 parts: requests array and filter
+     */
+    public final ObjectNode getFinalDelete() {
+        ObjectNode node = JsonHandler.createObjectNode();
+        if (requests != null && requests.size() > 0) {
+            node.set(GLOBAL.query.exactToken(), requests);
+        }
+        if (filter != null && filter.size() > 0) {
+            node.set(GLOBAL.filter.exactToken(), filter);
+        }
+        return node;
+    }
+    /**
+     * @return the requests array
+     */
+    public final ArrayNode getRequests() {
+        if (requests == null) {
+            return JsonHandler.createArrayNode();
+        }
+        return requests;
+    }
+    /**
+     * @return the filter
+     */
+    public final ObjectNode getFilter() {
+        if (filter == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return filter;
+    }
 }

@@ -27,133 +27,133 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class PushAction extends Action {
-	/**
-	 * Push Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public PushAction(String variableName, String ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.push, variableName);
-		for (String val : value) {
-			if (val != null && ! val.trim().isEmpty()) {
-				((ArrayNode) currentObject).add(val.trim());
-			}
-		}
-		currentUPDATE = UPDATE.push;
-		setReady(true);
-	}
-	/**
-	 * Push Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public PushAction(String variableName, long ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.push, variableName);
-		for (long val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		currentUPDATE = UPDATE.push;
-		setReady(true);
-	}
-	/**
-	 * Push Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public PushAction(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.push, variableName);
-		for (boolean val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		currentUPDATE = UPDATE.push;
-		setReady(true);
-	}
-	/**
-	 * Push Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public PushAction(String variableName, double ...value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableEach(UPDATE.push, variableName);
-		for (double val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		currentUPDATE = UPDATE.push;
-		setReady(true);
-	}
-	/**
-	 * Add other Push sub actions to Push Request
-	 * @param variableName
-	 * @param value
-	 * @return the PushAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final PushAction addPushAction(String ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.push) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
-		}
-		for (String val : value) {
-			if (val != null && ! val.trim().isEmpty()) {
-				((ArrayNode) currentObject).add(val.trim());
-			}
-		}
-		return this;
-	}
-	/**
-	 * Add other Push sub actions to Push Request
-	 * @param variableName
-	 * @param value
-	 * @return the PushAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final PushAction addPushAction(boolean ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.push) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
-		}
-		for (boolean val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		return this;
-	}
-	/**
-	 * Add other Push sub actions to Push Request
-	 * @param variableName
-	 * @param value
-	 * @return the PushAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final PushAction addPushAction(long ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.push) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
-		}
-		for (long val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		return this;
-	}
-	/**
-	 * Add other Push sub actions to Push Request
-	 * @param variableName
-	 * @param value
-	 * @return the PushAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final PushAction addPushAction(double ...value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.push) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
-		}
-		for (double val : value) {
-			((ArrayNode) currentObject).add(val);
-		}
-		return this;
-	}
+    /**
+     * Push Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public PushAction(String variableName, String ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.push, variableName);
+        for (String val : value) {
+            if (val != null && ! val.trim().isEmpty()) {
+                ((ArrayNode) currentObject).add(val.trim());
+            }
+        }
+        currentUPDATE = UPDATE.push;
+        setReady(true);
+    }
+    /**
+     * Push Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public PushAction(String variableName, long ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.push, variableName);
+        for (long val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        currentUPDATE = UPDATE.push;
+        setReady(true);
+    }
+    /**
+     * Push Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public PushAction(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.push, variableName);
+        for (boolean val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        currentUPDATE = UPDATE.push;
+        setReady(true);
+    }
+    /**
+     * Push Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public PushAction(String variableName, double ...value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATE.push, variableName);
+        for (double val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        currentUPDATE = UPDATE.push;
+        setReady(true);
+    }
+    /**
+     * Add other Push sub actions to Push Request
+     * @param variableName
+     * @param value
+     * @return the PushAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final PushAction addPushAction(String ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.push) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
+        }
+        for (String val : value) {
+            if (val != null && ! val.trim().isEmpty()) {
+                ((ArrayNode) currentObject).add(val.trim());
+            }
+        }
+        return this;
+    }
+    /**
+     * Add other Push sub actions to Push Request
+     * @param variableName
+     * @param value
+     * @return the PushAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final PushAction addPushAction(boolean ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.push) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
+        }
+        for (boolean val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        return this;
+    }
+    /**
+     * Add other Push sub actions to Push Request
+     * @param variableName
+     * @param value
+     * @return the PushAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final PushAction addPushAction(long ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.push) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
+        }
+        for (long val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        return this;
+    }
+    /**
+     * Add other Push sub actions to Push Request
+     * @param variableName
+     * @param value
+     * @return the PushAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final PushAction addPushAction(double ...value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.push) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Push Action: "+currentUPDATE);
+        }
+        for (double val : value) {
+            ((ArrayNode) currentObject).add(val);
+        }
+        return this;
+    }
 
 }

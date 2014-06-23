@@ -39,114 +39,114 @@ import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
  *
  */
 public class PAip extends VitamType {
-	
-	private static final long serialVersionUID = -2179544540441187504L;
-	
-	public static enum StaticFields {
-		readingMode
-	}
-	/**
-	 * Example of Property
-	 */
-	public String readingMode;
-	
-	public PAip() {
-		// empty 
-	}
-	
-	@Override
-	public void getAfterLoad() {
-		super.getAfterLoad();
-		readingMode = this.getString("readingMode");
-	}
-	@Override
-	public void putBeforeSave() {
-		super.putBeforeSave();
-		if (readingMode != null) {
-			this.put("readingMode", readingMode);
-		}
-	}
-	
-	@Override
-	protected boolean updated(MongoDbAccess dbvitam) {
-		PAip vt = (PAip) dbvitam.paips.collection.findOne(new BasicDBObject(ID, get(ID)));
-		BasicDBObject update = null;
-		if (vt != null) {
-			List<DBObject> list = new ArrayList<>();
-			BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.DAip2PAip, false);
-			if (upd != null){
-				list.add(upd);
-			}
-			upd = dbvitam.updateLink(this, vt, VitamLinks.PAip2Dua, true);
-			if (upd != null) { 
-				list.add(upd);
-			}
-			if (! list.isEmpty()) {
-				try {
-					update = new BasicDBObject();
-					if (!list.isEmpty()) {
-						upd = new BasicDBObject();
-						for (DBObject dbObject : list) {
-							upd.putAll(dbObject);
-						}
-						update = update.append("$addToSet", upd);
-					}
-					dbvitam.paips.collection.update(new BasicDBObject(ID, this.get(ID)), update);
-				} catch (MongoException e) {
-					System.err.println("Exception for "+update+" : "+e.getMessage());
-					throw e;
-				}
-				list.clear();
-			}
-			return true;
-		} else {
-			dbvitam.updateLinks(this, vt, VitamLinks.DAip2PAip, false);
-		}
-		return false;
-	}
-	
-	@Override
-	public void save(MongoDbAccess dbvitam) {
-		putBeforeSave();
-		if (updated(dbvitam)) return;
-		updateOrSave(dbvitam.paips);
-	}
-	@SuppressWarnings("unchecked")
-	public List<String> getFathersMetaAipDBRef(boolean remove) {
-		if (remove) {
-			return (List<String>) this.removeField(VitamLinks.DAip2PAip.field2to1);
-		} else {
-			return (List<String>) this.get(VitamLinks.DAip2PAip.field2to1);
-		}
-	}
-	/**
-	 * Add the link N- between PAip and DuaRef
-	 * @param dbvitam
-	 * @param dua
-	 */
-	public void addDuaRef(MongoDbAccess dbvitam, DuaRef dua) {
-		dbvitam.addLink(this, VitamLinks.PAip2Dua, dua);
-	}
-	@SuppressWarnings("unchecked")
-	public List<String> getDuaDBRef(boolean remove) {
-		if (remove) {
-			return (List<String>) this.removeField(VitamLinks.PAip2Dua.field1to2);
-		} else {
-			return (List<String>) this.get(VitamLinks.PAip2SAip.field1to2);
-		}
-	}
-	@Override
-	public void load(MongoDbAccess dbvitam) {
-		PAip vt = (PAip) dbvitam.paips.collection.findOne(new BasicDBObject(ID, get(ID)));
-		this.putAll((BSONObject) vt);
-	}
-	
-	public static PAip findOne(MongoDbAccess dbvitam, String refid) throws InstantiationException, IllegalAccessException {
-		return (PAip) dbvitam.findOne(Cpaip, refid);
-	}
-	public static void addIndexes(MongoDbAccess dbvitam) {
-		dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
-		dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2SAip.field1to2, 1));
-		dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2Dua.field1to2, 1));
-	}
+    
+    private static final long serialVersionUID = -2179544540441187504L;
+    
+    public static enum StaticFields {
+        readingMode
+    }
+    /**
+     * Example of Property
+     */
+    public String readingMode;
+    
+    public PAip() {
+        // empty 
+    }
+    
+    @Override
+    public void getAfterLoad() {
+        super.getAfterLoad();
+        readingMode = this.getString("readingMode");
+    }
+    @Override
+    public void putBeforeSave() {
+        super.putBeforeSave();
+        if (readingMode != null) {
+            this.put("readingMode", readingMode);
+        }
+    }
+    
+    @Override
+    protected boolean updated(MongoDbAccess dbvitam) {
+        PAip vt = (PAip) dbvitam.paips.collection.findOne(new BasicDBObject(ID, get(ID)));
+        BasicDBObject update = null;
+        if (vt != null) {
+            List<DBObject> list = new ArrayList<>();
+            BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.DAip2PAip, false);
+            if (upd != null){
+                list.add(upd);
+            }
+            upd = dbvitam.updateLink(this, vt, VitamLinks.PAip2Dua, true);
+            if (upd != null) { 
+                list.add(upd);
+            }
+            if (! list.isEmpty()) {
+                try {
+                    update = new BasicDBObject();
+                    if (!list.isEmpty()) {
+                        upd = new BasicDBObject();
+                        for (DBObject dbObject : list) {
+                            upd.putAll(dbObject);
+                        }
+                        update = update.append("$addToSet", upd);
+                    }
+                    dbvitam.paips.collection.update(new BasicDBObject(ID, this.get(ID)), update);
+                } catch (MongoException e) {
+                    System.err.println("Exception for "+update+" : "+e.getMessage());
+                    throw e;
+                }
+                list.clear();
+            }
+            return true;
+        } else {
+            dbvitam.updateLinks(this, vt, VitamLinks.DAip2PAip, false);
+        }
+        return false;
+    }
+    
+    @Override
+    public void save(MongoDbAccess dbvitam) {
+        putBeforeSave();
+        if (updated(dbvitam)) return;
+        updateOrSave(dbvitam.paips);
+    }
+    @SuppressWarnings("unchecked")
+    public List<String> getFathersMetaAipDBRef(boolean remove) {
+        if (remove) {
+            return (List<String>) this.removeField(VitamLinks.DAip2PAip.field2to1);
+        } else {
+            return (List<String>) this.get(VitamLinks.DAip2PAip.field2to1);
+        }
+    }
+    /**
+     * Add the link N- between PAip and DuaRef
+     * @param dbvitam
+     * @param dua
+     */
+    public void addDuaRef(MongoDbAccess dbvitam, DuaRef dua) {
+        dbvitam.addLink(this, VitamLinks.PAip2Dua, dua);
+    }
+    @SuppressWarnings("unchecked")
+    public List<String> getDuaDBRef(boolean remove) {
+        if (remove) {
+            return (List<String>) this.removeField(VitamLinks.PAip2Dua.field1to2);
+        } else {
+            return (List<String>) this.get(VitamLinks.PAip2SAip.field1to2);
+        }
+    }
+    @Override
+    public void load(MongoDbAccess dbvitam) {
+        PAip vt = (PAip) dbvitam.paips.collection.findOne(new BasicDBObject(ID, get(ID)));
+        this.putAll((BSONObject) vt);
+    }
+    
+    public static PAip findOne(MongoDbAccess dbvitam, String refid) throws InstantiationException, IllegalAccessException {
+        return (PAip) dbvitam.findOne(Cpaip, refid);
+    }
+    public static void addIndexes(MongoDbAccess dbvitam) {
+        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
+        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2SAip.field1to2, 1));
+        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2Dua.field1to2, 1));
+    }
 }

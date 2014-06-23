@@ -30,52 +30,52 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class TermRequest extends Request {
-	/**
-	 * Term Request constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public TermRequest(String variableName, String value) throws InvalidCreateOperationException {
-		super();
-		createRequestVariableValue(REQUEST.term, variableName, value);
-		currentREQUEST = REQUEST.term;
-		setReady(true);
-	}
-	/**
-	 * Term Request constructor from Map
-	 * @param variableNameValue
-	 */
-	public TermRequest(Map<String, String> variableNameValue) {
-		super();
-		currentObject = ((ObjectNode) currentObject).putObject(REQUEST.term.exactToken());
-		ObjectNode node = (ObjectNode) currentObject;
-		for (Entry<String, String> entry : variableNameValue.entrySet()) {
-			String name = entry.getKey();
-			if (name == null || name.trim().isEmpty()) {
-				continue;
-			}
-			node.put(name.trim(), entry.getValue());
-		}
-		currentREQUEST = REQUEST.term;
-		setReady(true);
-	}
-	/**
-	 * Add other Term sub requests to Term Request
-	 * @param variableName
-	 * @param value
-	 * @return the TermRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final TermRequest addTermRequest(String variableName, String value) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.term) {
-			throw new InvalidCreateOperationException("Cannot add a term element since this is not a Term Request: "+currentREQUEST);
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
-		}
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-		return this;
-	}
+    /**
+     * Term Request constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public TermRequest(String variableName, String value) throws InvalidCreateOperationException {
+        super();
+        createRequestVariableValue(REQUEST.term, variableName, value);
+        currentREQUEST = REQUEST.term;
+        setReady(true);
+    }
+    /**
+     * Term Request constructor from Map
+     * @param variableNameValue
+     */
+    public TermRequest(Map<String, String> variableNameValue) {
+        super();
+        currentObject = ((ObjectNode) currentObject).putObject(REQUEST.term.exactToken());
+        ObjectNode node = (ObjectNode) currentObject;
+        for (Entry<String, String> entry : variableNameValue.entrySet()) {
+            String name = entry.getKey();
+            if (name == null || name.trim().isEmpty()) {
+                continue;
+            }
+            node.put(name.trim(), entry.getValue());
+        }
+        currentREQUEST = REQUEST.term;
+        setReady(true);
+    }
+    /**
+     * Add other Term sub requests to Term Request
+     * @param variableName
+     * @param value
+     * @return the TermRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final TermRequest addTermRequest(String variableName, String value) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.term) {
+            throw new InvalidCreateOperationException("Cannot add a term element since this is not a Term Request: "+currentREQUEST);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
 
 }

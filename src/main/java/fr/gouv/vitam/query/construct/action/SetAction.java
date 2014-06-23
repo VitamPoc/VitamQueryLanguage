@@ -30,153 +30,153 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class SetAction extends Action {
-	/**
-	 * Set Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public SetAction(String variableName, String value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.set, variableName, value);
-		currentUPDATE = UPDATE.set;
-		setReady(true);
-	}
-	/**
-	 * Set Action constructor from Map
-	 * @param variableNameValue
-	 */
-	public SetAction(Map<String, ?> variableNameValue) {
-		super();
-		currentObject = ((ObjectNode) currentObject).putObject(UPDATE.set.exactToken());
-		ObjectNode node = (ObjectNode) currentObject;
-		for (Entry<String, ?> entry : variableNameValue.entrySet()) {
-			String name = entry.getKey();
-			if (name == null || name.trim().isEmpty()) {
-				continue;
-			}
-			Object val = entry.getValue();
-			if (val instanceof String) {
-				node.put(name.trim(), (String) val);
-			} else if (val instanceof Long) {
-				node.put(name.trim(), (Long) val);
-			} else if (val instanceof Integer) {
-				node.put(name.trim(), (Integer) val);
-			} else if (val instanceof Double) {
-				node.put(name.trim(), (Double) val);
-			} else if (val instanceof Float) {
-				node.put(name.trim(), (Float) val);
-			} else if (val instanceof Boolean) {
-				node.put(name.trim(), (Boolean) val);
-			} else {
-				node.put(name.trim(), val.toString());
-			}
-		}
-		currentUPDATE = UPDATE.set;
-		setReady(true);
-	}
-	/**
-	 * Set Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public SetAction(String variableName, long value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.set, variableName, value);
-		currentUPDATE = UPDATE.set;
-		setReady(true);
-	}
-	/**
-	 * Set Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public SetAction(String variableName, boolean value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.set, variableName, value);
-		currentUPDATE = UPDATE.set;
-		setReady(true);
-	}
-	/**
-	 * Set Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public SetAction(String variableName, double value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.set, variableName, value);
-		currentUPDATE = UPDATE.set;
-		setReady(true);
-	}
-	/**
-	 * Add other Set sub actions to Set Request
-	 * @param variableName
-	 * @param value
-	 * @return the SetAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final SetAction addSetAction(String variableName, String value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.set) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
-		}
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-		return this;
-	}
-	/**
-	 * Add other Set sub actions to Set Request
-	 * @param variableName
-	 * @param value
-	 * @return the SetAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final SetAction addSetAction(String variableName, boolean value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.set) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
-		}
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-		return this;
-	}
-	/**
-	 * Add other Set sub actions to Set Request
-	 * @param variableName
-	 * @param value
-	 * @return the SetAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final SetAction addSetAction(String variableName, long value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.set) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
-		}
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-		return this;
-	}
-	/**
-	 * Add other Set sub actions to Set Request
-	 * @param variableName
-	 * @param value
-	 * @return the SetAction
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final SetAction addSetAction(String variableName, double value) throws InvalidCreateOperationException {
-		if (currentUPDATE != UPDATE.set) {
-			throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
-		}
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-		return this;
-	}
+    /**
+     * Set Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public SetAction(String variableName, String value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.set, variableName, value);
+        currentUPDATE = UPDATE.set;
+        setReady(true);
+    }
+    /**
+     * Set Action constructor from Map
+     * @param variableNameValue
+     */
+    public SetAction(Map<String, ?> variableNameValue) {
+        super();
+        currentObject = ((ObjectNode) currentObject).putObject(UPDATE.set.exactToken());
+        ObjectNode node = (ObjectNode) currentObject;
+        for (Entry<String, ?> entry : variableNameValue.entrySet()) {
+            String name = entry.getKey();
+            if (name == null || name.trim().isEmpty()) {
+                continue;
+            }
+            Object val = entry.getValue();
+            if (val instanceof String) {
+                node.put(name.trim(), (String) val);
+            } else if (val instanceof Long) {
+                node.put(name.trim(), (Long) val);
+            } else if (val instanceof Integer) {
+                node.put(name.trim(), (Integer) val);
+            } else if (val instanceof Double) {
+                node.put(name.trim(), (Double) val);
+            } else if (val instanceof Float) {
+                node.put(name.trim(), (Float) val);
+            } else if (val instanceof Boolean) {
+                node.put(name.trim(), (Boolean) val);
+            } else {
+                node.put(name.trim(), val.toString());
+            }
+        }
+        currentUPDATE = UPDATE.set;
+        setReady(true);
+    }
+    /**
+     * Set Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public SetAction(String variableName, long value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.set, variableName, value);
+        currentUPDATE = UPDATE.set;
+        setReady(true);
+    }
+    /**
+     * Set Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public SetAction(String variableName, boolean value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.set, variableName, value);
+        currentUPDATE = UPDATE.set;
+        setReady(true);
+    }
+    /**
+     * Set Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public SetAction(String variableName, double value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.set, variableName, value);
+        currentUPDATE = UPDATE.set;
+        setReady(true);
+    }
+    /**
+     * Add other Set sub actions to Set Request
+     * @param variableName
+     * @param value
+     * @return the SetAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final SetAction addSetAction(String variableName, String value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.set) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+    /**
+     * Add other Set sub actions to Set Request
+     * @param variableName
+     * @param value
+     * @return the SetAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final SetAction addSetAction(String variableName, boolean value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.set) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+    /**
+     * Add other Set sub actions to Set Request
+     * @param variableName
+     * @param value
+     * @return the SetAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final SetAction addSetAction(String variableName, long value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.set) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+    /**
+     * Add other Set sub actions to Set Request
+     * @param variableName
+     * @param value
+     * @return the SetAction
+     * @throws InvalidCreateOperationException 
+     */
+    public final SetAction addSetAction(String variableName, double value) throws InvalidCreateOperationException {
+        if (currentUPDATE != UPDATE.set) {
+            throw new InvalidCreateOperationException("Cannot add a set element since this is not a Set Action: "+currentUPDATE);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+currentUPDATE+" cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
 }

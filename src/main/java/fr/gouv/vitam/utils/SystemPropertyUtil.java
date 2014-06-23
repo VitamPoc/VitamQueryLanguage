@@ -25,17 +25,17 @@ import java.util.Properties;
  * A collection of utility methods to retrieve and parse the values of the Java system properties.
  */
 public final class SystemPropertyUtil {
-	public static final String FILE_ENCODING = "file.encoding";
-	public static final String UTF_8 = "UTF-8";
-	
-	private static final Properties PROPS = new Properties();
+    public static final String FILE_ENCODING = "file.encoding";
+    public static final String UTF_8 = "UTF-8";
+    
+    private static final Properties PROPS = new Properties();
 
     // Retrieve all system properties at once so that there's no need to deal with
     // security exceptions from next time.  Otherwise, we might end up with logging every
     // security exceptions on every system property access or introducing more complexity
     // just because of less verbose logging.
     static {
-    	refresh();
+        refresh();
     }
 
     /**
@@ -46,7 +46,7 @@ public final class SystemPropertyUtil {
         try {
             newProps = System.getProperties();
         } catch (SecurityException e) {
-        	System.err.println("Unable to retrieve the system properties; default values will be used: "+e.getMessage());
+            System.err.println("Unable to retrieve the system properties; default values will be used: "+e.getMessage());
             newProps = new Properties();
         }
 
@@ -55,21 +55,21 @@ public final class SystemPropertyUtil {
             PROPS.putAll(newProps);
         }
         if (! contains(FILE_ENCODING) || ! get(FILE_ENCODING).equalsIgnoreCase(UTF_8)) {
-    		try {
-    			//logger.info("Try to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument to ensure correctness");
+            try {
+                //logger.info("Try to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument to ensure correctness");
                 System.setProperty(FILE_ENCODING, UTF_8);
                 Field charset = Charset.class.getDeclaredField("defaultCharset");
-    	        charset.setAccessible(true);
-    	        charset.set(null,null);
-    	        synchronized (PROPS) {
-    	            PROPS.clear();
-    	            PROPS.putAll(newProps);
-    	        }
-    		} catch (Exception e1) {
-    			// ignore since it is a security issue and -Dfile.encoding=UTF-8 should be used
-    			System.err.println("Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument: "+e1.getMessage());
-    			System.err.println("Currently file.encoding is: "+ get(FILE_ENCODING));
-    		}
+                charset.setAccessible(true);
+                charset.set(null,null);
+                synchronized (PROPS) {
+                    PROPS.clear();
+                    PROPS.putAll(newProps);
+                }
+            } catch (Exception e1) {
+                // ignore since it is a security issue and -Dfile.encoding=UTF-8 should be used
+                System.err.println("Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument: "+e1.getMessage());
+                System.err.println("Currently file.encoding is: "+ get(FILE_ENCODING));
+            }
         }
     }
     /**
@@ -77,7 +77,7 @@ public final class SystemPropertyUtil {
      * @return True if Encoding is Correct
      */
     public static boolean isFileEncodingCorrect() {
-    	return (contains(FILE_ENCODING) && get(FILE_ENCODING).equalsIgnoreCase(UTF_8));
+        return (contains(FILE_ENCODING) && get(FILE_ENCODING).equalsIgnoreCase(UTF_8));
     }
 
     /**
@@ -233,7 +233,7 @@ public final class SystemPropertyUtil {
     }
 
     public static void debug() {
-    	PROPS.list(System.out);
+        PROPS.list(System.out);
     }
     
     private SystemPropertyUtil() {

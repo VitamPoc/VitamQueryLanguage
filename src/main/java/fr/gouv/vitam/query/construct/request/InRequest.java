@@ -32,345 +32,345 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class InRequest extends Request {
-	protected Set<Boolean> booleanVals;
-	protected Set<Long> longVals;
-	protected Set<Double> doubleVals;
-	protected Set<String> stringVals;
-	
-	/**
-	 * Clean the object
-	 */
-	protected void clean() {
-		super.clean();
-		booleanVals = null;
-		longVals = null;
-		doubleVals = null;
-		stringVals = null;
-	}
-	/**
-	 * In Request constructor
-	 * @param inRequest in, nin
-	 * @param variableName
-	 * @param value
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, long value) throws InvalidCreateOperationException {
-		super();
-		switch (inRequest) {
-			case in:
-			case nin: {
-				if (variableName == null || variableName.trim().isEmpty()) {
-					throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
-				}
-				ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-				ArrayNode array = sub.putArray(variableName.trim());
-				array.add(value);
-				longVals = new HashSet<Long>();
-				longVals.add(value);
-				currentObject = array;
-				currentREQUEST = inRequest;
-				setReady(true);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-	}
-	/**
-	 * In Request constructor
-	 * @param inRequest in, nin
-	 * @param variableName
-	 * @param value
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, double value) throws InvalidCreateOperationException {
-		super();
-		switch (inRequest) {
-			case in:
-			case nin: {
-				if (variableName == null || variableName.trim().isEmpty()) {
-					throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
-				}
-				ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-				ArrayNode array = sub.putArray(variableName.trim());
-				array.add(value);
-				doubleVals = new HashSet<Double>();
-				doubleVals.add(value);
-				currentObject = array;
-				currentREQUEST = inRequest;
-				setReady(true);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-	}
-	/**
-	 * In Request constructor
-	 * @param inRequest in, nin
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, String value) throws InvalidCreateOperationException {
-		super();
-		switch (inRequest) {
-			case in:
-			case nin: {
-				if (variableName == null || variableName.trim().isEmpty()) {
-					throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
-				}
-				ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-				ArrayNode array = sub.putArray(variableName.trim());
-				array.add(value);
-				stringVals = new HashSet<String>();
-				stringVals.add(value);
-				currentObject = array;
-				currentREQUEST = inRequest;
-				setReady(true);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+inRequest+" is not an In or Search Request");
-		}
-	}
-	/**
-	 * In Request constructor
-	 * @param inRequest in, nin
-	 * @param variableName
-	 * @param value
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, boolean value) throws InvalidCreateOperationException {
-		super();
-		switch (inRequest) {
-			case in:
-			case nin: {
-				if (variableName == null || variableName.trim().isEmpty()) {
-					throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
-				}
-				ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-				ArrayNode array = sub.putArray(variableName.trim());
-				array.add(value);
-				booleanVals = new HashSet<Boolean>();
-				booleanVals.add(value);
-				currentObject = array;
-				currentREQUEST = inRequest;
-				setReady(true);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-	}
-	/**
-	 * In Request constructor
-	 * 
-	 * @param inRequest in, nin
-	 * @param variable 
-	 * @param values 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variable, String ... values) throws InvalidCreateOperationException {
-		super();
-		if (variable == null || variable.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
-		}
-		switch (inRequest) {
-			case in:
-			case nin: {
-				ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-				ArrayNode array = sub.putArray(variable.trim());
-				stringVals = new HashSet<String>();
-				for (String value : values) {
-					if (! stringVals.contains(value)) {
-						array.add(value);
-						stringVals.add(value);
-					}
-				}
-				currentObject = array;
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-		currentREQUEST = inRequest;
-		setReady(true);
-	}
+    protected Set<Boolean> booleanVals;
+    protected Set<Long> longVals;
+    protected Set<Double> doubleVals;
+    protected Set<String> stringVals;
+    
+    /**
+     * Clean the object
+     */
+    protected void clean() {
+        super.clean();
+        booleanVals = null;
+        longVals = null;
+        doubleVals = null;
+        stringVals = null;
+    }
+    /**
+     * In Request constructor
+     * @param inRequest in, nin
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, long value) throws InvalidCreateOperationException {
+        super();
+        switch (inRequest) {
+            case in:
+            case nin: {
+                if (variableName == null || variableName.trim().isEmpty()) {
+                    throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
+                }
+                ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                ArrayNode array = sub.putArray(variableName.trim());
+                array.add(value);
+                longVals = new HashSet<Long>();
+                longVals.add(value);
+                currentObject = array;
+                currentREQUEST = inRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+    }
+    /**
+     * In Request constructor
+     * @param inRequest in, nin
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, double value) throws InvalidCreateOperationException {
+        super();
+        switch (inRequest) {
+            case in:
+            case nin: {
+                if (variableName == null || variableName.trim().isEmpty()) {
+                    throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
+                }
+                ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                ArrayNode array = sub.putArray(variableName.trim());
+                array.add(value);
+                doubleVals = new HashSet<Double>();
+                doubleVals.add(value);
+                currentObject = array;
+                currentREQUEST = inRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+    }
+    /**
+     * In Request constructor
+     * @param inRequest in, nin
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, String value) throws InvalidCreateOperationException {
+        super();
+        switch (inRequest) {
+            case in:
+            case nin: {
+                if (variableName == null || variableName.trim().isEmpty()) {
+                    throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
+                }
+                ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                ArrayNode array = sub.putArray(variableName.trim());
+                array.add(value);
+                stringVals = new HashSet<String>();
+                stringVals.add(value);
+                currentObject = array;
+                currentREQUEST = inRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+inRequest+" is not an In or Search Request");
+        }
+    }
+    /**
+     * In Request constructor
+     * @param inRequest in, nin
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, boolean value) throws InvalidCreateOperationException {
+        super();
+        switch (inRequest) {
+            case in:
+            case nin: {
+                if (variableName == null || variableName.trim().isEmpty()) {
+                    throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
+                }
+                ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                ArrayNode array = sub.putArray(variableName.trim());
+                array.add(value);
+                booleanVals = new HashSet<Boolean>();
+                booleanVals.add(value);
+                currentObject = array;
+                currentREQUEST = inRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+    }
+    /**
+     * In Request constructor
+     * 
+     * @param inRequest in, nin
+     * @param variable 
+     * @param values 
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variable, String ... values) throws InvalidCreateOperationException {
+        super();
+        if (variable == null || variable.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+inRequest+" cannot be created with empty variable name");
+        }
+        switch (inRequest) {
+            case in:
+            case nin: {
+                ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                ArrayNode array = sub.putArray(variable.trim());
+                stringVals = new HashSet<String>();
+                for (String value : values) {
+                    if (! stringVals.contains(value)) {
+                        array.add(value);
+                        stringVals.add(value);
+                    }
+                }
+                currentObject = array;
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+        currentREQUEST = inRequest;
+        setReady(true);
+    }
 
-	/**
-	 * In Request constructor
-	 * 
-	 * @param inRequest in, nin
-	 * @param variableName
-	 * @param values
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, long ... values) throws InvalidCreateOperationException {
-		super();
-		if (inRequest != REQUEST.in && inRequest != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be created with empty variable name");
-		}
-		ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-		ArrayNode array = sub.putArray(variableName.trim());
-		longVals = new HashSet<Long>();
-		for (long value : values) {
-			if (! longVals.contains(value)) {
-				array.add(value);
-				longVals.add(value);
-			}
-		}
-		currentObject = array;
-		currentREQUEST = inRequest;
-		setReady(true);
-	}
-	/**
-	 * In Request constructor
-	 * 
-	 * @param inRequest in, nin
-	 * @param variableName
-	 * @param values
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, double ... values) throws InvalidCreateOperationException {
-		super();
-		if (inRequest != REQUEST.in && inRequest != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be created with empty variable name");
-		}
-		ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-		ArrayNode array = sub.putArray(variableName.trim());
-		doubleVals = new HashSet<Double>();
-		for (double value : values) {
-			if (! doubleVals.contains(value)) {
-				array.add(value);
-				doubleVals.add(value);
-			}
-		}
-		currentObject = array;
-		currentREQUEST = inRequest;
-		setReady(true);
-	}
-	/**
-	 * In Request constructor
-	 * 
-	 * @param inRequest in, nin
-	 * @param variableName
-	 * @param values
-	 * @throws InvalidCreateOperationException 
-	 */
-	public InRequest(REQUEST inRequest, String variableName, boolean ... values) throws InvalidCreateOperationException {
-		super();
-		if (inRequest != REQUEST.in && inRequest != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
-		}
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be created with empty variable name");
-		}
-		ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
-		ArrayNode array = sub.putArray(variableName.trim());
-		booleanVals = new HashSet<Boolean>();
-		for (boolean value : values) {
-			if (! booleanVals.contains(value)) {
-				array.add(value);
-				booleanVals.add(value);
-			}
-		}
-		currentObject = array;
-		currentREQUEST = inRequest;
-		setReady(true);
-	}
-	/**
-	 * Add an In Value to an existing In Request
-	 * @param inValue
-	 * @return the InRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final InRequest addInValue(String ...inValue) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
-		}
-		ArrayNode array = (ArrayNode) currentObject;
-		if (stringVals == null) {
-			stringVals = new HashSet<String>();
-		}
-		for (String val : inValue) {
-			if (! stringVals.contains(val)) {
-				array.add(val);
-				stringVals.add(val);
-			}
-		}
-		return this;
-	}
-	/**
-	 * Add an In Value to an existing In Request
-	 * @param inValue
-	 * @return the InRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final InRequest addInValue(long ...inValue) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
-		}
-		ArrayNode array = (ArrayNode) currentObject;
-		if (longVals == null) {
-			longVals = new HashSet<Long>();
-		}
-		for (long l : inValue) {
-			if (! longVals.contains(l)) {
-				array.add(l);
-				longVals.add(l);
-			}
-		}
-		return this;
-	}
-	/**
-	 * Add an In Value to an existing In Request
-	 * @param inValue
-	 * @return the InRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final InRequest addInValue(double ...inValue) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
-		}
-		ArrayNode array = (ArrayNode) currentObject;
-		if (doubleVals == null) {
-			doubleVals = new HashSet<Double>();
-		}
-		for (double d : inValue) {
-			if (! doubleVals.contains(d)) {
-				array.add(d);
-				doubleVals.add(d);
-			}
-		}
-		return this;
-	}
-	/**
-	 * Add an In Value to an existing In Request
-	 * @param inValue
-	 * @return the InRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final InRequest addInValue(boolean ...inValue) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
-			throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
-		}
-		ArrayNode array = (ArrayNode) currentObject;
-		if (booleanVals == null) {
-			booleanVals = new HashSet<Boolean>();
-		}
-		for (boolean b : inValue) {
-			if (! booleanVals.contains(b)) {
-				array.add(b);
-				booleanVals.add(b);
-			}
-		}
-		return this;
-	}
+    /**
+     * In Request constructor
+     * 
+     * @param inRequest in, nin
+     * @param variableName
+     * @param values
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, long ... values) throws InvalidCreateOperationException {
+        super();
+        if (inRequest != REQUEST.in && inRequest != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be created with empty variable name");
+        }
+        ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+        ArrayNode array = sub.putArray(variableName.trim());
+        longVals = new HashSet<Long>();
+        for (long value : values) {
+            if (! longVals.contains(value)) {
+                array.add(value);
+                longVals.add(value);
+            }
+        }
+        currentObject = array;
+        currentREQUEST = inRequest;
+        setReady(true);
+    }
+    /**
+     * In Request constructor
+     * 
+     * @param inRequest in, nin
+     * @param variableName
+     * @param values
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, double ... values) throws InvalidCreateOperationException {
+        super();
+        if (inRequest != REQUEST.in && inRequest != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be created with empty variable name");
+        }
+        ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+        ArrayNode array = sub.putArray(variableName.trim());
+        doubleVals = new HashSet<Double>();
+        for (double value : values) {
+            if (! doubleVals.contains(value)) {
+                array.add(value);
+                doubleVals.add(value);
+            }
+        }
+        currentObject = array;
+        currentREQUEST = inRequest;
+        setReady(true);
+    }
+    /**
+     * In Request constructor
+     * 
+     * @param inRequest in, nin
+     * @param variableName
+     * @param values
+     * @throws InvalidCreateOperationException 
+     */
+    public InRequest(REQUEST inRequest, String variableName, boolean ... values) throws InvalidCreateOperationException {
+        super();
+        if (inRequest != REQUEST.in && inRequest != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Request "+inRequest+" is not an In Request");
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be created with empty variable name");
+        }
+        ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+        ArrayNode array = sub.putArray(variableName.trim());
+        booleanVals = new HashSet<Boolean>();
+        for (boolean value : values) {
+            if (! booleanVals.contains(value)) {
+                array.add(value);
+                booleanVals.add(value);
+            }
+        }
+        currentObject = array;
+        currentREQUEST = inRequest;
+        setReady(true);
+    }
+    /**
+     * Add an In Value to an existing In Request
+     * @param inValue
+     * @return the InRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final InRequest addInValue(String ...inValue) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
+        }
+        ArrayNode array = (ArrayNode) currentObject;
+        if (stringVals == null) {
+            stringVals = new HashSet<String>();
+        }
+        for (String val : inValue) {
+            if (! stringVals.contains(val)) {
+                array.add(val);
+                stringVals.add(val);
+            }
+        }
+        return this;
+    }
+    /**
+     * Add an In Value to an existing In Request
+     * @param inValue
+     * @return the InRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final InRequest addInValue(long ...inValue) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
+        }
+        ArrayNode array = (ArrayNode) currentObject;
+        if (longVals == null) {
+            longVals = new HashSet<Long>();
+        }
+        for (long l : inValue) {
+            if (! longVals.contains(l)) {
+                array.add(l);
+                longVals.add(l);
+            }
+        }
+        return this;
+    }
+    /**
+     * Add an In Value to an existing In Request
+     * @param inValue
+     * @return the InRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final InRequest addInValue(double ...inValue) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
+        }
+        ArrayNode array = (ArrayNode) currentObject;
+        if (doubleVals == null) {
+            doubleVals = new HashSet<Double>();
+        }
+        for (double d : inValue) {
+            if (! doubleVals.contains(d)) {
+                array.add(d);
+                doubleVals.add(d);
+            }
+        }
+        return this;
+    }
+    /**
+     * Add an In Value to an existing In Request
+     * @param inValue
+     * @return the InRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final InRequest addInValue(boolean ...inValue) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: "+currentREQUEST);
+        }
+        ArrayNode array = (ArrayNode) currentObject;
+        if (booleanVals == null) {
+            booleanVals = new HashSet<Boolean>();
+        }
+        for (boolean b : inValue) {
+            if (! booleanVals.contains(b)) {
+                array.add(b);
+                booleanVals.add(b);
+            }
+        }
+        return this;
+    }
 }

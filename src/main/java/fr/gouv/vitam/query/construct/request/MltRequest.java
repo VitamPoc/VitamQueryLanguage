@@ -32,78 +32,78 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
  *
  */
 public class MltRequest extends Request {
-	protected Set<String> stringVals;
-	
-	/**
-	 * Clean the object
-	 */
-	protected void clean() {
-		super.clean();
-		stringVals = null;
-	}
-	/**
-	 * MoreLikeThis Request constructor
-	 * 
-	 * @param mltRequest flt, mlt
-	 * @param value 
-	 * @param variableNames 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public MltRequest(REQUEST mltRequest, String value, String ... variableNames) throws InvalidCreateOperationException {
-		super();
-		if (value == null || value.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+mltRequest+" cannot be created with empty variable name");
-		}
-		switch (mltRequest) {
-			case flt:
-			case mlt: {
-				ObjectNode sub = ((ObjectNode) currentObject).putObject(mltRequest.exactToken());
-				ArrayNode array = sub.putArray(REQUESTARGS.fields.exactToken());
-				stringVals = new HashSet<String>();
-				for (String varName : variableNames) {
-					if (varName == null || varName.trim().isEmpty()) {
-						continue;
-					}
-					String var = varName.trim();
-					if (! stringVals.contains(var)) {
-						array.add(var);
-						stringVals.add(var);
-					}
-				}
-				currentObject = array;
-				sub.put(REQUESTARGS.like.exactToken(), value);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+mltRequest+" is not an MoreLikeThis or In Request");
-		}
-		currentREQUEST = mltRequest;
-		setReady(true);
-	}
-	/**
-	 * Add a variable into the Mlt Request
-	 * @param variableName
-	 * @return the MltRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final MltRequest addMltVariable(String ...variableName) throws InvalidCreateOperationException {
-		if (currentREQUEST != REQUEST.flt && currentREQUEST != REQUEST.mlt) {
-			throw new InvalidCreateOperationException("Cannot add a variableName since this is not an Mlt Request: "+currentREQUEST);
-		}
-		ArrayNode array = (ArrayNode) currentObject;
-		if (stringVals == null) {
-			stringVals = new HashSet<String>();
-		}
-		for (String val : variableName) {
-			if (val == null || val.trim().isEmpty()) {
-				throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
-			}
-			val = val.trim();
-			if (! stringVals.contains(val)) {
-				array.add(val);
-				stringVals.add(val);
-			}
-		}
-		return this;
-	}
+    protected Set<String> stringVals;
+    
+    /**
+     * Clean the object
+     */
+    protected void clean() {
+        super.clean();
+        stringVals = null;
+    }
+    /**
+     * MoreLikeThis Request constructor
+     * 
+     * @param mltRequest flt, mlt
+     * @param value 
+     * @param variableNames 
+     * @throws InvalidCreateOperationException 
+     */
+    public MltRequest(REQUEST mltRequest, String value, String ... variableNames) throws InvalidCreateOperationException {
+        super();
+        if (value == null || value.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+mltRequest+" cannot be created with empty variable name");
+        }
+        switch (mltRequest) {
+            case flt:
+            case mlt: {
+                ObjectNode sub = ((ObjectNode) currentObject).putObject(mltRequest.exactToken());
+                ArrayNode array = sub.putArray(REQUESTARGS.fields.exactToken());
+                stringVals = new HashSet<String>();
+                for (String varName : variableNames) {
+                    if (varName == null || varName.trim().isEmpty()) {
+                        continue;
+                    }
+                    String var = varName.trim();
+                    if (! stringVals.contains(var)) {
+                        array.add(var);
+                        stringVals.add(var);
+                    }
+                }
+                currentObject = array;
+                sub.put(REQUESTARGS.like.exactToken(), value);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+mltRequest+" is not an MoreLikeThis or In Request");
+        }
+        currentREQUEST = mltRequest;
+        setReady(true);
+    }
+    /**
+     * Add a variable into the Mlt Request
+     * @param variableName
+     * @return the MltRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final MltRequest addMltVariable(String ...variableName) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.flt && currentREQUEST != REQUEST.mlt) {
+            throw new InvalidCreateOperationException("Cannot add a variableName since this is not an Mlt Request: "+currentREQUEST);
+        }
+        ArrayNode array = (ArrayNode) currentObject;
+        if (stringVals == null) {
+            stringVals = new HashSet<String>();
+        }
+        for (String val : variableName) {
+            if (val == null || val.trim().isEmpty()) {
+                throw new InvalidCreateOperationException("Request "+currentREQUEST+" cannot be updated with empty variable name");
+            }
+            val = val.trim();
+            if (! stringVals.contains(val)) {
+                array.add(val);
+                stringVals.add(val);
+            }
+        }
+        return this;
+    }
 }

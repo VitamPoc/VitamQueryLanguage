@@ -36,341 +36,341 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  * 
  */
 public class CbEsQueryParser extends EsQueryParser {
-	public CbEsQueryParser(boolean simul) {
-		super(simul);
-		usingCouchBase = true;
-	}
-	
-	/*
-		In MongoDB : find(Query, Projection).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
-		In addition, one shall limit the scan by: find(Query, Projection)._addSpecial( "$maxscan", highlimit ).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
-	
-	 	In ElasticSearch : 
-	 	Query => { "from" : offset, "size" : number, "sort" : [ SortFilter as "name" : { "order" : "asc|desc" } ], "query" : Query }
-	 	FilteredQuery => { "filtered" : { "query" : { Query }, "filter" : { "limit" : { "value" : limit } } } }
- 	 
-	 */
+    public CbEsQueryParser(boolean simul) {
+        super(simul);
+        usingCouchBase = true;
+    }
+    
+    /*
+        In MongoDB : find(Query, Projection).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
+        In addition, one shall limit the scan by: find(Query, Projection)._addSpecial( "$maxscan", highlimit ).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
+    
+         In ElasticSearch : 
+         Query => { "from" : offset, "size" : number, "sort" : [ SortFilter as "name" : { "order" : "asc|desc" } ], "query" : Query }
+         FilteredQuery => { "filtered" : { "query" : { Query }, "filter" : { "limit" : { "value" : limit } } } }
+      
+     */
 
-	/**
-	 * $size : { name : length }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeSize(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		sizeEs(tr0, element);
-		tr0.requestCb = " LENGTH("+element.getKey()+") = "+element.getValue();
-	}
+    /**
+     * $size : { name : length }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeSize(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        sizeEs(tr0, element);
+        tr0.requestCb = " LENGTH("+element.getKey()+") = "+element.getValue();
+    }
 
-	/**
-	 * $gt : { name : value }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeCompare(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		compareEs(tr0, req, element);
-		String op = null;
-		switch (req) {
-			case gt:
-				op = " > ";
-				break;
-			case gte:
-				op = " >= ";
-				break;
-			case lt:
-				op = " < ";
-				break;
-			case lte:
-				op = " <= ";
-				break;
-			default:
-				break;
-			
-		}
-		tr0.requestCb = " "+element.getKey()+op+element.getValue();
-	}
+    /**
+     * $gt : { name : value }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeCompare(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        compareEs(tr0, req, element);
+        String op = null;
+        switch (req) {
+            case gt:
+                op = " > ";
+                break;
+            case gte:
+                op = " >= ";
+                break;
+            case lt:
+                op = " < ";
+                break;
+            case lte:
+                op = " <= ";
+                break;
+            default:
+                break;
+            
+        }
+        tr0.requestCb = " "+element.getKey()+op+element.getValue();
+    }
 
-	/**
-	 * $in : { name : [ value1, value2, ... ] }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeIn(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		inEs(tr0, req, element);
-		StringBuilder bval = new StringBuilder(" [ ");
-		boolean notFirst = false;
-		for (JsonNode value : element.getValue()) {
-			if (notFirst) {
-				bval.append(", ");
-			} else {
-				notFirst = true;
-			}
-			bval.append(value);
-		}
-		bval.append("] ");
-		tr0.requestCb = " "+element.getKey()+(req == REQUEST.nin ? " NOT IN " : " IN ")+bval.toString();
-	}
+    /**
+     * $in : { name : [ value1, value2, ... ] }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeIn(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        inEs(tr0, req, element);
+        StringBuilder bval = new StringBuilder(" [ ");
+        boolean notFirst = false;
+        for (JsonNode value : element.getValue()) {
+            if (notFirst) {
+                bval.append(", ");
+            } else {
+                notFirst = true;
+            }
+            bval.append(value);
+        }
+        bval.append("] ");
+        tr0.requestCb = " "+element.getKey()+(req == REQUEST.nin ? " NOT IN " : " IN ")+bval.toString();
+    }
 
-	/**
-	 * $range : { name : { $gte : value, $lte : value } }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeRange(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-		rangeEs(tr0, req, element);
-		String val = null;
-		for (Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
-			Entry<String, JsonNode> requestItem = iterator.next();
-			RANGEARGS arg = null;
-			try {
-				String key = requestItem.getKey();
-				if (key.startsWith("$")) {
-					arg = RANGEARGS.valueOf(requestItem.getKey().substring(1));
-				} else {
-					throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
-				}
-			} catch (IllegalArgumentException e) {
-				throw new InvalidParseOperationException("Invalid Range query command: "+requestItem, e);
-			}
-			String op = null;
-			switch (arg) {
-				case gt:
-					op = " > ";
-					break;
-				case gte:
-					op = " >= ";
-					break;
-				case lt:
-					op = " < ";
-					break;
-				case lte:
-					op = " <= ";
-					break;
-				default:
-					break;
-				
-			}
-			if (val != null) {
-				val += " AND "+element.getKey()+op+requestItem.getValue();
-			} else {
-				val = " "+element.getKey()+op+requestItem.getValue();
-			}
-		}
-		tr0.requestCb = val;
-	}
+    /**
+     * $range : { name : { $gte : value, $lte : value } }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeRange(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
+        rangeEs(tr0, req, element);
+        String val = null;
+        for (Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
+            Entry<String, JsonNode> requestItem = iterator.next();
+            RANGEARGS arg = null;
+            try {
+                String key = requestItem.getKey();
+                if (key.startsWith("$")) {
+                    arg = RANGEARGS.valueOf(requestItem.getKey().substring(1));
+                } else {
+                    throw new InvalidParseOperationException("Invalid Range query command: "+requestItem);
+                }
+            } catch (IllegalArgumentException e) {
+                throw new InvalidParseOperationException("Invalid Range query command: "+requestItem, e);
+            }
+            String op = null;
+            switch (arg) {
+                case gt:
+                    op = " > ";
+                    break;
+                case gte:
+                    op = " >= ";
+                    break;
+                case lt:
+                    op = " < ";
+                    break;
+                case lte:
+                    op = " <= ";
+                    break;
+                default:
+                    break;
+                
+            }
+            if (val != null) {
+                val += " AND "+element.getKey()+op+requestItem.getValue();
+            } else {
+                val = " "+element.getKey()+op+requestItem.getValue();
+            }
+        }
+        tr0.requestCb = val;
+    }
 
-	/**
-	 * $regex : { name : regex }
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeRegex(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-		regexEs(tr0, entry);
-		String val = entry.getValue().asText().replace(".*", "%").replace('.', '_').replace('?', '_').replace("^", "");
-		tr0.requestCb = " "+entry.getKey()+" LIKE \""+val+"\"";
-	}
+    /**
+     * $regex : { name : regex }
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeRegex(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        regexEs(tr0, entry);
+        String val = entry.getValue().asText().replace(".*", "%").replace('.', '_').replace('?', '_').replace("^", "");
+        tr0.requestCb = " "+entry.getKey()+" LIKE \""+val+"\"";
+    }
 
-	/**
-	 * $term : { name : term, name : term }
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeTerm(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		termEs(command, tr0);
-		String val = null;
-		for (Iterator<Entry<String, JsonNode>> iterator = command.fields(); iterator.hasNext();) {
-			Entry<String, JsonNode> requestItem = iterator.next();
-			if (val != null) {
-				val += " AND "+requestItem.getKey()+" == "+requestItem.getValue();
-			} else {
-				val = " "+requestItem.getKey()+" == "+requestItem.getValue();
-			}
-		}
-		tr0.requestCb = val;
-	}
+    /**
+     * $term : { name : term, name : term }
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeTerm(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        termEs(command, tr0);
+        String val = null;
+        for (Iterator<Entry<String, JsonNode>> iterator = command.fields(); iterator.hasNext();) {
+            Entry<String, JsonNode> requestItem = iterator.next();
+            if (val != null) {
+                val += " AND "+requestItem.getKey()+" == "+requestItem.getValue();
+            } else {
+                val = " "+requestItem.getKey()+" == "+requestItem.getValue();
+            }
+        }
+        tr0.requestCb = val;
+    }
 
-	/**
-	 * $eq : { name : value }
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeEq(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req)
-			throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-		eqEs(tr0, req, entry);
-		String op = null;
-		switch (req) {
-			case eq:
-				op = " = ";
-				break;
-			case ne:
-				op = " != ";
-				break;
-			default:
-				break;
-			
-		}
-		tr0.requestCb = " "+entry.getKey()+op+entry.getValue();
-	}
+    /**
+     * $eq : { name : value }
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeEq(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        eqEs(tr0, req, entry);
+        String op = null;
+        switch (req) {
+            case eq:
+                op = " = ";
+                break;
+            case ne:
+                op = " != ";
+                break;
+            default:
+                break;
+            
+        }
+        tr0.requestCb = " "+entry.getKey()+op+entry.getValue();
+    }
 
-	/**
-	 * $exists : name
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeExistsMissing(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		existsEs(command, tr0, req);
-		// only fieldname
-		String fieldname = command.asText();
-		String op = null;
-		switch (req) {
-			case exists:
-				op = " IS NOT MISSING ";
-				break;
-			case missing:
-				op = " IS MISSING ";
-				break;
-			case isNull:
-				op = " IS NULL ";
-				break;
-			default:
-				break;
-			
-		}
-		tr0.requestCb = " "+fieldname+op;
-	}
+    /**
+     * $exists : name
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeExistsMissing(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        existsEs(command, tr0, req);
+        // only fieldname
+        String fieldname = command.asText();
+        String op = null;
+        switch (req) {
+            case exists:
+                op = " IS NOT MISSING ";
+                break;
+            case missing:
+                op = " IS MISSING ";
+                break;
+            case isNull:
+                op = " IS NULL ";
+                break;
+            default:
+                break;
+            
+        }
+        tr0.requestCb = " "+fieldname+op;
+    }
 
-	/**
-	 * $isNull : name
-	 * 
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeIsNull(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		isNullEs(command, tr0);
-		// only fieldname
-		String fieldname = command.asText();
-		tr0.requestCb = " "+fieldname+" IS NULL ";
-	}
-	
-	/**
-	 * $and : [ expression1, expression2, ... ]
-	 * @param refCommand
-	 * @param command
-	 * @param tr0
-	 * @param req
-	 * @throws InvalidParseOperationException
-	 */
-	protected void analyzeAndNotNorOr(String refCommand, JsonNode command, TypeRequest tr0,
-			REQUEST req) throws InvalidParseOperationException {
-		if (command == null) {
-			throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
-		}
-		List<TypeRequest> trlist = new ArrayList<>();
-		booleanEs(refCommand, command, tr0, req, trlist);
-		String val = null;
-		String op = null;
-		switch (req) {
-			case and:
-				op = " AND ";
-				break;
-			case nor:
-				// no NOR support
-				op = " OR ";
-				break;
-			case not:
-				op = " AND ";
-				break;
-			case or:
-				op = " OR ";
-				break;
-			default:
-				break;
-			
-		}
-		for (int i = 0; i < trlist.size(); i++) {
-			TypeRequest tr = trlist.get(i);
-			if (tr.requestCb != null) {
-				if (val != null) {
-					val += op;
-				} else {
-					val = " ";
-				}
-				val += tr.requestCb;
-			}
-		}
-		if (req == REQUEST.not) {
-			val = " NOT ("+val+") ";
-		}
-		tr0.requestCb = val;
-	}
+    /**
+     * $isNull : name
+     * 
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeIsNull(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        isNullEs(command, tr0);
+        // only fieldname
+        String fieldname = command.asText();
+        tr0.requestCb = " "+fieldname+" IS NULL ";
+    }
+    
+    /**
+     * $and : [ expression1, expression2, ... ]
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    protected void analyzeAndNotNorOr(String refCommand, JsonNode command, TypeRequest tr0,
+            REQUEST req) throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
+        }
+        List<TypeRequest> trlist = new ArrayList<>();
+        booleanEs(refCommand, command, tr0, req, trlist);
+        String val = null;
+        String op = null;
+        switch (req) {
+            case and:
+                op = " AND ";
+                break;
+            case nor:
+                // no NOR support
+                op = " OR ";
+                break;
+            case not:
+                op = " AND ";
+                break;
+            case or:
+                op = " OR ";
+                break;
+            default:
+                break;
+            
+        }
+        for (int i = 0; i < trlist.size(); i++) {
+            TypeRequest tr = trlist.get(i);
+            if (tr.requestCb != null) {
+                if (val != null) {
+                    val += op;
+                } else {
+                    val = " ";
+                }
+                val += tr.requestCb;
+            }
+        }
+        if (req == REQUEST.not) {
+            val = " NOT ("+val+") ";
+        }
+        tr0.requestCb = val;
+    }
 }

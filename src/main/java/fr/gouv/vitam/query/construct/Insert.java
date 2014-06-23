@@ -31,129 +31,129 @@ import fr.gouv.vitam.query.parser.ParserTokens.GLOBAL;
  *
  */
 public class Insert {
-	protected ArrayNode requests;
-	protected ObjectNode filter;
-	protected ObjectNode data;
-	/**
-	 * 
-	 * @return this Insert
-	 */
-	public final Insert resetFilter() {
-		if (filter != null) {
-			filter.removeAll();
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Insert
-	 */
-	public final Insert resetData() {
-		if (data != null) {
-			data.removeAll();
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Insert
-	 */
-	public final Insert resetRequests() {
-		if (requests != null) {
-			requests.removeAll();
-		}
-		return this;
-	}
-	/**
-	 * @param mult True to act on multiple elements, False to act only on 1 element
-	 * @return this Insert
-	 */
-	public final Insert setMult(boolean mult) {
-		if (filter == null) {
-			filter = JsonHandler.createObjectNode();
-		}
-		filter.put(ACTIONFILTER.mult.exactToken(), mult);
-		return this;
-	}
+    protected ArrayNode requests;
+    protected ObjectNode filter;
+    protected ObjectNode data;
+    /**
+     * 
+     * @return this Insert
+     */
+    public final Insert resetFilter() {
+        if (filter != null) {
+            filter.removeAll();
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Insert
+     */
+    public final Insert resetData() {
+        if (data != null) {
+            data.removeAll();
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Insert
+     */
+    public final Insert resetRequests() {
+        if (requests != null) {
+            requests.removeAll();
+        }
+        return this;
+    }
+    /**
+     * @param mult True to act on multiple elements, False to act only on 1 element
+     * @return this Insert
+     */
+    public final Insert setMult(boolean mult) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        filter.put(ACTIONFILTER.mult.exactToken(), mult);
+        return this;
+    }
 
-	/**
-	 * Note that if previous attributes have the same name, they will be replaced.
-	 * 
-	 * @param action
-	 * @return this Insert
-	 */
-	public final Insert addData(ObjectNode ...data) {
-		if (this.data == null) {
-			this.data = JsonHandler.createObjectNode();
-		}
-		for (ObjectNode act : data) {
-			if (!act.isMissingNode()) {
-				this.data.setAll(act);
-			}
-		}
-		return this;
-	}
+    /**
+     * Note that if previous attributes have the same name, they will be replaced.
+     * 
+     * @param action
+     * @return this Insert
+     */
+    public final Insert addData(ObjectNode ...data) {
+        if (this.data == null) {
+            this.data = JsonHandler.createObjectNode();
+        }
+        for (ObjectNode act : data) {
+            if (!act.isMissingNode()) {
+                this.data.setAll(act);
+            }
+        }
+        return this;
+    }
 
-	/**
-	 * 
-	 * @param requests
-	 * @return this Insert
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final Insert addRequests(Request ... requests) throws InvalidCreateOperationException {
-		if (this.requests == null) {
-			this.requests = JsonHandler.createArrayNode();
-		}
-		for (Request request : requests) {
-			if (! request.isReady()) {
-				throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
-			}
-			this.requests.add(request.getCurrentRequest());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return the Final Insert containing all 3 parts: requests array, filter and data
-	 */
-	public final ObjectNode getFinalInsert() {
-		ObjectNode node = JsonHandler.createObjectNode();
-		if (requests != null && requests.size() > 0) {
-			node.set(GLOBAL.query.exactToken(), requests);
-		}
-		if (filter != null && filter.size() > 0) {
-			node.set(GLOBAL.filter.exactToken(), filter);
-		}
-		if (data != null && data.size() > 0) {
-			node.set(GLOBAL.data.exactToken(), data);
-		}
-		return node;
-	}
-	/**
-	 * @return the requests array
-	 */
-	public final ArrayNode getRequests() {
-		if (requests == null) {
-			return JsonHandler.createArrayNode();
-		}
-		return requests;
-	}
-	/**
-	 * @return the filter
-	 */
-	public final ObjectNode getFilter() {
-		if (filter == null) {
-			return JsonHandler.createObjectNode();
-		}
-		return filter;
-	}
-	/**
-	 * @return the data
-	 */
-	public final ObjectNode getData() {
-		if (data == null) {
-			return JsonHandler.createObjectNode();
-		}
-		return data;
-	}
+    /**
+     * 
+     * @param requests
+     * @return this Insert
+     * @throws InvalidCreateOperationException 
+     */
+    public final Insert addRequests(Request ... requests) throws InvalidCreateOperationException {
+        if (this.requests == null) {
+            this.requests = JsonHandler.createArrayNode();
+        }
+        for (Request request : requests) {
+            if (! request.isReady()) {
+                throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
+            }
+            this.requests.add(request.getCurrentRequest());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return the Final Insert containing all 3 parts: requests array, filter and data
+     */
+    public final ObjectNode getFinalInsert() {
+        ObjectNode node = JsonHandler.createObjectNode();
+        if (requests != null && requests.size() > 0) {
+            node.set(GLOBAL.query.exactToken(), requests);
+        }
+        if (filter != null && filter.size() > 0) {
+            node.set(GLOBAL.filter.exactToken(), filter);
+        }
+        if (data != null && data.size() > 0) {
+            node.set(GLOBAL.data.exactToken(), data);
+        }
+        return node;
+    }
+    /**
+     * @return the requests array
+     */
+    public final ArrayNode getRequests() {
+        if (requests == null) {
+            return JsonHandler.createArrayNode();
+        }
+        return requests;
+    }
+    /**
+     * @return the filter
+     */
+    public final ObjectNode getFilter() {
+        if (filter == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return filter;
+    }
+    /**
+     * @return the data
+     */
+    public final ObjectNode getData() {
+        if (data == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return data;
+    }
 }

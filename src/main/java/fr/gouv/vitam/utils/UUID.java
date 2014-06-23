@@ -51,28 +51,28 @@ import net.iharder.Base64;
  *
  */
 public final class UUID {
-	
-    private static final int KEYSIZE			= 18;
-    private static final int KEYB64SIZE			= 24;
-    private static final int KEYB16SIZE			= KEYSIZE*2;
+    
+    private static final int KEYSIZE            = 18;
+    private static final int KEYB64SIZE            = 24;
+    private static final int KEYB16SIZE            = KEYSIZE*2;
     /**
      * Random Generator 
      */
-    private static final ThreadLocalRandom RANDOM			= ThreadLocalRandom.current();
+    private static final ThreadLocalRandom RANDOM            = ThreadLocalRandom.current();
     /**
      * So MAX value on 2 bytes
      */
-    private static final int MAX_PID			= 65536;
+    private static final int MAX_PID            = 65536;
     /**
      * Version to store (to check correctness if future algorithm)
      */
-    private static final char VERSION			= 'd';
+    private static final char VERSION            = 'd';
     /**
      * HEX_CHARS
      */
     private static final char[] HEX_CHARS = {
-		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
-		'a', 'b', 'c', 'd', 'e', 'f', };
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
+        'a', 'b', 'c', 'd', 'e', 'f', };
     /**
      * VERSION_DEC
      */
@@ -81,9 +81,9 @@ public final class UUID {
     private static final Pattern MACHINE_ID_PATTERN = Pattern.compile("^(?:[0-9a-fA-F][:-]?){6,8}$");
     private static final int MACHINE_ID_LEN = 6;
 
-	/**
-	 * 2 bytes value maximum
-	 */
+    /**
+     * 2 bytes value maximum
+     */
     private static final int JVMPID = jvmProcessId();
     /**
      * Try to get Mac Address but could be also changed dynamically
@@ -103,7 +103,7 @@ public final class UUID {
      * Constructor that generates a new UUID using the current process id, MAC address, and timestamp
      */
     public UUID() {
-    	final long time = System.currentTimeMillis();
+        final long time = System.currentTimeMillis();
         uuid = new byte[KEYSIZE];
 
         // atomically
@@ -155,26 +155,26 @@ public final class UUID {
      * @param idsource
      */
     public UUID(final String idsource) {
-    	final String id = idsource.trim();
+        final String id = idsource.trim();
 
-    	int len = id.length();
+        int len = id.length();
         if (len == KEYB16SIZE) {
-        	// HEXA
+            // HEXA
             uuid = new byte[KEYSIZE];
             final char[] chars = id.toCharArray();
             for (int i = 0, j = 0; i < KEYSIZE; ) {
                 uuid[i ++]  = asByte(chars[j ++],  chars[j ++]);
             }
         } else if (len == KEYB64SIZE || len == KEYB64SIZE+1) {
-        	// BASE64
-    		try {
-				uuid = Base64.decode(id, Base64.URL_SAFE|Base64.DONT_GUNZIP);
-			} catch (IOException e) {
-	            throw new RuntimeException("Attempted to parse malformed UUID: " + id, e);
-			}
-       	} else {
-       		throw new RuntimeException("Attempted to parse malformed UUID: ("+len+") " + id);
-       	}
+            // BASE64
+            try {
+                uuid = Base64.decode(id, Base64.URL_SAFE|Base64.DONT_GUNZIP);
+            } catch (IOException e) {
+                throw new RuntimeException("Attempted to parse malformed UUID: " + id, e);
+            }
+           } else {
+               throw new RuntimeException("Attempted to parse malformed UUID: ("+len+") " + id);
+           }
     }
     /**
      * 
@@ -182,11 +182,11 @@ public final class UUID {
      * @return the assembly UUID of all given UUIDs
      */
     public static String assembleUuids(UUID ...uuids) {
-    	StringBuilder builder = new StringBuilder();
-    	for (UUID uuid : uuids) {
-			builder.append(uuid.toString());
-		}
-    	return builder.toString();
+        StringBuilder builder = new StringBuilder();
+        for (UUID uuid : uuids) {
+            builder.append(uuid.toString());
+        }
+        return builder.toString();
     }
     /**
      * 
@@ -194,17 +194,17 @@ public final class UUID {
      * @return the array of UUID according to the source (concatenation of UUIDs)
      */
     public static UUID[] getUuids(String idsource) {
-    	final String id = idsource.trim();
-    	int nb = id.length()/KEYB64SIZE;
-    	UUID []uuids = new UUID[nb];
-    	int beginIndex = 0;
-    	int endIndex = KEYB64SIZE;
-    	for (int i = 0; i < nb; i++) {
-    		uuids[i] = new UUID(id.substring(beginIndex, endIndex));
-    		beginIndex = endIndex;
-    		endIndex += KEYB64SIZE;
-    	}
-    	return uuids;
+        final String id = idsource.trim();
+        int nb = id.length()/KEYB64SIZE;
+        UUID []uuids = new UUID[nb];
+        int beginIndex = 0;
+        int endIndex = KEYB64SIZE;
+        for (int i = 0; i < nb; i++) {
+            uuids[i] = new UUID(id.substring(beginIndex, endIndex));
+            beginIndex = endIndex;
+            endIndex += KEYB64SIZE;
+        }
+        return uuids;
     }
     /**
      * 
@@ -212,7 +212,7 @@ public final class UUID {
      * @return the number of UUID in this idsource
      */
     public static int getUuidNb(String idsource) {
-    	return idsource.trim().length()/KEYB64SIZE;
+        return idsource.trim().length()/KEYB64SIZE;
     }
     /**
      * 
@@ -220,7 +220,7 @@ public final class UUID {
      * @return true if this idsource represents more than one UUID (path of UUIDs)
      */
     public static boolean isMultipleUUID(String idsource) {
-    	return idsource.trim().length() > KEYB64SIZE;
+        return idsource.trim().length() > KEYB64SIZE;
     }
     /**
      * 
@@ -228,10 +228,10 @@ public final class UUID {
      * @return the last UUID from this idsource
      */
     public static UUID getLast(String idsource) {
-    	final String id = idsource.trim();
-    	int nb = id.length()/KEYB64SIZE - 1;
-    	int pos = KEYB64SIZE*nb;
-    	return new UUID(id.substring(pos, pos+KEYB64SIZE));
+        final String id = idsource.trim();
+        int nb = id.length()/KEYB64SIZE - 1;
+        int pos = KEYB64SIZE*nb;
+        return new UUID(id.substring(pos, pos+KEYB64SIZE));
     }
     /**
      * 
@@ -239,8 +239,8 @@ public final class UUID {
      * @return the first UUID from this idsource
      */
     public static UUID getFirst(String idsource) {
-    	final String id = idsource.trim().substring(0, KEYB64SIZE);
-    	return new UUID(id);
+        final String id = idsource.trim().substring(0, KEYB64SIZE);
+        return new UUID(id);
     }
     /**
      * 
@@ -248,10 +248,10 @@ public final class UUID {
      * @return the last UUID from this idsource
      */
     public static String getLastAsString(String idsource) {
-    	final String id = idsource.trim();
-    	int nb = id.length()/KEYB64SIZE - 1;
-    	int pos = KEYB64SIZE*nb;
-    	return id.substring(pos, pos+KEYB64SIZE);
+        final String id = idsource.trim();
+        int nb = id.length()/KEYB64SIZE - 1;
+        int pos = KEYB64SIZE*nb;
+        return id.substring(pos, pos+KEYB64SIZE);
     }
     /**
      * 
@@ -259,7 +259,7 @@ public final class UUID {
      * @return the first UUID from this idsource
      */
     public static String getFirstAsString(String idsource) {
-    	return idsource.trim().substring(0, KEYB64SIZE);
+        return idsource.trim().substring(0, KEYB64SIZE);
     }
     /**
      * 
@@ -267,55 +267,55 @@ public final class UUID {
      * @return the array of UUID according to the source (concatenation of UUIDs separated by '#')
      */
     public static UUID[] getUuidsSharp(String idsource) {
-    	final String id = idsource.trim();
-    	int nb = id.length()/(KEYB64SIZE+1)+1;
-    	UUID []uuids = new UUID[nb];
-    	int beginIndex = 0;
-    	int endIndex = KEYB64SIZE;
-    	for (int i = 0; i < nb; i++) {
-    		uuids[i] = new UUID(id.substring(beginIndex, endIndex));
-    		beginIndex = endIndex+1;
-    		endIndex += KEYB64SIZE+1;
-    	}
-    	return uuids;
+        final String id = idsource.trim();
+        int nb = id.length()/(KEYB64SIZE+1)+1;
+        UUID []uuids = new UUID[nb];
+        int beginIndex = 0;
+        int endIndex = KEYB64SIZE;
+        for (int i = 0; i < nb; i++) {
+            uuids[i] = new UUID(id.substring(beginIndex, endIndex));
+            beginIndex = endIndex+1;
+            endIndex += KEYB64SIZE+1;
+        }
+        return uuids;
     }
     private static final byte asByte(final char a, final char b) {
-    	char a2 = a;
-		if (a >= HEX_CHARS[10]) {
-			a2 -= HEX_CHARS[10] - 10;
-		} else {
-			a2 -= HEX_CHARS[0];
-		}
-		char b2 = b;
-		if (b >= HEX_CHARS[10]) {
-			b2 -= HEX_CHARS[10] - 10;
-		} else {
-			b2 -= HEX_CHARS[0];
-		}
-		return (byte) ((a2 << 4) + b2);
+        char a2 = a;
+        if (a >= HEX_CHARS[10]) {
+            a2 -= HEX_CHARS[10] - 10;
+        } else {
+            a2 -= HEX_CHARS[0];
+        }
+        char b2 = b;
+        if (b >= HEX_CHARS[10]) {
+            b2 -= HEX_CHARS[10] - 10;
+        } else {
+            b2 -= HEX_CHARS[0];
+        }
+        return (byte) ((a2 << 4) + b2);
     }
 
     public final String toBase64() {
-		try {
-			return Base64.encodeBytes(uuid, Base64.URL_SAFE);
-		} catch (IOException e) {
-			return Base64.encodeBytes(uuid);
-		}
+        try {
+            return Base64.encodeBytes(uuid, Base64.URL_SAFE);
+        } catch (IOException e) {
+            return Base64.encodeBytes(uuid);
+        }
     }
 
     public final String toHex() {
-    	final char[] id = new char[KEYB16SIZE];
+        final char[] id = new char[KEYB16SIZE];
 
         // split each byte into 4 bit numbers and map to hex characters
-    	for (int i = 0, j = 0; i < KEYSIZE; i++) {
+        for (int i = 0, j = 0; i < KEYSIZE; i++) {
             id[j ++]  = HEX_CHARS[(uuid[i]  & 0xF0) >> 4];
             id[j ++]  = HEX_CHARS[(uuid[i]  & 0x0F)];
-    	}
+        }
         return new String(id);
     }
     @Override
     public String toString() {
-    	return toBase64();
+        return toBase64();
     }
 
     /**
@@ -346,13 +346,13 @@ public final class UUID {
     }
 
     public int getCounter() {
-    	int count = uuid[2] & 0xF0 >> 4 << 16;
-    	count |= uuid[2] & 0x0F << 4 << 16;
-    	count |= uuid[1] & 0xF0 >> 4 << 8;
-    	count |= uuid[1] & 0x0F << 4 << 8;
-    	count |= uuid[0] & 0xF0 >> 4;
-    	count |= uuid[0] & 0x0F << 4;
-    	return count;
+        int count = uuid[2] & 0xF0 >> 4 << 16;
+        count |= uuid[2] & 0x0F << 4 << 16;
+        count |= uuid[1] & 0xF0 >> 4 << 8;
+        count |= uuid[1] & 0x0F << 4 << 8;
+        count |= uuid[0] & 0xF0 >> 4;
+        count |= uuid[0] & 0x0F << 4;
+        return count;
     }
     /**
      * extract timestamp from raw UUID bytes and return as int
@@ -397,7 +397,7 @@ public final class UUID {
 
     @Override
     public boolean equals(Object o) {
-    	if (o == null || !(o instanceof UUID)) return false;
+        if (o == null || !(o instanceof UUID)) return false;
         return (this == o) || Arrays.equals(this.uuid, ((UUID) o).uuid);
     }
 
@@ -412,9 +412,9 @@ public final class UUID {
      * @return a byte array with random values
      */
     public static final byte[] getRandom(final int length) {
-    	final byte[] result = new byte[length];
-    	RANDOM.nextBytes(result);
-    	return result;
+        final byte[] result = new byte[length];
+        RANDOM.nextBytes(result);
+        return result;
     }
     
     /**
@@ -423,7 +423,7 @@ public final class UUID {
      */
     public static final byte[] macAddress() {
         try {
-        	byte[] machineId = null;
+            byte[] machineId = null;
             String customMachineId = SystemPropertyUtil.get("fr.gouv.vitam.machineId");
             if (customMachineId != null) {
                 if (MACHINE_ID_PATTERN.matcher(customMachineId).matches()) {
@@ -436,26 +436,26 @@ public final class UUID {
             }
             return machineId;
             /*
-        	byte[] mac = null;
+            byte[] mac = null;
             Enumeration<NetworkInterface> enumset = NetworkInterface.getNetworkInterfaces();
             while (enumset.hasMoreElements()) {
-            	mac = enumset.nextElement().getHardwareAddress();
-            	if (mac != null && mac.length >= MACHINE_ID_LEN) {
-            		break;
-            	} else {
-            		mac = null;
-            	}
+                mac = enumset.nextElement().getHardwareAddress();
+                if (mac != null && mac.length >= MACHINE_ID_LEN) {
+                    break;
+                } else {
+                    mac = null;
+                }
             }
             // if the machine is not connected to a network it has no active MAC address
             if (mac == null || mac.length < MACHINE_ID_LEN) {
-            	//System.err.println("No MAC Address found");
+                //System.err.println("No MAC Address found");
                 mac = getRandom(6);
             }
             return mac;
             */
         } catch (Exception e) {
-        	//System.err.println("Could not get MAC address");
-        	//e.printStackTrace();
+            //System.err.println("Could not get MAC address");
+            //e.printStackTrace();
             return getRandom(MACHINE_ID_LEN);
         }
     }
@@ -481,7 +481,7 @@ public final class UUID {
             bestInetAddr = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 });
         } catch (UnknownHostException e) {
             // Never happens.
-        	throw new IllegalArgumentException(e);
+            throw new IllegalArgumentException(e);
         }
 
         // Retrieve the list of available network interfaces.
@@ -541,7 +541,7 @@ public final class UUID {
         }
 
         if (bestMacAddr == NOT_FOUND) {
-        	bestMacAddr = getRandom(MACHINE_ID_LEN);
+            bestMacAddr = getRandom(MACHINE_ID_LEN);
         }
         return bestMacAddr;
     }
@@ -620,25 +620,25 @@ public final class UUID {
     public static final int jvmProcessId() {
         // Note: may fail in some JVM implementations
         // something like '<pid>@<hostname>', at least in SUN / Oracle JVMs
-    	try {
-	        final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
-	        final int index = jvmName.indexOf('@');
-	
-	        if (index < 1) {
-	        	System.err.println("Could not get JVMPID");
-	        	return RANDOM.nextInt(MAX_PID);
-	        }
-	        try {
-	            return Integer.parseInt(jvmName.substring(0, index)) % MAX_PID;
-	        } catch (NumberFormatException e) {
-	        	System.err.println("Could not get JVMPID");
-	        	e.printStackTrace();
-	        	return RANDOM.nextInt(MAX_PID);
-	        }
-    	} catch (Exception e) {
-        	e.printStackTrace();
-    		return RANDOM.nextInt(MAX_PID);
-    	}
+        try {
+            final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+            final int index = jvmName.indexOf('@');
+    
+            if (index < 1) {
+                System.err.println("Could not get JVMPID");
+                return RANDOM.nextInt(MAX_PID);
+            }
+            try {
+                return Integer.parseInt(jvmName.substring(0, index)) % MAX_PID;
+            } catch (NumberFormatException e) {
+                System.err.println("Could not get JVMPID");
+                e.printStackTrace();
+                return RANDOM.nextInt(MAX_PID);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return RANDOM.nextInt(MAX_PID);
+        }
     }
     
 }

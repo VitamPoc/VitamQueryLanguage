@@ -31,106 +31,106 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATEARGS;
  *
  */
 public class Action {
-	protected ObjectNode currentAction;
-	protected JsonNode currentObject;
-	protected UPDATE currentUPDATE;
-	protected boolean ready;
-	
-	protected final void createActionArray(UPDATE action) {
-		currentObject = ((ObjectNode) currentObject).putArray(action.exactToken());
-	}
-	protected final void createActionVariableEach(UPDATE action, String variableName) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(action.exactToken()).putObject(variableName.trim()).putArray(UPDATEARGS.each.exactToken());
-	}
-	protected final void createActionVariable(UPDATE action, String variableName) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
-		}
-		((ObjectNode) currentObject).put(action.exactToken(), variableName.trim());
-	}
-	protected final void createActionVariables(UPDATE action, String ...variableNames) throws InvalidCreateOperationException {
-		ArrayNode node = ((ObjectNode) currentObject).putArray(action.exactToken());
-		for (String var : variableNames) {
-			if (var != null && ! var.trim().isEmpty()) {
-				node.add(var.trim());
-			}
-		}
-		currentObject = node;
-	}
-	protected final void createActionVariableValue(UPDATE action, String variableName, long value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
-	protected final void createActionVariableValue(UPDATE action, String variableName, double value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
-	protected final void createActionVariableValue(UPDATE action, String variableName, String value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
-	protected final void createActionVariableValue(UPDATE action, String variableName, boolean value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
+    protected ObjectNode currentAction;
+    protected JsonNode currentObject;
+    protected UPDATE currentUPDATE;
+    protected boolean ready;
+    
+    protected final void createActionArray(UPDATE action) {
+        currentObject = ((ObjectNode) currentObject).putArray(action.exactToken());
+    }
+    protected final void createActionVariableEach(UPDATE action, String variableName) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken()).putObject(variableName.trim()).putArray(UPDATEARGS.each.exactToken());
+    }
+    protected final void createActionVariable(UPDATE action, String variableName) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(action.exactToken(), variableName.trim());
+    }
+    protected final void createActionVariables(UPDATE action, String ...variableNames) throws InvalidCreateOperationException {
+        ArrayNode node = ((ObjectNode) currentObject).putArray(action.exactToken());
+        for (String var : variableNames) {
+            if (var != null && ! var.trim().isEmpty()) {
+                node.add(var.trim());
+            }
+        }
+        currentObject = node;
+    }
+    protected final void createActionVariableValue(UPDATE action, String variableName, long value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+    protected final void createActionVariableValue(UPDATE action, String variableName, double value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+    protected final void createActionVariableValue(UPDATE action, String variableName, String value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+    protected final void createActionVariableValue(UPDATE action, String variableName, boolean value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Action "+action+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
 
-	/**
-	 * Empty constructor
-	 */
-	protected Action() {
-		currentAction = JsonHandler.createObjectNode();
-		currentObject = currentAction;
-		currentUPDATE = null;
-		ready = false;
-	}
-	/**
-	 * Clean the object
-	 */
-	protected void clean() {
-	}
-	/**
-	 * @return the currentAction
-	 */
-	public ObjectNode getCurrentAction() {
-		return currentAction;
-	}
-	/**
-	 * @return the currentObject
-	 */
-	public JsonNode getCurrentObject() {
-		return currentObject;
-	}
-	/**
-	 * @return the currentUPDATE
-	 */
-	public UPDATE getCurrentUPDATE() {
-		return currentUPDATE;
-	}
-	/**
-	 * @return the ready
-	 */
-	public boolean isReady() {
-		return ready;
-	}
-	/**
-	 * @param ready the ready to set
-	 */
-	protected void setReady(boolean ready) {
-		this.ready = ready;
-	}
+    /**
+     * Empty constructor
+     */
+    protected Action() {
+        currentAction = JsonHandler.createObjectNode();
+        currentObject = currentAction;
+        currentUPDATE = null;
+        ready = false;
+    }
+    /**
+     * Clean the object
+     */
+    protected void clean() {
+    }
+    /**
+     * @return the currentAction
+     */
+    public ObjectNode getCurrentAction() {
+        return currentAction;
+    }
+    /**
+     * @return the currentObject
+     */
+    public JsonNode getCurrentObject() {
+        return currentObject;
+    }
+    /**
+     * @return the currentUPDATE
+     */
+    public UPDATE getCurrentUPDATE() {
+        return currentUPDATE;
+    }
+    /**
+     * @return the ready
+     */
+    public boolean isReady() {
+        return ready;
+    }
+    /**
+     * @param ready the ready to set
+     */
+    protected void setReady(boolean ready) {
+        this.ready = ready;
+    }
 }

@@ -28,57 +28,57 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
  *
  */
 public class BooleanRequest extends Request {
-	/**
-	 * BooleanRequest constructor
-	 * @param booleanRequest and or not nor
-	 * @throws InvalidCreateOperationException
-	 */
-	public BooleanRequest(REQUEST booleanRequest) throws InvalidCreateOperationException {
-		super();
-		switch (booleanRequest) {
-			case and:
-			case nor:
-			case not:
-			case or: {
-				if (currentObject.isArray()) {
-					currentObject = ((ArrayNode) currentObject).addObject();
-				}
-				createRequestArray(booleanRequest);
-				currentREQUEST = booleanRequest;
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+booleanRequest+" is not a Boolean Request");
-		}
-	}
-	/**
-	 * Add sub requests to Boolean Request
-	 * @param requests
-	 * @return the BooleanRequest
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final BooleanRequest addToBooleanRequest(Request ... requests) throws InvalidCreateOperationException {
-		if (currentREQUEST != null) {
-			switch (currentREQUEST) {
-				case and:
-				case nor:
-				case not:
-				case or:
-					break;
-				default:
-					throw new InvalidCreateOperationException("Requests cannot be added since this is not a boolean query: "+currentREQUEST);
-			}
-		}
-		ArrayNode array = ((ArrayNode) currentObject);
-		for (Request elt : requests) {
-			if (! elt.isReady()) {
-				throw new InvalidCreateOperationException("Requests cannot be added since not ready: "+elt.getCurrentRequest());
-			}
-			// in case sub query has those element set: not allowed
-			elt.clean();
-			array.add(elt.getCurrentRequest());
-		}
-		setReady(true);
-		return this;
-	}
+    /**
+     * BooleanRequest constructor
+     * @param booleanRequest and or not nor
+     * @throws InvalidCreateOperationException
+     */
+    public BooleanRequest(REQUEST booleanRequest) throws InvalidCreateOperationException {
+        super();
+        switch (booleanRequest) {
+            case and:
+            case nor:
+            case not:
+            case or: {
+                if (currentObject.isArray()) {
+                    currentObject = ((ArrayNode) currentObject).addObject();
+                }
+                createRequestArray(booleanRequest);
+                currentREQUEST = booleanRequest;
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+booleanRequest+" is not a Boolean Request");
+        }
+    }
+    /**
+     * Add sub requests to Boolean Request
+     * @param requests
+     * @return the BooleanRequest
+     * @throws InvalidCreateOperationException 
+     */
+    public final BooleanRequest addToBooleanRequest(Request ... requests) throws InvalidCreateOperationException {
+        if (currentREQUEST != null) {
+            switch (currentREQUEST) {
+                case and:
+                case nor:
+                case not:
+                case or:
+                    break;
+                default:
+                    throw new InvalidCreateOperationException("Requests cannot be added since this is not a boolean query: "+currentREQUEST);
+            }
+        }
+        ArrayNode array = ((ArrayNode) currentObject);
+        for (Request elt : requests) {
+            if (! elt.isReady()) {
+                throw new InvalidCreateOperationException("Requests cannot be added since not ready: "+elt.getCurrentRequest());
+            }
+            // in case sub query has those element set: not allowed
+            elt.clean();
+            array.add(elt.getCurrentRequest());
+        }
+        setReady(true);
+        return this;
+    }
 }

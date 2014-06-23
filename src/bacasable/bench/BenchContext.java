@@ -25,16 +25,16 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  */
 public class BenchContext {
-	/**
-	 * Last Counters as current status
-	 */
-	public HashMap<String, AtomicLong> cpts = new HashMap<>();
-	/**
-	 * Last named values as current status
-	 */
-	public HashMap<String, String> savedNames = new HashMap<>();
-	/**
-	 * Distribution counter
-	 */
-	public AtomicLong distrib = null;
+    /**
+     * Last Counters as current status
+     */
+    public HashMap<String, AtomicLong> cpts = new HashMap<>();
+    /**
+     * Last named values as current status
+     */
+    public HashMap<String, String> savedNames = new HashMap<>();
+    /**
+     * Distribution counter
+     */
+    public AtomicLong distrib = null;
 }

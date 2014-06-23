@@ -25,25 +25,25 @@ import fr.gouv.vitam.query.parser.ParserTokens.UPDATE;
  *
  */
 public class IncAction extends Action {
-	/**
-	 * Inc Action constructor
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public IncAction(String variableName, long value) throws InvalidCreateOperationException {
-		super();
-		createActionVariableValue(UPDATE.inc, variableName, value);
-		currentUPDATE = UPDATE.inc;
-		setReady(true);
-	}
-	/**
-	 * Inc Action constructor from variable name only (value to 1)
-	 * @param variableName
-	 * @throws InvalidCreateOperationException 
-	 */
-	public IncAction(String variableName) throws InvalidCreateOperationException {
-		this(variableName, 1);
-	}
+    /**
+     * Inc Action constructor
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public IncAction(String variableName, long value) throws InvalidCreateOperationException {
+        super();
+        createActionVariableValue(UPDATE.inc, variableName, value);
+        currentUPDATE = UPDATE.inc;
+        setReady(true);
+    }
+    /**
+     * Inc Action constructor from variable name only (value to 1)
+     * @param variableName
+     * @throws InvalidCreateOperationException 
+     */
+    public IncAction(String variableName) throws InvalidCreateOperationException {
+        this(variableName, 1);
+    }
 
 }

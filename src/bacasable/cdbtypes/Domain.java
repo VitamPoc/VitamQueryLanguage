@@ -39,156 +39,156 @@ import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
  *
  */
 public class Domain extends VitamType {
-	private static final long serialVersionUID = 8152306914666919955L;
-	
-	/**
-	 * Number of Immediate child (DAip)
-	 */
-	public static final String NBCHILD = "_nb";
-	
-	/**
-	 * Number of Immediate child (DAip)
-	 */
-	public long nb = 0;
-	
-	public Domain() {
-		// empty 
-	}
+    private static final long serialVersionUID = 8152306914666919955L;
+    
+    /**
+     * Number of Immediate child (DAip)
+     */
+    public static final String NBCHILD = "_nb";
+    
+    /**
+     * Number of Immediate child (DAip)
+     */
+    public long nb = 0;
+    
+    public Domain() {
+        // empty 
+    }
 
-	/**
-	 * Add the link N-N between Domain and List of DAip
-	 * @param dbvitam
-	 * @param maips
-	 */
-	public void addMetaAip(MongoDbAccess dbvitam, List<DAip> maips) {
-		DBObject update = null;
-		List<String> ids = new ArrayList<String>();
-		for (DAip maip : maips) {
-			DBObject update2 = dbvitam.addLink(this, VitamLinks.Domain2DAip, maip);
-			if (update2 != null) {
-				update = update2;
-				ids.add((String) maip.get(ID));
-				//maip.update(dbvitam.metaaips, update);
-			}
-		}
-		if (! ids.isEmpty()) {
-			if (ids.size() > 1) {
-				try {
-					dbvitam.daips.collection.update(new BasicDBObject(ID, new BasicDBObject("$in", ids)), update, false, true);
-				} catch (MongoException e) {
-					System.err.println("Exception for "+update+" : "+e.getMessage());
-					throw e;
-				}
-			} else {
-				try {
-					dbvitam.daips.collection.update(new BasicDBObject(ID, ids.get(0)), update);
-				} catch (MongoException e) {
-					System.err.println("Exception for "+update+" : "+e.getMessage());
-					throw e;
-				}
-			}
-			nb += ids.size();
-		}
-		ids.clear();
-	}
+    /**
+     * Add the link N-N between Domain and List of DAip
+     * @param dbvitam
+     * @param maips
+     */
+    public void addMetaAip(MongoDbAccess dbvitam, List<DAip> maips) {
+        DBObject update = null;
+        List<String> ids = new ArrayList<String>();
+        for (DAip maip : maips) {
+            DBObject update2 = dbvitam.addLink(this, VitamLinks.Domain2DAip, maip);
+            if (update2 != null) {
+                update = update2;
+                ids.add((String) maip.get(ID));
+                //maip.update(dbvitam.metaaips, update);
+            }
+        }
+        if (! ids.isEmpty()) {
+            if (ids.size() > 1) {
+                try {
+                    dbvitam.daips.collection.update(new BasicDBObject(ID, new BasicDBObject("$in", ids)), update, false, true);
+                } catch (MongoException e) {
+                    System.err.println("Exception for "+update+" : "+e.getMessage());
+                    throw e;
+                }
+            } else {
+                try {
+                    dbvitam.daips.collection.update(new BasicDBObject(ID, ids.get(0)), update);
+                } catch (MongoException e) {
+                    System.err.println("Exception for "+update+" : "+e.getMessage());
+                    throw e;
+                }
+            }
+            nb += ids.size();
+        }
+        ids.clear();
+    }
 
-	/**
-	 * Add the link N-N between Domain and List of DAip
-	 * @param dbvitam
-	 * @param maips
-	 */
-	public void addMetaAipNoSave(MongoDbAccess dbvitam, List<DAip> maips) {
-		for (DAip maip : maips) {
-			MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, this, VitamLinks.Domain2DAip.field1to2, maip, false);
-			if (MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, maip, VitamLinks.Domain2DAip.field2to1, this, false)) {
-				nb++;
-			}
-			maip.saveToFile(dbvitam, 1);
-		}
-	}
+    /**
+     * Add the link N-N between Domain and List of DAip
+     * @param dbvitam
+     * @param maips
+     */
+    public void addMetaAipNoSave(MongoDbAccess dbvitam, List<DAip> maips) {
+        for (DAip maip : maips) {
+            MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, this, VitamLinks.Domain2DAip.field1to2, maip, false);
+            if (MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, maip, VitamLinks.Domain2DAip.field2to1, this, false)) {
+                nb++;
+            }
+            maip.saveToFile(dbvitam, 1);
+        }
+    }
 
-	/**
-	 * Add the link N-N between Domain and DAip
-	 * @param dbvitam
-	 * @param maip
-	 */
-	public void addMetaAip(MongoDbAccess dbvitam, DAip maip) {
-		DBObject update = dbvitam.addLink(this, VitamLinks.Domain2DAip, maip);
-		if (update != null) {
-			maip.update(dbvitam.daips, update);
-		}
-	}
+    /**
+     * Add the link N-N between Domain and DAip
+     * @param dbvitam
+     * @param maip
+     */
+    public void addMetaAip(MongoDbAccess dbvitam, DAip maip) {
+        DBObject update = dbvitam.addLink(this, VitamLinks.Domain2DAip, maip);
+        if (update != null) {
+            maip.update(dbvitam.daips, update);
+        }
+    }
 
-	@Override
-	protected boolean updated(MongoDbAccess dbvitam) {
-		Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, (String) get(ID)));
-		BasicDBObject update = null;
-		if (vt != null) {
-			List<DBObject> list = new ArrayList<>();
-			BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
-			if (upd != null){
-				list.add(upd);
-			}
-			try {
-				update = new BasicDBObject();
-				if (!list.isEmpty()) {
-					upd = new BasicDBObject();
-					for (DBObject dbObject : list) {
-						upd.putAll(dbObject);
-					}
-					update = update.append("$addToSet", upd);
-				}
-				update = update.append("$inc", new BasicDBObject(NBCHILD, nb));
-				nb = 0;
-				dbvitam.domains.collection.update(new BasicDBObject(ID, this.get(ID)), update);
-			} catch (MongoException e) {
-				System.err.println("Exception for "+update+" : "+e.getMessage());
-				throw e;
-			}
-			list.clear();
-			return true;
-		} else {
-			dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
-			this.append(NBCHILD, nb);
-			nb = 0;
-		}
-		return false;
-	}
+    @Override
+    protected boolean updated(MongoDbAccess dbvitam) {
+        Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, (String) get(ID)));
+        BasicDBObject update = null;
+        if (vt != null) {
+            List<DBObject> list = new ArrayList<>();
+            BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
+            if (upd != null){
+                list.add(upd);
+            }
+            try {
+                update = new BasicDBObject();
+                if (!list.isEmpty()) {
+                    upd = new BasicDBObject();
+                    for (DBObject dbObject : list) {
+                        upd.putAll(dbObject);
+                    }
+                    update = update.append("$addToSet", upd);
+                }
+                update = update.append("$inc", new BasicDBObject(NBCHILD, nb));
+                nb = 0;
+                dbvitam.domains.collection.update(new BasicDBObject(ID, this.get(ID)), update);
+            } catch (MongoException e) {
+                System.err.println("Exception for "+update+" : "+e.getMessage());
+                throw e;
+            }
+            list.clear();
+            return true;
+        } else {
+            dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
+            this.append(NBCHILD, nb);
+            nb = 0;
+        }
+        return false;
+    }
 
-	public void save(MongoDbAccess dbvitam) {
-		putBeforeSave();
-		if (updated(dbvitam)) {
-			return;
-		}
-		updateOrSave(dbvitam.domains);
-	}
-	@SuppressWarnings("unchecked")
-	public List<String> getMetaAipDBRef(boolean remove) {
-		if (remove) {
-			return (List<String>) this.removeField(VitamLinks.Domain2DAip.field1to2);
-		} else {
-			return (List<String>) this.get(VitamLinks.Domain2DAip.field1to2);
-		}
-	}
-	
-	public final void cleanStructure() {
-		removeField(VitamLinks.Domain2DAip.field1to2);
-		removeField(ID);
-		removeField("_refid");
-		removeField("_nb");
-	}
-	
-	@Override
-	public void load(MongoDbAccess dbvitam) {
-		Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, get(ID)));
-		this.putAll((BSONObject) vt);
-	}
+    public void save(MongoDbAccess dbvitam) {
+        putBeforeSave();
+        if (updated(dbvitam)) {
+            return;
+        }
+        updateOrSave(dbvitam.domains);
+    }
+    @SuppressWarnings("unchecked")
+    public List<String> getMetaAipDBRef(boolean remove) {
+        if (remove) {
+            return (List<String>) this.removeField(VitamLinks.Domain2DAip.field1to2);
+        } else {
+            return (List<String>) this.get(VitamLinks.Domain2DAip.field1to2);
+        }
+    }
+    
+    public final void cleanStructure() {
+        removeField(VitamLinks.Domain2DAip.field1to2);
+        removeField(ID);
+        removeField("_refid");
+        removeField("_nb");
+    }
+    
+    @Override
+    public void load(MongoDbAccess dbvitam) {
+        Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, get(ID)));
+        this.putAll((BSONObject) vt);
+    }
 
-	public static Domain findOne(MongoDbAccess dbvitam, String id) throws InstantiationException, IllegalAccessException {
-		return (Domain) dbvitam.findOne(Cdomain, id);
-	}
-	public static void addIndexes(MongoDbAccess dbvitam) {
-		dbvitam.domains.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.Domain2DAip.field1to2, 1));
-		//dbvitam.domaines.collection.createIndex(new BasicDBObject("_depth", 1));
-	}
+    public static Domain findOne(MongoDbAccess dbvitam, String id) throws InstantiationException, IllegalAccessException {
+        return (Domain) dbvitam.findOne(Cdomain, id);
+    }
+    public static void addIndexes(MongoDbAccess dbvitam) {
+        dbvitam.domains.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.Domain2DAip.field1to2, 1));
+        //dbvitam.domaines.collection.createIndex(new BasicDBObject("_depth", 1));
+    }
 }

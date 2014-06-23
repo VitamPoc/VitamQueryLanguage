@@ -37,76 +37,76 @@ import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
  *
  */
 public final class ActionHelper {
-	private ActionHelper() {
-		// empty
-	}
-	public static final AddAction add(String variableName, String ...value) throws InvalidCreateOperationException {
-		return new AddAction(variableName, value);
-	}
-	public static final AddAction add(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		return new AddAction(variableName, value);
-	}
-	public static final AddAction add(String variableName, long ...value) throws InvalidCreateOperationException {
-		return new AddAction(variableName, value);
-	}
-	public static final AddAction add(String variableName, double ...value) throws InvalidCreateOperationException {
-		return new AddAction(variableName, value);
-	}
-	public static final IncAction inc(String variableName, long value) throws InvalidCreateOperationException {
-		return new IncAction(variableName, value);
-	}
-	public static final IncAction inc(String variableName) throws InvalidCreateOperationException {
-		return new IncAction(variableName);
-	}
-	public static final PopAction pop(String variableName, String ...value) throws InvalidCreateOperationException {
-		return new PopAction(variableName, value);
-	}
-	public static final PopAction pop(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		return new PopAction(variableName, value);
-	}
-	public static final PopAction pop(String variableName, long ...value) throws InvalidCreateOperationException {
-		return new PopAction(variableName, value);
-	}
-	public static final PopAction pop(String variableName, double ...value) throws InvalidCreateOperationException {
-		return new PopAction(variableName, value);
-	}
-	public static final PullAction pull(String variableName, long value) throws InvalidCreateOperationException {
-		return new PullAction(variableName, value);
-	}
-	public static final PullAction pull(String variableName) throws InvalidCreateOperationException {
-		return new PullAction(variableName);
-	}
-	public static final PushAction push(String variableName, String ...value) throws InvalidCreateOperationException {
-		return new PushAction(variableName, value);
-	}
-	public static final PushAction push(String variableName, boolean ...value) throws InvalidCreateOperationException {
-		return new PushAction(variableName, value);
-	}
-	public static final PushAction push(String variableName, long ...value) throws InvalidCreateOperationException {
-		return new PushAction(variableName, value);
-	}
-	public static final PushAction push(String variableName, double ...value) throws InvalidCreateOperationException {
-		return new PushAction(variableName, value);
-	}
-	public static final RenameAction rename(String variableName, String value) throws InvalidCreateOperationException {
-		return new RenameAction(variableName, value);
-	}
-	public static final SetAction set(String variableName, String value) throws InvalidCreateOperationException {
-		return new SetAction(variableName, value);
-	}
-	public static final SetAction set(String variableName, boolean value) throws InvalidCreateOperationException {
-		return new SetAction(variableName, value);
-	}
-	public static final SetAction set(String variableName, long value) throws InvalidCreateOperationException {
-		return new SetAction(variableName, value);
-	}
-	public static final SetAction set(String variableName, double value) throws InvalidCreateOperationException {
-		return new SetAction(variableName, value);
-	}
-	public static final SetAction set(Map<String, ?> map) throws InvalidCreateOperationException {
-		return new SetAction(map);
-	}
-	public static final UnsetAction unset(String ...variableName) throws InvalidCreateOperationException {
-		return new UnsetAction(variableName);
-	}
+    private ActionHelper() {
+        // empty
+    }
+    public static final AddAction add(String variableName, String ...value) throws InvalidCreateOperationException {
+        return new AddAction(variableName, value);
+    }
+    public static final AddAction add(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        return new AddAction(variableName, value);
+    }
+    public static final AddAction add(String variableName, long ...value) throws InvalidCreateOperationException {
+        return new AddAction(variableName, value);
+    }
+    public static final AddAction add(String variableName, double ...value) throws InvalidCreateOperationException {
+        return new AddAction(variableName, value);
+    }
+    public static final IncAction inc(String variableName, long value) throws InvalidCreateOperationException {
+        return new IncAction(variableName, value);
+    }
+    public static final IncAction inc(String variableName) throws InvalidCreateOperationException {
+        return new IncAction(variableName);
+    }
+    public static final PopAction pop(String variableName, String ...value) throws InvalidCreateOperationException {
+        return new PopAction(variableName, value);
+    }
+    public static final PopAction pop(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        return new PopAction(variableName, value);
+    }
+    public static final PopAction pop(String variableName, long ...value) throws InvalidCreateOperationException {
+        return new PopAction(variableName, value);
+    }
+    public static final PopAction pop(String variableName, double ...value) throws InvalidCreateOperationException {
+        return new PopAction(variableName, value);
+    }
+    public static final PullAction pull(String variableName, long value) throws InvalidCreateOperationException {
+        return new PullAction(variableName, value);
+    }
+    public static final PullAction pull(String variableName) throws InvalidCreateOperationException {
+        return new PullAction(variableName);
+    }
+    public static final PushAction push(String variableName, String ...value) throws InvalidCreateOperationException {
+        return new PushAction(variableName, value);
+    }
+    public static final PushAction push(String variableName, boolean ...value) throws InvalidCreateOperationException {
+        return new PushAction(variableName, value);
+    }
+    public static final PushAction push(String variableName, long ...value) throws InvalidCreateOperationException {
+        return new PushAction(variableName, value);
+    }
+    public static final PushAction push(String variableName, double ...value) throws InvalidCreateOperationException {
+        return new PushAction(variableName, value);
+    }
+    public static final RenameAction rename(String variableName, String value) throws InvalidCreateOperationException {
+        return new RenameAction(variableName, value);
+    }
+    public static final SetAction set(String variableName, String value) throws InvalidCreateOperationException {
+        return new SetAction(variableName, value);
+    }
+    public static final SetAction set(String variableName, boolean value) throws InvalidCreateOperationException {
+        return new SetAction(variableName, value);
+    }
+    public static final SetAction set(String variableName, long value) throws InvalidCreateOperationException {
+        return new SetAction(variableName, value);
+    }
+    public static final SetAction set(String variableName, double value) throws InvalidCreateOperationException {
+        return new SetAction(variableName, value);
+    }
+    public static final SetAction set(Map<String, ?> map) throws InvalidCreateOperationException {
+        return new SetAction(map);
+    }
+    public static final UnsetAction unset(String ...variableName) throws InvalidCreateOperationException {
+        return new UnsetAction(variableName);
+    }
 }

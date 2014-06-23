@@ -32,269 +32,269 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
  *
  */
 public class Query {
-	protected ArrayNode requests;
-	protected ObjectNode filter, projection;
-	/**
-	 * 
-	 * @return this Query
-	 */
-	public final Query resetHintFilter() {
-		if (filter != null) {
-			filter.remove(REQUESTFILTER.hint.exactToken());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Query
-	 */
-	public final Query resetLimitFilter() {
-		if (filter != null) {
-			filter.remove(REQUESTFILTER.offset.exactToken());
-			filter.remove(REQUESTFILTER.limit.exactToken());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Query
-	 */
-	public final Query resetOrderByFilter() {
-		if (filter != null) {
-			filter.remove(REQUESTFILTER.orderby.exactToken());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Query
-	 */
-	public final Query resetUsedProjection() {
-		if (projection != null) {
-			projection.remove(PROJECTION.fields.exactToken());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Query
-	 */
-	public final Query resetUsageProjection() {
-		if (projection != null) {
-			projection.remove(PROJECTION.usage.exactToken());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return this Query
-	 */
-	public final Query resetRequests() {
-		if (requests != null) {
-			requests.removeAll();
-		}
-		return this;
-	}
-	/**
-	 * @param offset ignored if 0
-	 * @param limit ignored if 0
-	 * @return this Query
-	 */
-	public final Query setLimitFilter(long offset, long limit) {
-		if (filter == null) {
-			filter = JsonHandler.createObjectNode();
-		}
-		resetLimitFilter();
-		if (offset > 0) {
-			filter.put(REQUESTFILTER.offset.exactToken(), offset);
-		}
-		if (limit > 0) {
-			filter.put(REQUESTFILTER.limit.exactToken(), limit);
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @param hints
-	 * @return this Query
-	 */
-	public final Query addHintFilter(String ... hints) {
-		if (filter == null) {
-			filter = JsonHandler.createObjectNode();
-		}
-		ArrayNode array = (ArrayNode) filter.get(REQUESTFILTER.hint.exactToken());
-		if (array == null || array.isMissingNode()) {
-			array = filter.putArray(REQUESTFILTER.hint.exactToken());
-		}
-		for (String hint : hints) {
-			if (hint == null || hint.trim().isEmpty()) {
-				continue;
-			}
-			array.add(hint.trim());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @param variableNames
-	 * @return this Query
-	 */
-	public final Query addOrderByAscFilter(String ... variableNames) {
-		if (filter == null) {
-			filter = JsonHandler.createObjectNode();
-		}
-		ObjectNode node = (ObjectNode) filter.get(REQUESTFILTER.orderby.exactToken());
-		if (node == null || node.isMissingNode()) {
-			node = filter.putObject(REQUESTFILTER.orderby.exactToken());
-		}
-		for (String var : variableNames) {
-			if (var == null || var.trim().isEmpty()) {
-				continue;
-			}
-			node.put(var.trim(), 1);
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @param variableNames
-	 * @return this Query
-	 */
-	public final Query addOrderByDescFilter(String ... variableNames) {
-		if (filter == null) {
-			filter = JsonHandler.createObjectNode();
-		}
-		ObjectNode node = (ObjectNode) filter.get(REQUESTFILTER.orderby.exactToken());
-		if (node == null || node.isMissingNode()) {
-			node = filter.putObject(REQUESTFILTER.orderby.exactToken());
-		}
-		for (String var : variableNames) {
-			if (var == null || var.trim().isEmpty()) {
-				continue;
-			}
-			node.put(var.trim(), -1);
-		}
-		return this;
-	}
+    protected ArrayNode requests;
+    protected ObjectNode filter, projection;
+    /**
+     * 
+     * @return this Query
+     */
+    public final Query resetHintFilter() {
+        if (filter != null) {
+            filter.remove(REQUESTFILTER.hint.exactToken());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Query
+     */
+    public final Query resetLimitFilter() {
+        if (filter != null) {
+            filter.remove(REQUESTFILTER.offset.exactToken());
+            filter.remove(REQUESTFILTER.limit.exactToken());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Query
+     */
+    public final Query resetOrderByFilter() {
+        if (filter != null) {
+            filter.remove(REQUESTFILTER.orderby.exactToken());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Query
+     */
+    public final Query resetUsedProjection() {
+        if (projection != null) {
+            projection.remove(PROJECTION.fields.exactToken());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Query
+     */
+    public final Query resetUsageProjection() {
+        if (projection != null) {
+            projection.remove(PROJECTION.usage.exactToken());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return this Query
+     */
+    public final Query resetRequests() {
+        if (requests != null) {
+            requests.removeAll();
+        }
+        return this;
+    }
+    /**
+     * @param offset ignored if 0
+     * @param limit ignored if 0
+     * @return this Query
+     */
+    public final Query setLimitFilter(long offset, long limit) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        resetLimitFilter();
+        if (offset > 0) {
+            filter.put(REQUESTFILTER.offset.exactToken(), offset);
+        }
+        if (limit > 0) {
+            filter.put(REQUESTFILTER.limit.exactToken(), limit);
+        }
+        return this;
+    }
+    /**
+     * 
+     * @param hints
+     * @return this Query
+     */
+    public final Query addHintFilter(String ... hints) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        ArrayNode array = (ArrayNode) filter.get(REQUESTFILTER.hint.exactToken());
+        if (array == null || array.isMissingNode()) {
+            array = filter.putArray(REQUESTFILTER.hint.exactToken());
+        }
+        for (String hint : hints) {
+            if (hint == null || hint.trim().isEmpty()) {
+                continue;
+            }
+            array.add(hint.trim());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @param variableNames
+     * @return this Query
+     */
+    public final Query addOrderByAscFilter(String ... variableNames) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        ObjectNode node = (ObjectNode) filter.get(REQUESTFILTER.orderby.exactToken());
+        if (node == null || node.isMissingNode()) {
+            node = filter.putObject(REQUESTFILTER.orderby.exactToken());
+        }
+        for (String var : variableNames) {
+            if (var == null || var.trim().isEmpty()) {
+                continue;
+            }
+            node.put(var.trim(), 1);
+        }
+        return this;
+    }
+    /**
+     * 
+     * @param variableNames
+     * @return this Query
+     */
+    public final Query addOrderByDescFilter(String ... variableNames) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        ObjectNode node = (ObjectNode) filter.get(REQUESTFILTER.orderby.exactToken());
+        if (node == null || node.isMissingNode()) {
+            node = filter.putObject(REQUESTFILTER.orderby.exactToken());
+        }
+        for (String var : variableNames) {
+            if (var == null || var.trim().isEmpty()) {
+                continue;
+            }
+            node.put(var.trim(), -1);
+        }
+        return this;
+    }
 
-	/**
-	 * 
-	 * @param variableNames
-	 * @return this Query
-	 */
-	public final Query addUsedProjection(String ... variableNames) {
-		if (projection == null) {
-			projection = JsonHandler.createObjectNode();
-		}
-		ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
-		if (node == null || node.isMissingNode()) {
-			node = projection.putObject(PROJECTION.fields.exactToken());
-		}
-		for (String var : variableNames) {
-			if (var == null || var.trim().isEmpty()) {
-				continue;
-			}
-			node.put(var.trim(), 1);
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @param variableNames
-	 * @return this Query
-	 */
-	public final Query addUnusedProjection(String ... variableNames) {
-		if (projection == null) {
-			projection = JsonHandler.createObjectNode();
-		}
-		ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
-		if (node == null || node.isMissingNode()) {
-			node = projection.putObject(PROJECTION.fields.exactToken());
-		}
-		for (String var : variableNames) {
-			if (var == null || var.trim().isEmpty()) {
-				continue;
-			}
-			node.put(var.trim(), 0);
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @param usage
-	 * @return this Query
-	 */
-	public final Query setUsageProjection(String usage) {
-		if (projection == null) {
-			projection = JsonHandler.createObjectNode();
-		}
-		if (usage == null || usage.trim().isEmpty()) {
-			return this;
-		}
-		projection.put(PROJECTION.usage.exactToken(), usage.trim());
-		return this;
-	}
+    /**
+     * 
+     * @param variableNames
+     * @return this Query
+     */
+    public final Query addUsedProjection(String ... variableNames) {
+        if (projection == null) {
+            projection = JsonHandler.createObjectNode();
+        }
+        ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
+        if (node == null || node.isMissingNode()) {
+            node = projection.putObject(PROJECTION.fields.exactToken());
+        }
+        for (String var : variableNames) {
+            if (var == null || var.trim().isEmpty()) {
+                continue;
+            }
+            node.put(var.trim(), 1);
+        }
+        return this;
+    }
+    /**
+     * 
+     * @param variableNames
+     * @return this Query
+     */
+    public final Query addUnusedProjection(String ... variableNames) {
+        if (projection == null) {
+            projection = JsonHandler.createObjectNode();
+        }
+        ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
+        if (node == null || node.isMissingNode()) {
+            node = projection.putObject(PROJECTION.fields.exactToken());
+        }
+        for (String var : variableNames) {
+            if (var == null || var.trim().isEmpty()) {
+                continue;
+            }
+            node.put(var.trim(), 0);
+        }
+        return this;
+    }
+    /**
+     * 
+     * @param usage
+     * @return this Query
+     */
+    public final Query setUsageProjection(String usage) {
+        if (projection == null) {
+            projection = JsonHandler.createObjectNode();
+        }
+        if (usage == null || usage.trim().isEmpty()) {
+            return this;
+        }
+        projection.put(PROJECTION.usage.exactToken(), usage.trim());
+        return this;
+    }
 
-	/**
-	 * 
-	 * @param requests
-	 * @return The Query 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public final Query addRequests(Request ... requests) throws InvalidCreateOperationException {
-		if (this.requests == null) {
-			this.requests = JsonHandler.createArrayNode();
-		}
-		for (Request request : requests) {
-			if (! request.isReady()) {
-				throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
-			}
-			this.requests.add(request.getCurrentRequest());
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @return the Final Query containing all 3 parts: requests array, filter and projection
-	 */
-	public final ObjectNode getFinalQuery() {
-		ObjectNode node = JsonHandler.createObjectNode();
-		if (requests != null && requests.size() > 0) {
-			node.set(GLOBAL.query.exactToken(), requests);
-		}
-		if (filter != null && filter.size() > 0) {
-			node.set(GLOBAL.filter.exactToken(), filter);
-		}
-		if (projection != null && projection.size() > 0) {
-			node.set(GLOBAL.projection.exactToken(), projection);
-		}
-		return node;
-	}
-	/**
-	 * @return the requests array
-	 */
-	public final ArrayNode getRequests() {
-		if (requests == null) {
-			return JsonHandler.createArrayNode();
-		}
-		return requests;
-	}
-	/**
-	 * @return the filter
-	 */
-	public final ObjectNode getFilter() {
-		if (filter == null) {
-			return JsonHandler.createObjectNode();
-		}
-		return filter;
-	}
-	/**
-	 * @return the projection
-	 */
-	public final ObjectNode getProjection() {
-		if (projection == null) {
-			return JsonHandler.createObjectNode();
-		}
-		return projection;
-	}
+    /**
+     * 
+     * @param requests
+     * @return The Query 
+     * @throws InvalidCreateOperationException 
+     */
+    public final Query addRequests(Request ... requests) throws InvalidCreateOperationException {
+        if (this.requests == null) {
+            this.requests = JsonHandler.createArrayNode();
+        }
+        for (Request request : requests) {
+            if (! request.isReady()) {
+                throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
+            }
+            this.requests.add(request.getCurrentRequest());
+        }
+        return this;
+    }
+    /**
+     * 
+     * @return the Final Query containing all 3 parts: requests array, filter and projection
+     */
+    public final ObjectNode getFinalQuery() {
+        ObjectNode node = JsonHandler.createObjectNode();
+        if (requests != null && requests.size() > 0) {
+            node.set(GLOBAL.query.exactToken(), requests);
+        }
+        if (filter != null && filter.size() > 0) {
+            node.set(GLOBAL.filter.exactToken(), filter);
+        }
+        if (projection != null && projection.size() > 0) {
+            node.set(GLOBAL.projection.exactToken(), projection);
+        }
+        return node;
+    }
+    /**
+     * @return the requests array
+     */
+    public final ArrayNode getRequests() {
+        if (requests == null) {
+            return JsonHandler.createArrayNode();
+        }
+        return requests;
+    }
+    /**
+     * @return the filter
+     */
+    public final ObjectNode getFilter() {
+        if (filter == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return filter;
+    }
+    /**
+     * @return the projection
+     */
+    public final ObjectNode getProjection() {
+        if (projection == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return projection;
+    }
 }

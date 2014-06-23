@@ -28,46 +28,46 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
  *
  */
 public class MatchRequest extends Request {
-	/**
-	 * Match Request constructor
-	 * @param matchRequest match, match_phrase, match_phrase_prefix
-	 * @param variableName 
-	 * @param value 
-	 * @throws InvalidCreateOperationException 
-	 */
-	public MatchRequest(REQUEST matchRequest, String variableName, String value) throws InvalidCreateOperationException {
-		super();
-		switch (matchRequest) {
-			case match:
-			case match_phrase:
-			case match_phrase_prefix:
-			case prefix: {
-				createRequestVariableValue(matchRequest, variableName, value);
-				currentREQUEST = matchRequest;
-				setReady(true);
-				break;
-			}
-			default:
-				throw new InvalidCreateOperationException("Request "+matchRequest+" is not a Match Request");
-		}
-	}
-	/**
-	 * 
-	 * @param max max expansions for Match type request only (not regex, search)
-	 * @return this MatchRequest
-	 * @throws InvalidCreateOperationException
-	 */
-	public final MatchRequest setMatchMaxExpansions(int max) throws InvalidCreateOperationException {
-		switch (currentREQUEST) {
-			case match:
-			case match_phrase:
-			case match_phrase_prefix:
-			case prefix:
-				((ObjectNode) currentObject).put(REQUESTARGS.max_expansions.exactToken(), max);
-				break;
-			default:
-				throw new InvalidCreateOperationException("Request "+currentREQUEST+" is not a Match Request");
-		}
-		return this;
-	}
+    /**
+     * Match Request constructor
+     * @param matchRequest match, match_phrase, match_phrase_prefix
+     * @param variableName 
+     * @param value 
+     * @throws InvalidCreateOperationException 
+     */
+    public MatchRequest(REQUEST matchRequest, String variableName, String value) throws InvalidCreateOperationException {
+        super();
+        switch (matchRequest) {
+            case match:
+            case match_phrase:
+            case match_phrase_prefix:
+            case prefix: {
+                createRequestVariableValue(matchRequest, variableName, value);
+                currentREQUEST = matchRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request "+matchRequest+" is not a Match Request");
+        }
+    }
+    /**
+     * 
+     * @param max max expansions for Match type request only (not regex, search)
+     * @return this MatchRequest
+     * @throws InvalidCreateOperationException
+     */
+    public final MatchRequest setMatchMaxExpansions(int max) throws InvalidCreateOperationException {
+        switch (currentREQUEST) {
+            case match:
+            case match_phrase:
+            case match_phrase_prefix:
+            case prefix:
+                ((ObjectNode) currentObject).put(REQUESTARGS.max_expansions.exactToken(), max);
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request "+currentREQUEST+" is not a Match Request");
+        }
+        return this;
+    }
 }

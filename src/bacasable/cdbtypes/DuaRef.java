@@ -31,59 +31,59 @@ import com.mongodb.BasicDBObject;
  *
  */
 public class DuaRef extends VitamType {
-	
-	private static final long serialVersionUID = -2179544540441187504L;
+    
+    private static final long serialVersionUID = -2179544540441187504L;
 
-	public String name;
-	public int duration;
-	
-	public DuaRef() {
-		// empty 
-	}
+    public String name;
+    public int duration;
+    
+    public DuaRef() {
+        // empty 
+    }
 
-	/**
-	 * @param name
-	 * @param duration
-	 */
-	public DuaRef(String name, int duration) {
-		super();
-		this.name = name;
-		this.duration = duration;
-		putBeforeSave();
-	}
+    /**
+     * @param name
+     * @param duration
+     */
+    public DuaRef(String name, int duration) {
+        super();
+        this.name = name;
+        this.duration = duration;
+        putBeforeSave();
+    }
 
-	@Override
-	public void getAfterLoad() {
-		super.getAfterLoad();
-		name = this.getString("name");
-		duration = this.getInt("duration");
-	}
+    @Override
+    public void getAfterLoad() {
+        super.getAfterLoad();
+        name = this.getString("name");
+        duration = this.getInt("duration");
+    }
 
-	@Override
-	public void putBeforeSave() {
-		super.putBeforeSave();
-		if (name != null) {
-			this.put("name", name);
-		}
-		this.put("duration", duration);
-	}
-	
-	@Override
-	protected boolean updated(MongoDbAccess dbvitam) {
-		return false;
-	}
+    @Override
+    public void putBeforeSave() {
+        super.putBeforeSave();
+        if (name != null) {
+            this.put("name", name);
+        }
+        this.put("duration", duration);
+    }
+    
+    @Override
+    protected boolean updated(MongoDbAccess dbvitam) {
+        return false;
+    }
 
-	public void save(MongoDbAccess dbvitam) {
-		putBeforeSave();
-		if (updated(dbvitam)) return;
-		updateOrSave(dbvitam.duarefs);
-	}
-	@Override
-	public void load(MongoDbAccess dbvitam) {
-		DuaRef vt = (DuaRef) dbvitam.duarefs.collection.findOne(new BasicDBObject(ID, get(ID)));
-		this.putAll((BSONObject) vt);
-	}
-	public static DuaRef findOne(MongoDbAccess dbvitam, String refid) throws InstantiationException, IllegalAccessException {
-		return (DuaRef) dbvitam.findOne(Cdua, refid);
-	}
+    public void save(MongoDbAccess dbvitam) {
+        putBeforeSave();
+        if (updated(dbvitam)) return;
+        updateOrSave(dbvitam.duarefs);
+    }
+    @Override
+    public void load(MongoDbAccess dbvitam) {
+        DuaRef vt = (DuaRef) dbvitam.duarefs.collection.findOne(new BasicDBObject(ID, get(ID)));
+        this.putAll((BSONObject) vt);
+    }
+    public static DuaRef findOne(MongoDbAccess dbvitam, String refid) throws InstantiationException, IllegalAccessException {
+        return (DuaRef) dbvitam.findOne(Cdua, refid);
+    }
 }

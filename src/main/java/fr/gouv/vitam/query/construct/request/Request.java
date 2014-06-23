@@ -30,122 +30,122 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
  *
  */
 public class Request {
-	protected ObjectNode currentRequest;
-	protected JsonNode currentObject;
-	protected REQUEST currentREQUEST;
-	protected boolean ready;
-	
-	protected final void createRequestArray(REQUEST request) {
-		currentObject = ((ObjectNode) currentObject).putArray(request.exactToken());
-	}
-	protected final void createRequestVariable(REQUEST request, String variableName) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
-		}
-		((ObjectNode) currentObject).put(request.exactToken(), variableName.trim());
-	}
-	protected final void createRequestVariableValue(REQUEST request, String variableName, long value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
-	protected final void createRequestVariableValue(REQUEST request, String variableName, double value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
-	protected final void createRequestVariableValue(REQUEST request, String variableName, String value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
-	protected final void createRequestVariableValue(REQUEST request, String variableName, boolean value) throws InvalidCreateOperationException {
-		if (variableName == null || variableName.trim().isEmpty()) {
-			throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
-		}
-		currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
-		((ObjectNode) currentObject).put(variableName.trim(), value);
-	}
+    protected ObjectNode currentRequest;
+    protected JsonNode currentObject;
+    protected REQUEST currentREQUEST;
+    protected boolean ready;
+    
+    protected final void createRequestArray(REQUEST request) {
+        currentObject = ((ObjectNode) currentObject).putArray(request.exactToken());
+    }
+    protected final void createRequestVariable(REQUEST request, String variableName) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(request.exactToken(), variableName.trim());
+    }
+    protected final void createRequestVariableValue(REQUEST request, String variableName, long value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+    protected final void createRequestVariableValue(REQUEST request, String variableName, double value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+    protected final void createRequestVariableValue(REQUEST request, String variableName, String value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+    protected final void createRequestVariableValue(REQUEST request, String variableName, boolean value) throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request "+request+" cannot be created with empty variable name");
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
 
-	/**
-	 * Empty constructor
-	 */
-	protected Request() {
-		currentRequest = JsonHandler.createObjectNode();
-		currentObject = currentRequest;
-		currentREQUEST = null;
-		ready = false;
-	}
-	/**
-	 * Clean the object
-	 */
-	protected void clean() {
-		cleanDepth();
-	}
-	/**
-	 * Removing depth and relativedepth
-	 */
-	protected void cleanDepth() {
-		currentRequest.remove(REQUESTARGS.depth.exactToken());
-		currentRequest.remove(REQUESTARGS.relativedepth.exactToken());
-	}
-	/**
-	 * 
-	 * @param depth 1 to ignore
-	 * @return the single query ready to be added to global Query (remove previous depth and relativedepth if any)
-	 */
-	public final Request setExactDepthLimit(int depth) {
-		cleanDepth();
-		if (depth != 1) {
-			currentRequest.put(REQUESTARGS.depth.exactToken(), depth);
-		}
-		return this;
-	}
-	/**
-	 * 
-	 * @param relativedepth
-	 * @return the single query ready to be added to global Query (remove previous depth and relativedepth if any)
-	 */
-	public final Request setRelativeDepthLimit(int relativedepth) {
-		cleanDepth();
-		currentRequest.put(REQUESTARGS.relativedepth.exactToken(), relativedepth);
-		return this;
-	}
-	/**
-	 * @return the currentRequest
-	 */
-	public ObjectNode getCurrentRequest() {
-		return currentRequest;
-	}
-	/**
-	 * @return the currentObject (internal use only during parse)
-	 */
-	public JsonNode getCurrentObject() {
-		return currentObject;
-	}
-	/**
-	 * @return the currentREQUEST
-	 */
-	public REQUEST getCurrentREQUEST() {
-		return currentREQUEST;
-	}
-	/**
-	 * @return the ready
-	 */
-	public boolean isReady() {
-		return ready;
-	}
-	/**
-	 * @param ready the ready to set
-	 */
-	protected void setReady(boolean ready) {
-		this.ready = ready;
-	}
-	
+    /**
+     * Empty constructor
+     */
+    protected Request() {
+        currentRequest = JsonHandler.createObjectNode();
+        currentObject = currentRequest;
+        currentREQUEST = null;
+        ready = false;
+    }
+    /**
+     * Clean the object
+     */
+    protected void clean() {
+        cleanDepth();
+    }
+    /**
+     * Removing depth and relativedepth
+     */
+    protected void cleanDepth() {
+        currentRequest.remove(REQUESTARGS.depth.exactToken());
+        currentRequest.remove(REQUESTARGS.relativedepth.exactToken());
+    }
+    /**
+     * 
+     * @param depth 1 to ignore
+     * @return the single query ready to be added to global Query (remove previous depth and relativedepth if any)
+     */
+    public final Request setExactDepthLimit(int depth) {
+        cleanDepth();
+        if (depth != 1) {
+            currentRequest.put(REQUESTARGS.depth.exactToken(), depth);
+        }
+        return this;
+    }
+    /**
+     * 
+     * @param relativedepth
+     * @return the single query ready to be added to global Query (remove previous depth and relativedepth if any)
+     */
+    public final Request setRelativeDepthLimit(int relativedepth) {
+        cleanDepth();
+        currentRequest.put(REQUESTARGS.relativedepth.exactToken(), relativedepth);
+        return this;
+    }
+    /**
+     * @return the currentRequest
+     */
+    public ObjectNode getCurrentRequest() {
+        return currentRequest;
+    }
+    /**
+     * @return the currentObject (internal use only during parse)
+     */
+    public JsonNode getCurrentObject() {
+        return currentObject;
+    }
+    /**
+     * @return the currentREQUEST
+     */
+    public REQUEST getCurrentREQUEST() {
+        return currentREQUEST;
+    }
+    /**
+     * @return the ready
+     */
+    public boolean isReady() {
+        return ready;
+    }
+    /**
+     * @param ready the ready to set
+     */
+    protected void setReady(boolean ready) {
+        this.ready = ready;
+    }
+    
 }
