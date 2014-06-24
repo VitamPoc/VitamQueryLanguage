@@ -87,7 +87,7 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
         // the console during automatic detection.
         final StringBuffer buf = new StringBuffer();
         final PrintStream err = System.err;
-        try {
+        /*try {
             System.setErr(new PrintStream(new OutputStream() {
                 @Override
                 public void write(int b) {
@@ -96,7 +96,7 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
             }, true, "US-ASCII"));
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
-        }
+        }*/
 
         try {
             if (LoggerFactory.getILoggerFactory() instanceof NOPLoggerFactory) {
