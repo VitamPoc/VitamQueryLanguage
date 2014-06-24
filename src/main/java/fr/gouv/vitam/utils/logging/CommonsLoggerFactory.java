@@ -27,26 +27,7 @@ public class CommonsLoggerFactory extends VitamLoggerFactory {
 
     public CommonsLoggerFactory(VitamLogLevel level) {
 		super(level);
-		switch (level) {
-		case TRACE:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "FINEST");
-			break;
-		case DEBUG:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "FINE");
-			break;
-		case INFO:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "INFO");
-			break;
-		case WARN:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "WARNING");
-			break;
-		case ERROR:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "SEVERE");
-			break;
-		default:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "WARNING");
-			break;
-		}
+		seLevelSpecific(currentLevel);
 	}
 
     @Override
@@ -55,11 +36,8 @@ public class CommonsLoggerFactory extends VitamLoggerFactory {
     }
 
 	@Override
-	protected void setDefaultLevel(VitamLogLevel level) {
-		if (level == null) {
-			return;
-		}
-		currentLevel = level;
+	protected void seLevelSpecific(VitamLogLevel level) {
+		//XXX FIXME does not work for Apache Commons Logger
 		switch (level) {
 		case TRACE:
 			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "FINEST");

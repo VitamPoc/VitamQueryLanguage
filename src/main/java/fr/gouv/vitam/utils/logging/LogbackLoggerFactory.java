@@ -43,15 +43,12 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
 	 */
 	public LogbackLoggerFactory(VitamLogLevel level) {
 		super(level);
-		setDefaultLevel(level);
+		seLevelSpecific(currentLevel);
 	}
 	
-	public void setDefaultLevel(VitamLogLevel level) {
-		if (level != null) {
-			currentLevel = level;
-		}
+	protected void seLevelSpecific(VitamLogLevel level) {
 		Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
-		switch (currentLevel) {
+		switch (level) {
 		case TRACE:
 			logger.setLevel(Level.TRACE);
 			break;
@@ -87,7 +84,7 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
         // the console during automatic detection.
         final StringBuffer buf = new StringBuffer();
         final PrintStream err = System.err;
-        /*try {
+        try {
             System.setErr(new PrintStream(new OutputStream() {
                 @Override
                 public void write(int b) {
@@ -96,7 +93,7 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
             }, true, "US-ASCII"));
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
-        }*/
+        }
 
         try {
             if (LoggerFactory.getILoggerFactory() instanceof NOPLoggerFactory) {
@@ -107,7 +104,7 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
             }
         } finally {
             System.setErr(err);
-    		setDefaultLevel(currentLevel);
+    		seLevelSpecific(currentLevel);
         }
     }
 }

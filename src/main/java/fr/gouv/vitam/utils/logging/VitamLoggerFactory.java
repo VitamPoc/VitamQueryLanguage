@@ -44,10 +44,10 @@ public abstract class VitamLoggerFactory {
         } catch (Throwable t1) {
             try {
                 f = new Log4JLoggerFactory(null);
-                f.newInstance(name).debug("Using Log4J as the default logging framework");
+                f.newInstance(name).debug("Using Log4J as the default logging framework", t1);
             } catch (Throwable t2) {
                 f = new JdkLoggerFactory(null);
-                f.newInstance(name).debug("Using java.util.logging as the default logging framework");
+                f.newInstance(name).debug("Using java.util.logging as the default logging framework", t2);
             }
         }
 
@@ -87,17 +87,21 @@ public abstract class VitamLoggerFactory {
     }
 
 	public static void setLogLevel(VitamLogLevel level) {
-		currentLevel = level;
-		getDefaultFactory().setDefaultLevel(level);
+		setInternalLogLevel(level);
+		getDefaultFactory().seLevelSpecific(currentLevel);
 	}
-	
-	public VitamLoggerFactory(VitamLogLevel level) {
+
+	private static synchronized void setInternalLogLevel(VitamLogLevel level) {
 		if (level != null) {
 			currentLevel = level;
 		}
 	}
+	
+	public VitamLoggerFactory(VitamLogLevel level) {
+		setInternalLogLevel(level);
+	}
 
-	protected abstract void setDefaultLevel(VitamLogLevel level);
+	protected abstract void seLevelSpecific(VitamLogLevel level);
 	
     /**
      * Creates a new logger instance with the specified name.

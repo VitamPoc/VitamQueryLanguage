@@ -29,31 +29,7 @@ public class JdkLoggerFactory extends VitamLoggerFactory {
 
     public JdkLoggerFactory(VitamLogLevel level) {
 		super(level);
-		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-		if (level == null) {
-			logger.info("Default level: " + logger.getLevel());
-		} else {
-			switch (level) {
-			case TRACE:
-				logger.setLevel(Level.FINEST);
-				break;
-			case DEBUG:
-				logger.setLevel(Level.FINE);
-				break;
-			case INFO:
-				logger.setLevel(Level.INFO);
-				break;
-			case WARN:
-				logger.setLevel(Level.WARNING);
-				break;
-			case ERROR:
-				logger.setLevel(Level.SEVERE);
-				break;
-			default:
-				logger.setLevel(Level.WARNING);
-				break;
-			}
-		}
+		seLevelSpecific(currentLevel);
 	}
 
 	@Override
@@ -62,11 +38,7 @@ public class JdkLoggerFactory extends VitamLoggerFactory {
     }
 
 	@Override
-	protected void setDefaultLevel(VitamLogLevel level) {
-		if (level == null) {
-			return;
-		}
-		currentLevel = level;
+	protected void seLevelSpecific(VitamLogLevel level) {
 		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 		switch (level) {
 		case TRACE:
