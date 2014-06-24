@@ -363,7 +363,9 @@ public class ParserBench extends MdEsQueryParser {
                 System.err.println("Error on execute with 0 out for: "+request.toString()+"["+rank+"]");
                 throw new InvalidExecOperationException("No result");
             } else {
-                if (debug) System.out.println("Current: "+nb+":"+level);
+                if (debug) {
+                	System.out.println("Current: "+nb+":"+level);
+                }
             }
             level++;
             rank = newBenchContext.cpts.get(CPTLEVEL+level);

@@ -43,13 +43,11 @@ public class ResultCached extends VitamType {
     private static final long serialVersionUID = 5962911495483495562L;
 
     public static final String CURRENTMAIP = "__cmaip";
-    public static final String PREVIOUSMAIP = "__pmaip";
     public static final String MINLEVEL = "__min";
     public static final String MAXLEVEL = "__max";
     public static final String NBSUBNODES = "__nbnd";
     
     public Set<String> currentMaip = new HashSet<String>();
-    private Set<String> previousMaip = new HashSet<String>();
     public int minLevel = 0, maxLevel = 0;
     public long nbSubNodes = -1;
     public boolean loaded = false;
@@ -70,7 +68,6 @@ public class ResultCached extends VitamType {
     public void clear() {
         super.clear();
         currentMaip.clear();
-        previousMaip.clear();
         minLevel = 0;
         maxLevel = 0;
         nbSubNodes = -1;
@@ -85,12 +82,6 @@ public class ResultCached extends VitamType {
             currentMaip.clear();
             currentMaip.addAll(list);
         }
-        if (this.containsField(PREVIOUSMAIP)) {
-            @SuppressWarnings("unchecked")
-            Set<String> list = (Set<String>) this.get(PREVIOUSMAIP);
-            previousMaip.clear();
-            previousMaip.addAll(list);
-        }
         minLevel = this.getInt(MINLEVEL, 0);
         maxLevel = this.getInt(MAXLEVEL, 0);
         nbSubNodes = this.getLong(NBSUBNODES, -1);
@@ -100,9 +91,6 @@ public class ResultCached extends VitamType {
         super.putBeforeSave();
         if (! currentMaip.isEmpty()) {
             this.put(CURRENTMAIP, currentMaip);
-        }
-        if (! previousMaip.isEmpty()) {
-            this.put(PREVIOUSMAIP, previousMaip);
         }
         this.put(MINLEVEL, minLevel);
         this.put(MAXLEVEL, maxLevel);
@@ -121,14 +109,6 @@ public class ResultCached extends VitamType {
                 newset.removeAll(currentMaip);
                 if (! newset.isEmpty()) {
                     list.add(new BasicDBObject(CURRENTMAIP, new BasicDBObject("$each", newset)));
-                }
-            }
-            slist = (List<String>) vt.get(PREVIOUSMAIP);
-            if (slist != null) {
-                Set<String> newset = new HashSet<String>(this.previousMaip);
-                newset.removeAll(previousMaip);
-                if (! newset.isEmpty()) {
-                    list.add(new BasicDBObject(PREVIOUSMAIP, new BasicDBObject("$each", newset)));
                 }
             }
             if (! list.isEmpty()) {

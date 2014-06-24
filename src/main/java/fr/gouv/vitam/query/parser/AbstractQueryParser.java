@@ -55,7 +55,6 @@ public abstract class AbstractQueryParser {
     
     public static boolean debug = false; 
     protected String request;
-    protected JsonNode nodeRootRequest;
     
     protected List<String> sources = new ArrayList<String>();
     private List<TypeRequest> requests = new ArrayList<TypeRequest>();
@@ -94,9 +93,6 @@ public abstract class AbstractQueryParser {
     public void parse(String request) throws InvalidParseOperationException {
         this.request = request;
         JsonNode rootNode = JsonHandler.getFromString(request);
-        if (this.simulate) {
-            this.nodeRootRequest = rootNode.deepCopy();
-        }
         if (rootNode.isMissingNode()) {
             throw new InvalidParseOperationException("The current Node is missing(empty): RequestRoot");
         }
