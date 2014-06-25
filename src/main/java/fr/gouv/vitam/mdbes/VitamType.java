@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbtypes;
+package fr.gouv.vitam.mdbes;
 
 
 import org.bson.BSONObject;
@@ -28,7 +28,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
-import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamCollection;
+import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollection;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;

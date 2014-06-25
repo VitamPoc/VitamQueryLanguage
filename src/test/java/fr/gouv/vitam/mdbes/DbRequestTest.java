@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with Vitam .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.query.exec;
+package fr.gouv.vitam.mdbes;
 
 import static org.junit.Assert.*;
 
@@ -27,7 +27,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.mdbtypes.ResultCached;
+import fr.gouv.vitam.mdbes.DbRequest;
+import fr.gouv.vitam.mdbes.ResultCached;
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.MdEsQueryParser;
@@ -57,12 +58,9 @@ public class DbRequestTest {
                 "$projection : {$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' } }";
     @Before
     public void init() {
-        VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
+        VitamLoggerFactory.setLogLevel(VitamLogLevel.WARN);
     }
 
-    /**
-     * Test method for {@link fr.gouv.vitam.query.exec.DbRequest#execQuery(fr.gouv.vitam.query.parser.AbstractQueryParser, fr.gouv.vitam.mdbtypes.ResultCached)}.
-     */
     @Test
     public void testExecQuery() {
         DbRequest dbRequest = new DbRequest();
@@ -108,15 +106,5 @@ public class DbRequestTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertTrue("Not yet implemented", true);
     }
-
-    /**
-     * Test method for {@link fr.gouv.vitam.query.exec.DbRequest#finalizeResults(java.util.List)}.
-     */
-    @Test
-    public void testFinalizeResults() {
-        assertTrue("Not yet implemented", true);
-    }
-
 }

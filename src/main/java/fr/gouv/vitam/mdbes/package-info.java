@@ -19,4 +19,4 @@
  * @author "Frederic Bregier"
  * 
  */
-package fr.gouv.vitam.mdbtypes;
+package fr.gouv.vitam.mdbes;

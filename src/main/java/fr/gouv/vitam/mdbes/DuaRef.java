@@ -18,9 +18,9 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbtypes;
+package fr.gouv.vitam.mdbes;
 
-import static fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamCollections.Cdua;
+import static fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections.Cdua;
 
 import org.bson.BSONObject;
 
@@ -86,4 +86,8 @@ public class DuaRef extends VitamType {
     public static DuaRef findOne(MongoDbAccess dbvitam, String refid) throws InstantiationException, IllegalAccessException {
         return (DuaRef) dbvitam.findOne(Cdua, refid);
     }
+    public static void addIndexes(MongoDbAccess dbvitam) {
+        //dbvitam.requests.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
+    }
+
 }

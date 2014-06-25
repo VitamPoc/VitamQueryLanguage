@@ -18,12 +18,15 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbtypes;
+package fr.gouv.vitam.mdbes;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.bson.BSONObject;
+import org.elasticsearch.index.query.FilterBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -211,11 +214,11 @@ public class MongoDbAccess {
         es = new ElasticSearchAccess(esname, unicast);
     }
     
-    public final void close() {
+	public final void close() {
         es.close();
     }
     
-    public void ensureIndex() {
+	public void ensureIndex() {
         for (int i = 0; i < collections.length; i++) {
             collections[i].collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
         }
@@ -223,41 +226,43 @@ public class MongoDbAccess {
         DAip.addIndexes(this);
         PAip.addIndexes(this);
         SAip.addIndexes(this);
+        DuaRef.addIndexes(this);
+        ResultCached.addIndexes(this);
     }
 
-    public void flushOnDisk() {
+	public void flushOnDisk() {
         dbadmin.command(new BasicDBObject("fsync", 1).append("async", true));
     }
     
-    public final VitamType loadFromObjectId(VitamCollection collection, String ref) {
+	public final VitamType loadFromObjectId(VitamCollection collection, String ref) {
         BasicDBObject obj = new BasicDBObject(VitamType.ID, ref);
         return (VitamType) collection.collection.findOne(obj);
     }
     
-    /**
-     * Load a BSONObject into VitamType
-     * @param obj
-     * @param coll
-     * @return the VitamType casted object
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public final VitamType loadFromBSONObject(BSONObject obj, VitamCollections coll) throws InstantiationException, IllegalAccessException {
+	/**
+	 * Load a BSONObject into VitamType
+	 * @param obj
+	 * @param coll
+	 * @return the VitamType casted object
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public final VitamType loadFromBSONObject(BSONObject obj, VitamCollections coll) throws InstantiationException, IllegalAccessException {
         VitamType vt = (VitamType)coll.clasz.newInstance();
         vt.putAll(obj);
         vt.getAfterLoad();
         return vt;
     }
 
-    /**
-     * Find the corresponding id in col collection if it exists
-     * @param col
-     * @param id
-     * @return the VitamType casted object
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public final VitamType findOne(VitamCollections col, String id) throws InstantiationException, IllegalAccessException {
+	/**
+	 * Find the corresponding id in col collection if it exists
+	 * @param col
+	 * @param id
+	 * @return the VitamType casted object
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public final VitamType findOne(VitamCollections col, String id) throws InstantiationException, IllegalAccessException {
         if (id == null || id.length() == 0) {
             return null;
         }
@@ -271,27 +276,53 @@ public class MongoDbAccess {
         return vitobj;
     }
 
-    /**
-     * 
-     * @param col
-     * @param id
-     * @return True if one VitamType object exists with this id
-     */
-    public final boolean exists(VitamCollections col, String id) {
+	/**
+	 * 
+	 * @param col
+	 * @param id
+	 * @return True if one VitamType object exists with this id
+	 */
+	public final boolean exists(VitamCollections col, String id) {
         if (id == null || id.length() == 0) {
             return false;
         }
         BasicDBObject query = new BasicDBObject(VitamType.ID, id);
         return col.collection.count(query) > 0;
     }
-    /**
-     * Add a Link according to relation defined, where the relation is defined in obj1->obj2 way by default (even if symmetric)
-     * @param obj1
-     * @param relation
-     * @param obj2
-     * @return a {@link DBObject} that hold a possible update part (may be null)
-     */
-    public final DBObject addLink(VitamType obj1, VitamLinks relation, VitamType obj2) {
+
+	/**
+	 * 
+	 * @param collection domain of request
+	 * @param condition where condition
+	 * @param idProjection select condition
+	 * @return the DbCursor on the find request based on the given collection
+	 */
+	public final DBCursor find(VitamCollection collection, BasicDBObject condition, BasicDBObject idProjection) {
+    	return collection.collection.find(condition, idProjection);
+    }
+
+	/**
+	 * 
+	 * @param indexName
+	 * @param type
+	 * @param currentNodes current parent nodes
+	 * @param subdepth (ignored)
+	 * @param condition
+	 * @param filterCond
+	 * @return the ResultCached associated with this request. Note that the exact depth is not checked, so it must be checked after (using checkAncestor method)
+	 */
+	public final ResultCached getSubDepth(String indexName, String type, Collection<String> currentNodes, int subdepth, QueryBuilder condition, FilterBuilder filterCond) {
+    	return es.getSubDepth(indexName, type, currentNodes.toArray(new String[0]), subdepth, condition, filterCond);
+    }
+	
+	/**
+	 * Add a Link according to relation defined, where the relation is defined in obj1->obj2 way by default (even if symmetric)
+	 * @param obj1
+	 * @param relation
+	 * @param obj2
+	 * @return a {@link DBObject} that hold a possible update part (may be null)
+	 */
+	public final DBObject addLink(VitamType obj1, VitamLinks relation, VitamType obj2) {
         switch (relation.type) {
             case AsymLink1:
                 MongoDbAccess.addAsymmetricLink(db, obj1, relation.field1to2, obj2);
@@ -319,7 +350,7 @@ public class MongoDbAccess {
         return null;
     }
     
-    public final BasicDBObject updateLink(VitamType obj1, VitamType vtReloaded, VitamLinks relation, boolean src) {
+	public final BasicDBObject updateLink(VitamType obj1, VitamType vtReloaded, VitamLinks relation, boolean src) {
         //DBCollection coll = (src ? relation.col1.collection : relation.col2.collection);
         String fieldname = (src ? relation.field1to2 : relation.field2to1);
         //VitamType vt = (VitamType) coll.findOne(new BasicDBObject("_id", obj1.get("_id")));
@@ -348,7 +379,7 @@ public class MongoDbAccess {
         return null;
     }
 
-    public final BasicDBObject updateLinks(VitamType obj1, VitamType vtReloaded, VitamLinks relation, boolean src) {
+	public final BasicDBObject updateLinks(VitamType obj1, VitamType vtReloaded, VitamLinks relation, boolean src) {
         //DBCollection coll = (src ? relation.col1.collection : relation.col2.collection);
         String fieldname = (src ? relation.field1to2 : relation.field2to1);
         //VitamType vt = (VitamType) coll.findOne(new BasicDBObject("_id", obj1.get("_id")));
@@ -378,7 +409,7 @@ public class MongoDbAccess {
         return null;
     }
 
-    public final void updateLinksToFile(VitamType obj1, VitamLinks relation, boolean src) {
+	public final void updateLinksToFile(VitamType obj1, VitamLinks relation, boolean src) {
         String fieldname = (src ? relation.field1to2 : relation.field2to1);
         // nothing since save will be done just after, except checking array exists
         if (! obj1.containsField(fieldname)) {

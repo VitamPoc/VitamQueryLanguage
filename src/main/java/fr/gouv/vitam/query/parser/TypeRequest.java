@@ -26,7 +26,13 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
 public class TypeRequest {
     public REQUEST type;
+    /**
+     * Relative depth
+     */
     public int depth = 1;
+    /**
+     * Exact depth
+     */
     public int exactdepth = 0;
     public boolean isDepth = false;
     public boolean isOnlyES;

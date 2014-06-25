@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbtypes;
+package fr.gouv.vitam.mdbes;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -245,7 +245,7 @@ public class ResultCached extends VitamType {
         return ! next.currentMaip.isEmpty();
     }
     
-    public static void addIndexes(MongoDbAccess dbvitam) {
+    public static void addIndexes(MongoDbAccess mongoDbAccess) {
         //dbvitam.requests.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
     }
 }
