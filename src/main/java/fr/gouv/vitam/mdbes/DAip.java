@@ -274,11 +274,10 @@ public class DAip extends VitamType {
     
     /**
      * Add the link N-N between current father DAip and one child DAip
-     * @param dbvitam
      * @param maips
      */
-    public void addDAipWithNoSave(MongoDbAccess dbvitam, DAip maipChild) {
-        if (MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, maipChild, VitamLinks.DAip2DAip.field2to1, this, true)) {
+    public void addDAipWithNoSave(DAip maipChild) {
+        if (MongoDbAccess.addAsymmetricLinksetNoSave(maipChild, VitamLinks.DAip2DAip.field2to1, this, true)) {
             nb += 1;
         }
     }
@@ -486,12 +485,7 @@ public class DAip extends VitamType {
         LOGGER.debug("{}", this);
         indexes.put((String) this.get(ID), maip.toString());
         if (indexes.size() > GlobalDatas.LIMIT_ES_NEW_INDEX) {
-            if (GlobalDatas.BLOCKING) {
-                dbvitam.es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
-            } else {
-                dbvitam.es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
-            }
-            
+        	dbvitam.addEsEntryIndex(indexes, model);
             //dbvitam.flushOnDisk();
             indexes.clear();
         }

@@ -103,8 +103,8 @@ public class Domain extends VitamType {
      */
     public void addMetaAipNoSave(MongoDbAccess dbvitam, List<DAip> maips) {
         for (DAip maip : maips) {
-            MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, this, VitamLinks.Domain2DAip.field1to2, maip, false);
-            if (MongoDbAccess.addAsymmetricLinksetNoSave(dbvitam.db, maip, VitamLinks.Domain2DAip.field2to1, this, false)) {
+            MongoDbAccess.addAsymmetricLinksetNoSave(this, VitamLinks.Domain2DAip.field1to2, maip, false);
+            if (MongoDbAccess.addAsymmetricLinksetNoSave(maip, VitamLinks.Domain2DAip.field2to1, this, false)) {
                 nb++;
             }
             maip.saveToFile(dbvitam, 1);

@@ -55,7 +55,7 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 public class ElasticSearchAccess {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticSearchAccess.class);
     
-    public static void registerShutdownHook(final Node node ) {
+    private static void registerShutdownHook(final Node node ) {
         Runtime.getRuntime().addShutdownHook(new Thread(){
             public void run() {
                 node.close();

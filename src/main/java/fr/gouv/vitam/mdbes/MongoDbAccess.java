@@ -23,6 +23,7 @@ package fr.gouv.vitam.mdbes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.BSONObject;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -35,6 +36,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
+import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
@@ -45,16 +47,16 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 public class MongoDbAccess {
 	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
 	
-    public DB db = null;
-    public DB dbadmin = null;
-    public VitamCollection[]collections = null;
-    public VitamCollection domains = null;
-    public VitamCollection daips = null;
-    public VitamCollection paips = null;
-    public VitamCollection saips = null;
-    public VitamCollection duarefs = null;
-    public VitamCollection requests = null;
-    public ElasticSearchAccess es = null;
+	private DB db = null;
+    private DB dbadmin = null;
+    private VitamCollection[]collections = null;
+    protected VitamCollection domains = null;
+    protected VitamCollection daips = null;
+    protected VitamCollection paips = null;
+    protected VitamCollection saips = null;
+    protected VitamCollection duarefs = null;
+    protected VitamCollection requests = null;
+    private ElasticSearchAccess es = null;
     
     private static enum LinkType {
         /**
@@ -87,17 +89,16 @@ public class MongoDbAccess {
         SymLink_N_N
     }
     
-    public static enum VitamCollections{
+    protected static enum VitamCollections{
         Cdomain(Domain.class), Cdaip(DAip.class), 
         Cpaip(PAip.class), Csaip(SAip.class), Cdua(DuaRef.class), 
         Crequests(ResultCached.class);
         
         @SuppressWarnings("rawtypes")
-        public Class clasz;
-        public String name;
-        public int rank;
-        public VitamCollection vcollection;
-        public DBCollection collection;
+        private Class clasz;
+        private String name;
+        private int rank;
+        private DBCollection collection;
         @SuppressWarnings("rawtypes")
         private VitamCollections(Class clasz) {
             this.clasz = clasz;
@@ -106,10 +107,10 @@ public class MongoDbAccess {
         }
     }
     
-    public static class VitamCollection{
+    protected static class VitamCollection{
         
-        public VitamCollections coll;
-        public DBCollection collection;
+    	private VitamCollections coll;
+    	protected DBCollection collection;
         
         protected VitamCollection(DB db, VitamCollections coll, boolean recreate) {
             this.coll = coll;
@@ -121,13 +122,12 @@ public class MongoDbAccess {
                 //db.command(new BasicDBObject("collMod", coll.name).append("usePowerOf2Sizes", true));
             }
             this.coll.collection = this.collection;
-            coll.vcollection = this;
         }
         
     }
     
     // Structure Access
-    public static enum VitamLinks{
+    protected static enum VitamLinks{
         /**
          * Domain to DAip N-N link. This link is symmetric.
          */
@@ -153,11 +153,11 @@ public class MongoDbAccess {
          */
         PAip2Dua(VitamCollections.Cpaip, LinkType.AsymLinkN, "_duas", VitamCollections.Cdua);
         
-        public VitamCollections col1;
-        public LinkType type;
-        public String field1to2;
-        public VitamCollections col2;
-        public String field2to1;
+        protected VitamCollections col1;
+        protected LinkType type;
+        protected String field1to2;
+        protected VitamCollections col2;
+        protected String field2to1;
 
         
         /**
@@ -314,7 +314,18 @@ public class MongoDbAccess {
 	public final ResultCached getSubDepth(String indexName, String type, Collection<String> currentNodes, int subdepth, QueryBuilder condition, FilterBuilder filterCond) {
     	return es.getSubDepth(indexName, type, currentNodes.toArray(new String[0]), subdepth, condition, filterCond);
     }
-	
+	/**
+	 * Add indexes to ES model
+	 * @param indexes
+	 * @param model
+	 */
+	public final void addEsEntryIndex(Map<String, String> indexes, String model) {
+		if (GlobalDatas.BLOCKING) {
+            es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
+        } else {
+            es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
+        }
+	}
 	/**
 	 * Add a Link according to relation defined, where the relation is defined in obj1->obj2 way by default (even if symmetric)
 	 * @param obj1
@@ -325,25 +336,25 @@ public class MongoDbAccess {
 	public final DBObject addLink(VitamType obj1, VitamLinks relation, VitamType obj2) {
         switch (relation.type) {
             case AsymLink1:
-                MongoDbAccess.addAsymmetricLink(db, obj1, relation.field1to2, obj2);
+                MongoDbAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
                 break;
             case SymLink11:
-                MongoDbAccess.addAsymmetricLink(db, obj1, relation.field1to2, obj2);
-                return MongoDbAccess.addAsymmetricLinkUpdate(db, obj2, relation.field2to1, obj1);
+                MongoDbAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
+                return MongoDbAccess.addAsymmetricLinkUpdate(obj2, relation.field2to1, obj1);
             case AsymLinkN:
-                MongoDbAccess.addAsymmetricLinkset(db, obj1, relation.field1to2, obj2, false);
+                MongoDbAccess.addAsymmetricLinkset(obj1, relation.field1to2, obj2, false);
                 break;
             case SymLink1N:
-                return MongoDbAccess.addSymmetricLink(db, obj1, relation.field1to2, 
+                return MongoDbAccess.addSymmetricLink(obj1, relation.field1to2, 
                         obj2, relation.field2to1);
             case SymLinkN1:
-                return MongoDbAccess.addReverseSymmetricLink(db, obj1, relation.field1to2, 
+                return MongoDbAccess.addReverseSymmetricLink(obj1, relation.field1to2, 
                         obj2, relation.field2to1);
             case SymLinkNN:
-                return MongoDbAccess.addSymmetricLinkset(db, obj1, relation.field1to2, 
+                return MongoDbAccess.addSymmetricLinkset(obj1, relation.field1to2, 
                         obj2, relation.field2to1);
             case SymLink_N_N:
-                return addAsymmetricLinkset(db, obj2, relation.field2to1, obj1, true);
+                return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);
             default:
                 break;
         }
@@ -419,57 +430,53 @@ public class MongoDbAccess {
     
     /**
      * Add an asymmetric relation (n-1) between Obj1 and Obj2 
-     * @param db
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
      * @param obj2ToObj1
      * @return a {@link DBObject} for update
      */
-    protected final static DBObject addReverseSymmetricLink(DB db, VitamType obj1, String obj1ToObj2, 
+    protected final static DBObject addReverseSymmetricLink(VitamType obj1, String obj1ToObj2, 
             VitamType obj2, String obj2ToObj1) {
-        addAsymmetricLinkset(db, obj1, obj1ToObj2, obj2, false);
-        return addAsymmetricLinkUpdate(db, obj2, obj2ToObj1, obj1);
+        addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
+        return addAsymmetricLinkUpdate(obj2, obj2ToObj1, obj1);
     }
 
     /**
      * Add an asymmetric relation (1-n) between Obj1 and Obj2 
-     * @param db
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
      * @param obj2ToObj1
      * @return a {@link DBObject} for update
      */
-    protected final static DBObject addSymmetricLink(DB db, VitamType obj1, String obj1ToObj2, 
+    protected final static DBObject addSymmetricLink(VitamType obj1, String obj1ToObj2, 
             VitamType obj2, String obj2ToObj1) {
-        addAsymmetricLink(db, obj1, obj1ToObj2, obj2);
-        return addAsymmetricLinkset(db, obj2, obj2ToObj1, obj1, true);
+        addAsymmetricLink(obj1, obj1ToObj2, obj2);
+        return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
     }
 
     /**
      * Add a symmetric relation (n-n) between Obj1 and Obj2 
-     * @param db
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
      * @param obj2ToObj1
      * @return a {@link DBObject} for update
      */
-    protected final static DBObject addSymmetricLinkset(DB db, VitamType obj1, String obj1ToObj2, 
+    protected final static DBObject addSymmetricLinkset(VitamType obj1, String obj1ToObj2, 
             VitamType obj2, String obj2ToObj1) {
-        addAsymmetricLinkset(db, obj1, obj1ToObj2, obj2, false);
-        return addAsymmetricLinkset(db, obj2, obj2ToObj1, obj1, true);
+        addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
+        return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
     }
 
     /**
      * Add a single relation (1) from Obj1 to Obj2 
-     * @param db
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
      */
-    protected final static void addAsymmetricLink(DB db, VitamType obj1, String obj1ToObj2, VitamType obj2) {
+    protected final static void addAsymmetricLink(VitamType obj1, String obj1ToObj2, VitamType obj2) {
         String refChild = (String) obj2.get(VitamType.ID);
         obj1.put(obj1ToObj2, refChild);
     }
@@ -480,7 +487,7 @@ public class MongoDbAccess {
      * @param obj1ToObj2
      * @param obj2
      */
-    protected final static DBObject addAsymmetricLinkUpdate(DB db, VitamType obj1, String obj1ToObj2, VitamType obj2) {
+    protected final static DBObject addAsymmetricLinkUpdate(VitamType obj1, String obj1ToObj2, VitamType obj2) {
         String refChild = (String) obj2.get(VitamType.ID);
         if (obj1.containsField(obj1ToObj2)) {
             if (obj1.get(obj1ToObj2).equals(refChild)) {
@@ -491,7 +498,7 @@ public class MongoDbAccess {
         return new BasicDBObject("$set", new BasicDBObject(obj1ToObj2, refChild));
     }
 
-    public final static boolean addAsymmetricLinksetNoSave(DB db, VitamType obj1, String obj1ToObj2, VitamType obj2, boolean toUpdate) {
+    public final static boolean addAsymmetricLinksetNoSave(VitamType obj1, String obj1ToObj2, VitamType obj2, boolean toUpdate) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
         String oid2 = (String) obj2.get(VitamType.ID);
@@ -507,14 +514,13 @@ public class MongoDbAccess {
     }
     /**
      * Add a one way relation (n) from Obj1 to Obj2 
-     * @param db
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
      * @param toUpdate True if this element will be updated through $addToSet only
      * @return a {@link DBObject} for update
      */
-    protected final static DBObject addAsymmetricLinkset(DB db, VitamType obj1, String obj1ToObj2, VitamType obj2, boolean toUpdate) {
+    protected final static DBObject addAsymmetricLinkset(VitamType obj1, String obj1ToObj2, VitamType obj2, boolean toUpdate) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
         String oid2 = (String) obj2.get(VitamType.ID);
