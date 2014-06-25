@@ -32,7 +32,7 @@ package fr.gouv.vitam.utils.logging;
  */
 public abstract class VitamLoggerFactory {
     private static volatile VitamLoggerFactory defaultFactory;
-    protected static VitamLogLevel currentLevel = VitamLogLevel.WARN; // default if not set
+    protected static VitamLogLevel currentLevel = null;
 
     static {
         final String name = VitamLoggerFactory.class.getName();
@@ -88,10 +88,12 @@ public abstract class VitamLoggerFactory {
 
 	public static void setLogLevel(VitamLogLevel level) {
 		setInternalLogLevel(level);
-		getDefaultFactory().seLevelSpecific(currentLevel);
+		if (currentLevel != null) {
+			getDefaultFactory().seLevelSpecific(currentLevel);
+		}
 	}
 
-	private static synchronized void setInternalLogLevel(VitamLogLevel level) {
+	protected static synchronized void setInternalLogLevel(VitamLogLevel level) {
 		if (level != null) {
 			currentLevel = level;
 		}
@@ -99,8 +101,12 @@ public abstract class VitamLoggerFactory {
 	
 	public VitamLoggerFactory(VitamLogLevel level) {
 		setInternalLogLevel(level);
+		if (currentLevel == null) {
+			setInternalLogLevel(getLevelSpecific());
+		}
 	}
 
+	protected abstract VitamLogLevel getLevelSpecific();
 	protected abstract void seLevelSpecific(VitamLogLevel level);
 	
     /**

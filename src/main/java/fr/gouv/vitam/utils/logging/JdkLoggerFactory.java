@@ -61,4 +61,20 @@ public class JdkLoggerFactory extends VitamLoggerFactory {
 			break;
 		}
 	}
+	@Override
+	protected VitamLogLevel getLevelSpecific() {
+		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+		if (logger.isLoggable(Level.FINEST)) {
+			return VitamLogLevel.TRACE;
+		} else if (logger.isLoggable(Level.FINE)) {
+			return VitamLogLevel.DEBUG;
+		} else if (logger.isLoggable(Level.INFO)) {
+			return VitamLogLevel.INFO;
+		} else if (logger.isLoggable(Level.WARNING)) {
+			return VitamLogLevel.WARN;
+		} else if (logger.isLoggable(Level.SEVERE)) {
+			return VitamLogLevel.ERROR;
+		}
+		return null;
+	}
 }

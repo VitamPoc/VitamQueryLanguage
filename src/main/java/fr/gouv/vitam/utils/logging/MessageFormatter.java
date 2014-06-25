@@ -109,6 +109,8 @@ import java.util.Map;
  * {@link #arrayFormat(String, Object[])} methods for more details.
  */
 final class MessageFormatter {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MessageFormatter.class);
+	
     static final char DELIM_START = '{';
     static final char DELIM_STOP = '}';
     static final String DELIM_STR = "{}";
@@ -299,10 +301,8 @@ final class MessageFormatter {
             String oAsString = o.toString();
             sbuf.append(oAsString);
         } catch (Throwable t) {
-            System.err
-                    .println("SLF4J: Failed toString() invocation on an object of type ["
-                            + o.getClass().getName() + ']');
-            t.printStackTrace();
+            LOGGER.error("SLF4J: Failed toString() invocation on an object of type ["
+                            + o.getClass().getName() + ']', t);
             sbuf.append("[FAILED toString()]");
         }
     }

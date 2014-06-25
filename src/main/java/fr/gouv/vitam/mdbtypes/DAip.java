@@ -38,6 +38,8 @@ import com.mongodb.MongoException;
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 
 /**
@@ -45,6 +47,7 @@ import fr.gouv.vitam.utils.UUID;
  *
  */
 public class DAip extends VitamType {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DAip.class);
     
     private static final long serialVersionUID = -2179544540441187504L;
 
@@ -75,7 +78,7 @@ public class DAip extends VitamType {
         DAip vt = (DAip) dbvitam.daips.collection.findOne(new BasicDBObject(ID, get(ID)));
         BasicDBObject update = null;
         if (vt != null) {
-            //System.err.println("UpdateLinks: "+this.refid+"\n\t"+this.toString()+"\n\t"+vt.toString());
+            LOGGER.debug("UpdateLinks: {}\n\t{}", this, vt);
             List<DBObject> list = new ArrayList<>();
             List<DBObject> listset = new ArrayList<>();
             /*
@@ -163,7 +166,7 @@ public class DAip extends VitamType {
                 nb = 0;
                 dbvitam.daips.collection.update(new BasicDBObject(ID, this.get(ID)), update);
             } catch (MongoException e) {
-                System.err.println("Exception for "+update+" : "+e.getMessage());
+            	LOGGER.error("Exception for " + update, e);
                 throw e;
             }
             list.clear();
@@ -199,19 +202,19 @@ public class DAip extends VitamType {
         try {
             MainIngestFile.bufferedOutputStream.write(toprint.getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Cannot save to File", e);
         }
         toprint = null;*/
-        //System.err.println(this.toStringDirect());
+        LOGGER.debug("{}", this);
     }
 
     public void save(MongoDbAccess dbvitam) {
         putBeforeSave();
         if (updated(dbvitam)) {
-            //System.err.println("Updated: "+this); 
+        	LOGGER.debug("Updated: {}", this); 
             return;
         }
-        //System.err.println("Save: "+ this);
+        LOGGER.debug("Save: {}", this);
         updateOrSave(dbvitam.daips);
     }
     
@@ -261,7 +264,7 @@ public class DAip extends VitamType {
             try {
                 dbvitam.daips.collection.update(new BasicDBObject(ID, new BasicDBObject("$in", ids)), update, false, true);
             } catch (MongoException e) {
-                System.err.println("Exception for "+update+" : "+e.getMessage());
+            	LOGGER.error("Exception for " + update, e);
                 throw e;
             }
             nb += ids.size();
@@ -480,8 +483,7 @@ public class DAip extends VitamType {
         List<String> list = new ArrayList<>();
         list.addAll(map.keySet());
         maip.append(DAIPPARENTS, list);
-        //System.err.println(maip);
-        //System.err.println(this);
+        LOGGER.debug("{}", this);
         indexes.put((String) this.get(ID), maip.toString());
         if (indexes.size() > GlobalDatas.LIMIT_ES_NEW_INDEX) {
             if (GlobalDatas.BLOCKING) {

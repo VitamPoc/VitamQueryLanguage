@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +20,8 @@ import static fr.gouv.vitam.query.construct.RequestHelper.*;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
+import fr.gouv.vitam.utils.logging.VitamLogLevel;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 public class EsQueryParserTest {
     private static final String exampleBothEsMd = 
@@ -36,7 +39,11 @@ public class EsQueryParserTest {
                 "], "+
                 "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } },"+ 
                 "$projection : {$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' } }";
-    
+    @Before
+    public void init() {
+        VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
+    }
+
     @Test
     public void testParse() {
         try {

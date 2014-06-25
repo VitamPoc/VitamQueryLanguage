@@ -40,12 +40,16 @@ import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.MdEsQueryParser;
 import fr.gouv.vitam.query.parser.TypeRequest;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
 public class ParserBench extends MdEsQueryParser {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserBench.class);
+	
     public static final String CPTLEVEL = "__cptlevel__";
 
     public static final String VARY = "vary";
@@ -360,12 +364,10 @@ public class ParserBench extends MdEsQueryParser {
         for (TypeRequest request : requests) {
             int nb = requestBench.executeRequest(dbvitam, request, rank, newBenchContext, model, debug);
             if (nb <= 0) {
-                System.err.println("Error on execute with 0 out for: "+request.toString()+"["+rank+"]");
+            	LOGGER.error("Error on execute with 0 out for: {}[{}]",request,rank);
                 throw new InvalidExecOperationException("No result");
             } else {
-                if (debug) {
-                	System.out.println("Current: "+nb+":"+level);
-                }
+            	LOGGER.debug("Current: "+nb+":"+level);
             }
             level++;
             rank = newBenchContext.cpts.get(CPTLEVEL+level);
@@ -384,10 +386,7 @@ public class ParserBench extends MdEsQueryParser {
         }
         results = requestBench.resultRequest;
         int nb = results.size();
-        if (debug && nb > 1) {
-            System.out.println("MORE THAN ONE RESULT: "+nb);
-        }
-        if (debug) System.out.println("Result number: "+nb);
+       	LOGGER.debug("MORE THAN ONE RESULT: "+nb);
         if (! simulate && debug && nb > 0) {
             DAip maip = null;
             for (String id : results.lastIds) {
@@ -441,9 +440,9 @@ public class ParserBench extends MdEsQueryParser {
             ParserBench command = new ParserBench(true);
             command.parse(comd);
             BenchContext contextTree = command.getNewContext();
-            System.out.println(command.request);
-            System.out.println(command.toString());
-            System.out.println("Simulate Execution\n=====================");
+            LOGGER.info(command.request);
+            LOGGER.info(command.toString());
+            LOGGER.info("Simulate Execution\n=====================");
             for (int i = 0; i < 10; i++) {
                 command.execute(null, true, i, contextTree);
             }

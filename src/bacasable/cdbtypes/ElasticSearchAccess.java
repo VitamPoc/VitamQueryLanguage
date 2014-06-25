@@ -46,12 +46,15 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  *
  */
 public class ElasticSearchAccess {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticSearchAccess.class);
     
     public static void registerShutdownHook(final Node node ) {
         Runtime.getRuntime().addShutdownHook(new Thread(){
@@ -132,7 +135,7 @@ public class ElasticSearchAccess {
                         VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
                         VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
                         " } }").execute().actionGet();
-            System.out.println(type+":"+response.isAcknowledged());
+            LOGGER.info(type+":"+response.isAcknowledged());
             return response.isAcknowledged();
 //        }
         //System.err.println("not needed add Index");

@@ -16,6 +16,9 @@
 package fr.gouv.vitam.utils.logging;
 
 
+import java.util.logging.Level;
+
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
@@ -40,23 +43,40 @@ public class CommonsLoggerFactory extends VitamLoggerFactory {
 		//XXX FIXME does not work for Apache Commons Logger
 		switch (level) {
 		case TRACE:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "FINEST");
+			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.FINEST);
 			break;
 		case DEBUG:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "FINE");
+			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.FINE);
 			break;
 		case INFO:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "INFO");
+			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.INFO);
 			break;
 		case WARN:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "WARNING");
+			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.WARNING);
 			break;
 		case ERROR:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "SEVERE");
+			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.SEVERE);
 			break;
 		default:
-			LogFactory.getFactory().setAttribute("java.util.logging.ConsoleHandler.level", "WARNING");
+			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.WARNING);
 			break;
 		}
+	}
+
+	@Override
+	protected VitamLogLevel getLevelSpecific() {
+		Log logger = LogFactory.getFactory().getInstance("foo");
+		if (logger.isTraceEnabled()) {
+			return VitamLogLevel.TRACE;
+		} else if (logger.isDebugEnabled()) {
+			return VitamLogLevel.DEBUG;
+		} else if (logger.isInfoEnabled()) {
+			return VitamLogLevel.INFO;
+		} else if (logger.isWarnEnabled()) {
+			return VitamLogLevel.WARN;
+		} else if (logger.isErrorEnabled()) {
+			return VitamLogLevel.ERROR;
+		}
+		return null;
 	}
 }

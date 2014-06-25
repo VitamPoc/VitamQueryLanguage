@@ -49,6 +49,8 @@ import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.old.exec.ResultRequest;
 import fr.gouv.vitam.query.parser.TypeRequest;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 
 /**
@@ -60,6 +62,7 @@ import fr.gouv.vitam.utils.UUID;
  * 
  */
 public class RequestBench extends VitamType {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestBench.class);
     
     private static final long serialVersionUID = -2179544540441187504L;
     public static final String REFREQ = "_refreq";
@@ -212,11 +215,13 @@ public class RequestBench extends VitamType {
         BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         BasicDBObject idProjection = new BasicDBObject("_id", 1).append(DAip.NBCHILD, 1);
         if (simulate) {
-            System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
+        	LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
             return 1;
         }
-        if (debug) System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
-        if (GlobalDatas.printRequest) System.err.println("ReqDomain: "+condition+"\n\t"+idProjection);
+        LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
+        if (GlobalDatas.printRequest) {
+        	LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
+        }
         DBCursor cursor = dbvitam.domains.collection.find(condition, idProjection);
         resultRequest.init();
         long tempCount = 0;
@@ -231,8 +236,7 @@ public class RequestBench extends VitamType {
         }
         cursor.close();
         resultRequest.nextIds = tempCount;
-        if (debug)
-            System.out.println("Dom: " + resultRequest.nextIds + ":" + resultRequest.minDepth);
+        LOGGER.debug("Dom: {}:{}", resultRequest.nextIds, resultRequest.minDepth);
         return resultRequest.size();
     }
     
@@ -243,13 +247,13 @@ public class RequestBench extends VitamType {
         // new path' = path,(id,mindepth)
         // for each previous paths
         if (debug) {
-            System.out.println("Final In: newlist:"+newlist.toString()+" subdepth: "+subdepth+" ddss#: "+ddss.size());
+        	LOGGER.debug("Final In: newlist: "+newlist.toString()+" subdepth: "+subdepth+" ddss#: "+ddss.size());
             for (Map<String, Integer> map : ddss) {
-                System.out.println("\tmapDdss: "+map.toString());
+            	LOGGER.debug("\tmapDdss: "+map.toString());
             }
-            System.out.println("AllPath#: "+resultRequest.allPaths.size());
+            LOGGER.debug("AllPath#: "+resultRequest.allPaths.size());
             for (Map<String, Integer> map : resultRequest.allPaths) {
-                System.out.println("\tmapprev: "+map.toString());
+            	LOGGER.debug("\tmapprev: "+map.toString());
             }
         }
         for (Map<String, Integer> path : resultRequest.allPaths) {
@@ -292,9 +296,9 @@ public class RequestBench extends VitamType {
         resultRequest.lastIds = new HashSet<>(newlist);
         resultRequest.allPaths = newpaths;
         if (debug) {
-            System.out.println("NewAllPath#: "+resultRequest.allPaths.size()+":"+resultRequest.lastIds.size());
+        	LOGGER.debug("NewAllPath#: "+resultRequest.allPaths.size()+":"+resultRequest.lastIds.size());
             for (Map<String, Integer> map : newpaths) {
-                System.out.println("Path: "+map.toString());
+            	LOGGER.debug("Path: "+map.toString());
             }
         }
         // clean
@@ -318,17 +322,19 @@ public class RequestBench extends VitamType {
             QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
             FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
             if (simulate) {
-                System.out.println("Req1LevelES: "+srequest+"\n\t"+sfilter);
+            	LOGGER.info("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
                 return 1;
             }
-            if (debug) System.out.println("Req1LevelES: "+srequest+"\n\t"+sfilter);
-            if (GlobalDatas.printRequest) System.err.println("Req1LevelES: "+srequest+"\n\tFilter: "+sfilter);
+            LOGGER.debug("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
+            if (GlobalDatas.printRequest) {
+            	LOGGER.info("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
+            }
             ResultRequest subresult = 
                     dbvitam.es.getSubDepth(GlobalDatas.indexName, model, aroots, key, 1, query, filter);
             if (subresult != null && ! subresult.isEmpty()) {
                 finalizeResult(subresult.lastIds, subresult.allPaths, 1, debug);
                 resultRequest.nextIds = subresult.nextIds;
-                if (debug) System.out.println("MetaAip: "+resultRequest.nextIds+":"+resultRequest.minDepth);
+                LOGGER.debug("MetaAip: {}:{}", resultRequest.nextIds, resultRequest.minDepth);
             } else {
                 resultRequest.clear();
             }
@@ -353,11 +359,13 @@ public class RequestBench extends VitamType {
         BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         query.putAll((BSONObject) condition);
         if (simulate) {
-            System.out.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
+        	LOGGER.info("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
             return 1;
         }
-        if (debug) System.out.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
-        if (GlobalDatas.printRequest) System.err.println("Req1LevelMD: "+query+"\n\t"+idNbchildDomdepths);
+        LOGGER.debug("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
+        if (GlobalDatas.printRequest) {
+        	LOGGER.info("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
+        }
         DBCursor cursor = dbvitam.daips.collection.find(query, idNbchildDomdepths);
         Set<String> newlist = new HashSet<>();
         List<Map<String, Integer>> paths = new ArrayList<>();
@@ -378,7 +386,7 @@ public class RequestBench extends VitamType {
         cursor.close();
         finalizeResult(newlist, paths, 1, debug);
         resultRequest.nextIds = tempCount;
-        if (debug) System.out.println("MetaAip2: "+resultRequest.nextIds+":"+resultRequest.minDepth);
+        LOGGER.debug("MetaAip2: {}:{}", resultRequest.nextIds, resultRequest.minDepth);
         return resultRequest.size();
     }
     
@@ -397,17 +405,19 @@ public class RequestBench extends VitamType {
         QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
         FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
         if (simulate) {
-            System.out.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
+        	LOGGER.info("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
             return 1;
         }
-        if (debug) System.out.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
-        if (GlobalDatas.printRequest) System.err.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
+        LOGGER.debug("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
+        if (GlobalDatas.printRequest) {
+        	LOGGER.info("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
+        }
         ResultRequest subresult = 
                 dbvitam.es.getSubDepth(GlobalDatas.indexName, model, aroots, key, subdepth, query, filter);
         if (subresult != null && ! subresult.isEmpty()) {
             finalizeResult(subresult.lastIds, subresult.allPaths, subdepth, debug);
             resultRequest.nextIds = subresult.nextIds;
-            if (debug) System.out.println("MetaAipDepth: "+resultRequest.nextIds+":"+resultRequest.minDepth);
+            LOGGER.debug("MetaAipDepth: {}:{}", resultRequest.nextIds, resultRequest.minDepth);
         } else {
             resultRequest.clear();
         }

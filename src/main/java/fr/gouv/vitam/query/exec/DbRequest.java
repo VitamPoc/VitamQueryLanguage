@@ -48,6 +48,8 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
 import fr.gouv.vitam.query.parser.TypeRequest;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * Version using MongoDB and ElasticSearch
@@ -56,6 +58,8 @@ import fr.gouv.vitam.utils.UUID;
  *
  */
 public class DbRequest {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
+	
     private MongoDbAccess mdAccess;
     private String indexName;
     private String typeName;
@@ -122,9 +126,7 @@ public class DbRequest {
         result.loaded = true;
         result.getAfterLoad();
         list.add(result);
-        if (debug) {
-            System.out.println("StartResult: "+result);
-        }
+        LOGGER.debug("StartResult: {}", result);
         // cache entry search
         int lastCacheRank = searchCacheEntry(query, curId, list);
         // Get last from list and load it if not already
@@ -160,7 +162,7 @@ public class DbRequest {
             }
             if (debug) {
                 result.putBeforeSave();
-                System.out.println("Request: "+request+"\n\tResult: "+result);
+                LOGGER.debug("Request: {}\n\tResult: {}", request, result);
             }
         }
         return list;
@@ -199,7 +201,7 @@ public class DbRequest {
                         previous = start;
                     }
                     start.putBeforeSave();
-                    System.out.println("CacheResult: ("+rank+") "+start+"\n\t"+start.currentMaip);
+                    LOGGER.debug("CacheResult: ({}) {}\n\t{}", rank, start, start.currentMaip);
                 }
                 previous = start;
                 continue;
@@ -222,7 +224,7 @@ public class DbRequest {
                 }
                 if (debug) {
                     start.putBeforeSave();
-                    System.out.println("CacheResult2: ("+rank+") "+start+"\n\t"+start.currentMaip);
+                    LOGGER.debug("CacheResult2: ({}) {}\n\t{}", rank, start, start.currentMaip);
                 }
                 // Only one step cached !
                 return lastCacheRank;
@@ -297,15 +299,17 @@ public class DbRequest {
         newResult.minLevel = 1;
         newResult.maxLevel = 1;
         if (simulate) {
-            System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
+        	LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
             newResult.currentMaip.add(new UUID().toString());
             newResult.loaded = true;
             newResult.nbSubNodes = 1;
             newResult.putBeforeSave();
             return newResult;
         }
-        if (debug) System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
-        if (GlobalDatas.PRINT_REQUEST) System.err.println("ReqDomain: "+condition+"\n\t"+idProjection);
+        LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
+        if (GlobalDatas.PRINT_REQUEST) {
+        	LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
+        }
         DBCursor cursor = mdAccess.domains.collection.find(condition, idProjection);
         long tempCount = 0;
         while (cursor.hasNext()) {
@@ -324,7 +328,7 @@ public class DbRequest {
         newResult.updateMinMax();
         if (debug) {
             newResult.putBeforeSave();
-            System.out.println("Dom: " + newResult.toString());
+            LOGGER.debug("Dom: " + newResult.toString());
         }
         return newResult;
     }
@@ -344,7 +348,7 @@ public class DbRequest {
             FilterBuilder filter = (sfilter != null ? 
                     ElasticSearchAccess.getFilterFromString(sfilter) : null);
             if (simulate) {
-                System.out.println("Req1LevelES: "+srequest+"\n\t"+sfilter);
+            	LOGGER.info("Req1LevelES: {}\n\t{}", srequest, sfilter);
                 ResultCached falseResult = new ResultCached();
                 falseResult.minLevel = previous.minLevel+1;
                 falseResult.maxLevel = previous.maxLevel+1;
@@ -354,8 +358,10 @@ public class DbRequest {
                 falseResult.putBeforeSave();
                 return falseResult;
             }
-            if (debug) System.out.println("Req1LevelES: "+srequest+"\n\t"+sfilter);
-            if (GlobalDatas.PRINT_REQUEST) System.err.println("Req1LevelES: "+srequest+"\n\tFilter: "+sfilter);
+            LOGGER.debug("Req1LevelES: {}\n\t{}", srequest, sfilter);
+            if (GlobalDatas.PRINT_REQUEST) {
+            	LOGGER.warn("Req1LevelES: {}\n\t{}", srequest, sfilter);
+            }
             ResultCached subresult = 
                     mdAccess.es.getSubDepth(indexName, typeName, aroots, 1, query, filter);
             if (subresult != null && ! subresult.isEmpty()) {
@@ -368,7 +374,7 @@ public class DbRequest {
                 subresult.maxLevel = previous.maxLevel+1;
                 if (debug) {
                     subresult.putBeforeSave();
-                    System.out.println("MetaAip: "+subresult.toString());
+                    LOGGER.debug("MetaAip: {}", subresult);
                 }
             }
             return subresult;
@@ -398,7 +404,7 @@ public class DbRequest {
         query.putAll((BSONObject) condition);
         ResultCached subresult = new ResultCached();
         if (simulate) {
-            System.out.println("Req1LevelMD: "+query+"\n\t"+ID_NBCHILD);
+        	LOGGER.info("Req1LevelMD: {}\n\t{}", query, ID_NBCHILD);
             subresult.minLevel = previous.minLevel+1;
             subresult.maxLevel = previous.maxLevel+1;
             subresult.nbSubNodes = 1;
@@ -407,8 +413,10 @@ public class DbRequest {
             subresult.putBeforeSave();
             return subresult;
         }
-        if (debug) System.out.println("Req1LevelMD: "+query+"\n\t"+ID_NBCHILD);
-        if (GlobalDatas.PRINT_REQUEST) System.err.println("Req1LevelMD: "+query+"\n\t"+ID_NBCHILD);
+        LOGGER.debug("Req1LevelMD: {}\n\t{}", query, ID_NBCHILD);
+        if (GlobalDatas.PRINT_REQUEST) {
+        	LOGGER.warn("Req1LevelMD: {}\n\t{}", query, ID_NBCHILD);
+        }
         DBCursor cursor = mdAccess.daips.collection.find(query, ID_NBCHILD);
         long tempCount = 0;
         while (cursor.hasNext()) {
@@ -428,7 +436,7 @@ public class DbRequest {
         subresult.maxLevel = previous.maxLevel+1;
         if (debug) {
             subresult.putBeforeSave();
-            System.out.println("MetaAip2: "+subresult.toString());
+            LOGGER.debug("MetaAip2: {}", subresult);
         }
         return subresult;
     }
@@ -447,7 +455,7 @@ public class DbRequest {
         QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
         FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
         if (simulate) {
-            System.out.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
+        	LOGGER.info("ReqDepth: {}\n\t{}", srequest, sfilter);
             ResultCached subresult = new ResultCached();
             subresult.minLevel = previous.minLevel+subdepth;
             subresult.maxLevel = previous.maxLevel+subdepth;
@@ -457,8 +465,10 @@ public class DbRequest {
             subresult.putBeforeSave();
             return subresult;
         }
-        if (debug) System.out.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
-        if (GlobalDatas.PRINT_REQUEST) System.err.println("ReqDepth: "+srequest+"\n\tFilter: "+sfilter);
+        LOGGER.debug("ReqDepth: {}\n\t{}", srequest, sfilter);
+        if (GlobalDatas.PRINT_REQUEST) {
+        	LOGGER.warn("ReqDepth: {}\n\t{}", srequest, sfilter);
+        }
         ResultCached subresult = 
                 mdAccess.es.getSubDepth(indexName, typeName, aroots, subdepth, query, filter);
         if (subresult != null && ! subresult.isEmpty()) {
@@ -469,7 +479,7 @@ public class DbRequest {
             subresult.updateLoadMinMax(mdAccess);
             if (debug) {
                 subresult.putBeforeSave();
-                System.out.println("MetaAipDepth: "+subresult.toString());
+                LOGGER.debug("MetaAipDepth: {}", subresult);
             }
         }
         return subresult;
@@ -540,9 +550,7 @@ public class DbRequest {
                 }
                 parents.clear();
                 current.clear();
-                if (debug) {
-                    System.out.println("FinalizeResult: "+rank+"\n\tFrom Result: "+result+"\n\tPaths: "+paths);
-                }
+                LOGGER.debug("FinalizeResult: {}\n\tFrom Result: {}\n\tPaths: {}", rank, result, paths);
                 if (futureStop) {
                     // Stop recursivity since path is a full path
                     break;
@@ -558,7 +566,7 @@ public class DbRequest {
             result.updateMinMax();
             result.loaded = true;
             result.putBeforeSave();
-            System.out.println("FinalizeResult: "+result);
+            LOGGER.info("FinalizeResult: {}", result);
             return result;
         }
          for (int rank = results.size()-2; rank >= 0; rank --) {

@@ -31,6 +31,8 @@ import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.RANGEARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * Version using ElasticSearch
@@ -39,7 +41,8 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
  * 
  */
 public class EsQueryParser extends AbstractQueryParser {
-    
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EsQueryParser.class);
+	
     public EsQueryParser(boolean simul) {
         super(simul);
         usingElasticSearch = true;
@@ -173,7 +176,7 @@ So this filter will be less efficient than the "filtered" query.
             throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
         }
         tr0.isOnlyES = true;
-        if (debug) System.err.println("ES only: "+refCommand);
+        LOGGER.debug("ES only: {}", refCommand);
         ArrayNode fields = (ArrayNode) command.get(REQUESTARGS.fields.exactToken());
         JsonNode like = command.get(REQUESTARGS.like.exactToken());
         if (fields == null || like == null) {
@@ -199,7 +202,7 @@ So this filter will be less efficient than the "filtered" query.
             throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
         }
         tr0.isOnlyES = true;
-        if (debug) System.err.println("ES only: "+refCommand);
+        LOGGER.debug("ES only: {}", refCommand);
         Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         ObjectNode objectES = tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.simple_query_string.name());
@@ -221,7 +224,7 @@ So this filter will be less efficient than the "filtered" query.
             throw new InvalidParseOperationException("Not correctly parsed: "+refCommand);
         }
         tr0.isOnlyES = true;
-        if (debug) System.err.println("ES only: "+refCommand);
+        LOGGER.debug("ES only: {}", refCommand);
         JsonNode max = ((ObjectNode) command).remove(REQUESTARGS.max_expansions.exactToken());
         Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();

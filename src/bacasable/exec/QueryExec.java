@@ -47,6 +47,8 @@ import fr.gouv.vitam.query.old.exec.bench.BenchContext;
 import fr.gouv.vitam.query.old.exec.bench.ParserBench;
 import fr.gouv.vitam.query.parser.TypeRequest;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 
 /**
@@ -58,6 +60,7 @@ import fr.gouv.vitam.utils.UUID;
  * 
  */
 public class QueryExec extends VitamType {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueryExec.class);
     
     private static final long serialVersionUID = -2179544540441187504L;
     public static final String REFREQ = "_refreq";
@@ -210,11 +213,13 @@ public class QueryExec extends VitamType {
         BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         BasicDBObject idProjection = new BasicDBObject(ID, 1).append(DAip.NBCHILD, 1);
         if (simulate) {
-            System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
+        	LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
             return 1;
         }
-        if (debug) System.out.println("ReqDomain: "+condition+"\n\t"+idProjection);
-        if (GlobalDatas.printRequest) System.err.println("ReqDomain: "+condition+"\n\t"+idProjection);
+    	LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
+        if (GlobalDatas.PRINT_REQUEST) {
+        	LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
+        }
         DBCursor cursor = dbvitam.domains.collection.find(condition, idProjection);
         resultRequest.init();
         long tempCount = 0;

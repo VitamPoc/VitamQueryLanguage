@@ -36,6 +36,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 import net.iharder.Base64;
 
 
@@ -51,7 +53,8 @@ import net.iharder.Base64;
  *
  */
 public final class UUID {
-    
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UUID.class);
+	
     private static final int KEYSIZE            = 18;
     private static final int KEYB64SIZE            = 24;
     private static final int KEYB16SIZE            = KEYSIZE*2;
@@ -454,8 +457,7 @@ public final class UUID {
             return mac;
             */
         } catch (Exception e) {
-            //System.err.println("Could not get MAC address");
-            //e.printStackTrace();
+        	LOGGER.error("Could not get MAC address", e);
             return getRandom(MACHINE_ID_LEN);
         }
     }
@@ -625,18 +627,17 @@ public final class UUID {
             final int index = jvmName.indexOf('@');
     
             if (index < 1) {
-                System.err.println("Could not get JVMPID");
+            	LOGGER.error("Could not get JVMPID");
                 return RANDOM.nextInt(MAX_PID);
             }
             try {
                 return Integer.parseInt(jvmName.substring(0, index)) % MAX_PID;
             } catch (NumberFormatException e) {
-                System.err.println("Could not get JVMPID");
-                e.printStackTrace();
+            	LOGGER.error("Could not get JVMPID", e);
                 return RANDOM.nextInt(MAX_PID);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOGGER.error("Error while getting JVMPID", e);
             return RANDOM.nextInt(MAX_PID);
         }
     }

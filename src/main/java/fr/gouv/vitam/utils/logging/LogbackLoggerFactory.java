@@ -107,4 +107,21 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
     		seLevelSpecific(currentLevel);
         }
     }
+
+	@Override
+	protected VitamLogLevel getLevelSpecific() {
+		Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
+		if (logger.isTraceEnabled()) {
+			return VitamLogLevel.TRACE;
+		} else if (logger.isDebugEnabled()) {
+			return VitamLogLevel.DEBUG;
+		} else if (logger.isInfoEnabled()) {
+			return VitamLogLevel.INFO;
+		} else if (logger.isWarnEnabled()) {
+			return VitamLogLevel.WARN;
+		} else if (logger.isErrorEnabled()) {
+			return VitamLogLevel.ERROR;
+		}
+		return null;
+	}
 }

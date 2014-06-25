@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.mdbtypes.ResultCached;
@@ -31,6 +32,8 @@ import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.MdEsQueryParser;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.logging.VitamLogLevel;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author frederic
@@ -52,6 +55,10 @@ public class DbRequestTest {
                 "], "+
                 "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } },"+ 
                 "$projection : {$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' } }";
+    @Before
+    public void init() {
+        VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
+    }
 
     /**
      * Test method for {@link fr.gouv.vitam.query.exec.DbRequest#execQuery(fr.gouv.vitam.query.parser.AbstractQueryParser, fr.gouv.vitam.mdbtypes.ResultCached)}.
@@ -81,15 +88,13 @@ public class DbRequestTest {
             for (ResultCached resultCached : results) {
                 resultCached.putBeforeSave();
                 i++;
-                System.out.println("Level "+i+": "+resultCached);
                 assertFalse(resultCached.currentMaip.isEmpty());
                 System.out.println("Level: "+i+" : "+resultCached.currentMaip);
             }
             ResultCached result = dbRequest.finalizeResults(results);
             result.putBeforeSave();
-            System.out.println("Final: "+result);
             assertFalse(result.currentMaip.isEmpty());
-            System.out.println("Final: "+result.currentMaip);
+            System.out.println("Final: "+result);
         } catch (InstantiationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

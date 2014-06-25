@@ -31,6 +31,8 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamCollection;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
@@ -38,6 +40,8 @@ import fr.gouv.vitam.utils.UUID;
  */
 @SuppressWarnings("serial")
 public abstract class VitamType extends BasicDBObject {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamType.class);
+	
     public static final String ID = "_id";
 
     public VitamType() {
@@ -128,11 +132,10 @@ public abstract class VitamType extends BasicDBObject {
      * @param update
      */
     protected final void update(VitamCollection collection, DBObject update) {
-        //System.err.println("Update: "+this.refid+":"+update);
         try {
             collection.collection.update(new BasicDBObject(ID, this.get(ID)), update);
         } catch (MongoException e) {
-            System.err.println("Exception for "+update+" : "+e.getMessage());
+        	LOGGER.error("Exception for " + update, e);
             throw e;
         }
     }

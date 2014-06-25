@@ -35,12 +35,16 @@ import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
 import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
 public abstract class AbstractQueryParser {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractQueryParser.class);
+	
     public static final int MONGODB = 0;
     public static final int ELASTICSEARCH = 1;
     public static enum ES_KEYWORDS {
@@ -294,7 +298,7 @@ public abstract class AbstractQueryParser {
             }
             int prevDepth = lastDepth;
             tr = analyzePath(requestItem.getKey(), requestItem.getValue());
-            if (debug) System.out.println("Depth step: "+lastDepth+":"+(lastDepth-prevDepth));
+            LOGGER.debug("Depth step: {}:{}", lastDepth, lastDepth-prevDepth);
         } else {
             tr = analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
             tr.depth = depth;
@@ -306,8 +310,8 @@ public abstract class AbstractQueryParser {
             } else if (depth > 0) {
                 lastDepth += depth;
             }
+            LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth-prevDepth, depth, exactdepth, isDepth);
             checkRootTypeRequest(tr, command, prevDepth);
-            if (debug) System.out.println("Depth step: "+lastDepth+":"+(lastDepth-prevDepth));
         }
         getRequests().add(tr);
     }
@@ -317,7 +321,7 @@ public abstract class AbstractQueryParser {
         if (tr.isOnlyES || tr.depth > 1 || lastDepth - prevDepth > 1) {
             // MongoDB not allowed
             tr.isOnlyES = true;
-            if (debug) System.err.println("ES only: "+command);
+            LOGGER.debug("ES only: {}", command);
         }
     }
 

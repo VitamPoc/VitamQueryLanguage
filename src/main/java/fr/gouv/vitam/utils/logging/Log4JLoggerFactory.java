@@ -59,4 +59,22 @@ public class Log4JLoggerFactory extends VitamLoggerFactory {
 			break;
 		}
 	}
+	@Override
+	protected VitamLogLevel getLevelSpecific() {
+		Logger logger = Logger.getRootLogger();
+		Level level = logger.getLevel();
+		if (level == Level.TRACE || level == Level.ALL) {
+			return VitamLogLevel.TRACE;
+		} else if (level == Level.DEBUG) {
+			return VitamLogLevel.DEBUG;
+		} else if (level == Level.INFO) {
+			return VitamLogLevel.INFO;
+		} else if (level == Level.WARN) {
+			return VitamLogLevel.WARN;
+		} else if (level == Level.ERROR || level == Level.FATAL) {
+			return VitamLogLevel.ERROR;
+		}
+		return null;
+	}
+
 }

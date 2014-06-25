@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +20,8 @@ import static fr.gouv.vitam.query.construct.RequestHelper.*;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
+import fr.gouv.vitam.utils.logging.VitamLogLevel;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 public class MdQueryParserTest {
     private static final String exampleBothEsMd = 
@@ -36,12 +39,37 @@ public class MdQueryParserTest {
                 "], "+
                 "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } },"+ 
                 "$projection : {$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' } }";
-    
+    private static final String exampleMd = 
+            "{ $query : [ { $path : [ 'id1', 'id2'] },"+
+                "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] },"+
+                "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $depth : 4},"+
+                "{ $nor : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $relativedepth : 1},"+
+                //"{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $relativedepth : 0},"+
+                //"{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $relativedepth : 0},"+
+                //"{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $relativedepth : 1},"+
+                //"{ $and : [ {$search : { 'mavar13' : 'ceci est une phrase' } }, {$regex : { 'mavar14' : '^start?aa.*' } } ] },"+
+                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] },"+
+                //"{ $and : [ { $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, { $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] },"+
+                "{ $regex : { 'mavar14' : '^start?aa.*' } }"+
+                "], "+
+                "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } },"+ 
+                "$projection : {$fields : {@dua : 1, @all : 1}, $usage : 'abcdef1234' } }";
+    @Before
+    public void init() {
+        VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
+    }
+
     @Test
     public void testParse() {
         try {
             MdQueryParser command1 = new MdQueryParser(true);
             command1.parse(exampleBothEsMd);
+            fail("Should refuse the request since ES is not allowed");
+        } catch (Exception e) {
+        }
+        try {
+        	MdQueryParser command1 = new MdQueryParser(true);
+            command1.parse(exampleMd);
             assertNotNull(command1);
             Query query = new Query();
             query.addRequests(new PathRequest("id1", "id2"));
@@ -54,10 +82,10 @@ public class MdQueryParserTest {
                                         new InRequest(REQUEST.nin, "mavar5", "maval2").addInValue(true))));
             query.addRequests(not().addToBooleanRequest(size("mavar5", 5), 
                     gt("mavar6", 7),
-                    lte("mavar7", 8)).setExactDepthLimit(5));
+                    lte("mavar7", 8)).setExactDepthLimit(4));
             query.addRequests(nor().addToBooleanRequest(eq("mavar8", 5), 
                     ne("mavar9", "ab"),
-                    range("mavar10", 12, true, 20, true)).setRelativeDepthLimit(5));
+                    range("mavar10", 12, true, 20, true)).setRelativeDepthLimit(1));
             /*query.addRequests(matchPhraseRequest("mavar11", "ceci est une phrase").setRelativeDepthLimit(0));
             query.addRequests(matchPhrasePrefixRequest("mavar11", "ceci est une phrase").setMatchMaxExpansions(10).setRelativeDepthLimit(0));
             query.addRequests(fltRequest("ceci est une phrase", "mavar12", "mavar13").setRelativeDepthLimit(1));
@@ -77,7 +105,11 @@ public class MdQueryParserTest {
             List<TypeRequest> request1 = command1.getRequests();
             List<TypeRequest> request = command.getRequests();
             for (int i = 0; i < request1.size(); i++) {
-				assertTrue("TypeRequest should be equald", request1.get(i).toString().equals(request.get(i).toString()));
+            	if (! request1.get(i).toString().equals(request.get(i).toString())) {
+            		System.err.println(request1.get(i));
+            		System.err.println(request.get(i));
+            	}
+				assertTrue("TypeRequest should be equal", request1.get(i).toString().equals(request.get(i).toString()));
 			}
             assertTrue("Projection should be equal", command1.projection.toString().equals(command.projection.toString()));
             assertTrue("OrderBy should be equal", command1.orderBy.toString().equals(command.orderBy.toString()));

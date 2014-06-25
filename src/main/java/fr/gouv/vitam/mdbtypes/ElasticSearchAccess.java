@@ -45,12 +45,15 @@ import org.elasticsearch.search.SearchHits;
 
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
 import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  *
  */
 public class ElasticSearchAccess {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticSearchAccess.class);
     
     public static void registerShutdownHook(final Node node ) {
         Runtime.getRuntime().addShutdownHook(new Thread(){
@@ -98,12 +101,12 @@ public class ElasticSearchAccess {
         try {
             if (client.admin().indices().prepareExists(idxName).execute().actionGet().isExists()) {
                 if (!client.admin().indices().prepareDelete(idxName).execute().actionGet().isAcknowledged()) {
-                    System.err.println("Error on index delete");
+                	LOGGER.error("Error on index delete");
                 }
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOGGER.error("Error while deleting index", e);
             return true;
         }
     }
@@ -132,7 +135,7 @@ public class ElasticSearchAccess {
                         VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
                         VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
                         " } }").execute().actionGet();
-            System.out.println(type+":"+response.isAcknowledged());
+            LOGGER.info(type+":"+response.isAcknowledged());
             return response.isAcknowledged();
 //        }
         //System.err.println("not needed add Index");
@@ -315,21 +318,24 @@ public class ElasticSearchAccess {
         if (filter != null) {
             request = request.setPostFilter(filter);   // Filter
         }
-        if (GlobalDatas.PRINT_REQUEST) System.err.println(request.toString());
-        //System.out.println("ESReq: "+request.toString());
+        if (GlobalDatas.PRINT_REQUEST) {
+        	LOGGER.warn("ESReq: {}", request);
+        } else {
+        	LOGGER.debug("ESReq: {}", request);
+        }
         SearchResponse response = request
                 .execute()
                 .actionGet();
         if (response.status() != RestStatus.OK) {
-            System.err.println("Error "+response.status()+" from : "+request+":"+query+" # "+filter);
+        	LOGGER.error("Error "+response.status()+" from : "+request+":"+query+" # "+filter);
             return null;
         }
         SearchHits hits = response.getHits();
         if (hits.getTotalHits() > GlobalDatas.limitLoad) {
-            System.err.println("Warning, more than "+GlobalDatas.limitLoad+" hits: "+hits.getTotalHits());
+        	LOGGER.warn("Warning, more than "+GlobalDatas.limitLoad+" hits: "+hits.getTotalHits());
         }
         if (hits.getTotalHits() == 0) {
-            System.err.println("No result from : "+request+":"+query+" # "+filter);
+        	LOGGER.warn("No result from : "+request+":"+query+" # "+filter);
             return null;
         }
         long nb = 0;
@@ -340,15 +346,13 @@ public class ElasticSearchAccess {
             String id = hit.getId();
             Map<String, Object> src = hit.getSource();
             if (src != null) {
-                /*System.out.println(src.keySet());
-                System.out.println(src.values());*/
                 Object val = src.get(DAip.NBCHILD);
                 if (val == null) {
-                    System.err.println("Not found "+DAip.NBCHILD);
+                	LOGGER.error("Not found "+DAip.NBCHILD);
                 } else if (val instanceof Integer) {
                     nb += (Integer) val;
                 } else {
-                    System.err.println("Not Integer: "+val.getClass().getName());
+                	LOGGER.error("Not Integer: "+val.getClass().getName());
                 }
             }
             resultRequest.currentMaip.add(id);

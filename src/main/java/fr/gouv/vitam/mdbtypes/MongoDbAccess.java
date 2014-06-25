@@ -32,12 +32,16 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
+
 /**
  * @author "Frederic Bregier"
  *
  */
 public class MongoDbAccess {
-
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
+	
     public DB db = null;
     public DB dbadmin = null;
     public VitamCollection[]collections = null;
@@ -203,7 +207,7 @@ public class MongoDbAccess {
             dom.setRoot();
         }
         // elasticsearch index
-        System.out.println("ES on cluster name: "+esname+":"+unicast);
+        LOGGER.info("ES on cluster name: "+esname+":"+unicast);
         es = new ElasticSearchAccess(esname, unicast);
     }
     

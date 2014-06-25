@@ -32,6 +32,8 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
 import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 
 /**
@@ -39,7 +41,8 @@ import fr.gouv.vitam.mdbtypes.MongoDbAccess.VitamLinks;
  *
  */
 public class PAip extends VitamType {
-    
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PAip.class);
+	
     private static final long serialVersionUID = -2179544540441187504L;
     
     public static enum StaticFields {
@@ -93,7 +96,7 @@ public class PAip extends VitamType {
                     }
                     dbvitam.paips.collection.update(new BasicDBObject(ID, this.get(ID)), update);
                 } catch (MongoException e) {
-                    System.err.println("Exception for "+update+" : "+e.getMessage());
+                	LOGGER.error("Exception for " + update, e);
                     throw e;
                 }
                 list.clear();
