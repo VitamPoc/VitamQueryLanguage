@@ -42,8 +42,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * 
  */
 public class MdQueryParser extends AbstractQueryParser {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MdQueryParser.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MdQueryParser.class);
+    
     public MdQueryParser(boolean simul) {
         super(simul);
         usingMongoDb = true;
@@ -58,7 +58,7 @@ public class MdQueryParser extends AbstractQueryParser {
             throws InvalidParseOperationException {
         if (tr.depth > 1 || lastDepth - prevDepth > 1) {
             // MongoDB not allowed
-        	LOGGER.debug("ES only: {}", command);
+            LOGGER.debug("ES only: {}", command);
             throw new InvalidParseOperationException("Command not allowed with MongoDB while Depth step: "+(lastDepth-prevDepth)+":"+lastDepth+":"+prevDepth+":"+tr.depth+" "+tr);
         }
     }

@@ -75,7 +75,9 @@ public class DuaRef extends VitamType {
 
     public void save(MongoDbAccess dbvitam) {
         putBeforeSave();
-        if (updated(dbvitam)) return;
+        if (updated(dbvitam)) {
+            return;
+        }
         updateOrSave(dbvitam.duarefs);
     }
     @Override

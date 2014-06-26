@@ -48,8 +48,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * 
  */
 public class ParserBench extends MdEsQueryParser {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserBench.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserBench.class);
+    
     public static final String CPTLEVEL = "__cptlevel__";
 
     public static final String VARY = "vary";
@@ -364,10 +364,10 @@ public class ParserBench extends MdEsQueryParser {
         for (TypeRequest request : requests) {
             int nb = requestBench.executeRequest(dbvitam, request, rank, newBenchContext, model, debug);
             if (nb <= 0) {
-            	LOGGER.error("Error on execute with 0 out for: {}[{}]",request,rank);
+                LOGGER.error("Error on execute with 0 out for: {}[{}]",request,rank);
                 throw new InvalidExecOperationException("No result");
             } else {
-            	LOGGER.debug("Current: "+nb+":"+level);
+                LOGGER.debug("Current: "+nb+":"+level);
             }
             level++;
             rank = newBenchContext.cpts.get(CPTLEVEL+level);
@@ -386,7 +386,7 @@ public class ParserBench extends MdEsQueryParser {
         }
         results = requestBench.resultRequest;
         int nb = results.size();
-       	LOGGER.debug("MORE THAN ONE RESULT: "+nb);
+           LOGGER.debug("MORE THAN ONE RESULT: "+nb);
         if (! simulate && debug && nb > 0) {
             DAip maip = null;
             for (String id : results.lastIds) {

@@ -77,7 +77,9 @@ public class SAip extends VitamType {
     @Override
     public void save(MongoDbAccess dbvitam) {
         putBeforeSave();
-        if (updated(dbvitam)) return;
+        if (updated(dbvitam)) {
+            return;
+        }
         updateOrSave(dbvitam.saips);
     }
     @Override

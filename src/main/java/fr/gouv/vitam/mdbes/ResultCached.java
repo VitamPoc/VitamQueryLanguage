@@ -129,7 +129,9 @@ public class ResultCached extends VitamType {
     @Override
     public void save(MongoDbAccess dbvitam) {
         putBeforeSave();
-        if (updated(dbvitam)) return;
+        if (updated(dbvitam)) {
+            return;
+        }
         updateOrSave(dbvitam.requests);
         loaded = true;
     }

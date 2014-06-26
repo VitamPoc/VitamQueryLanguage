@@ -34,50 +34,50 @@ import ch.qos.logback.classic.Logger;
  * 
  */
 public class LogbackLoggerFactory extends VitamLoggerFactory {
-	static final String ROOT = Logger.ROOT_LOGGER_NAME;
-	// Old versions: "root"; // LoggerContext.ROOT_NAME; //
+    static final String ROOT = Logger.ROOT_LOGGER_NAME;
+    // Old versions: "root"; // LoggerContext.ROOT_NAME; //
 
-	/**
-	 * 
-	 * @param level
-	 */
-	public LogbackLoggerFactory(VitamLogLevel level) {
-		super(level);
-		seLevelSpecific(currentLevel);
-	}
-	
-	protected void seLevelSpecific(VitamLogLevel level) {
-		Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
-		switch (level) {
-		case TRACE:
-			logger.setLevel(Level.TRACE);
-			break;
-		case DEBUG:
-			logger.setLevel(Level.DEBUG);
-			break;
-		case INFO:
-			logger.setLevel(Level.INFO);
-			break;
-		case WARN:
-			logger.setLevel(Level.WARN);
-			break;
-		case ERROR:
-			logger.setLevel(Level.ERROR);
-			break;
-		default:
-			logger.setLevel(Level.WARN);
-			break;
-		}
-	}
+    /**
+     * 
+     * @param level
+     */
+    public LogbackLoggerFactory(VitamLogLevel level) {
+        super(level);
+        seLevelSpecific(currentLevel);
+    }
+    
+    protected void seLevelSpecific(VitamLogLevel level) {
+        Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
+        switch (level) {
+        case TRACE:
+            logger.setLevel(Level.TRACE);
+            break;
+        case DEBUG:
+            logger.setLevel(Level.DEBUG);
+            break;
+        case INFO:
+            logger.setLevel(Level.INFO);
+            break;
+        case WARN:
+            logger.setLevel(Level.WARN);
+            break;
+        case ERROR:
+            logger.setLevel(Level.ERROR);
+            break;
+        default:
+            logger.setLevel(Level.WARN);
+            break;
+        }
+    }
 
-	@Override
-	public VitamLogger newInstance(String name) {
-		final Logger logger = (Logger) LoggerFactory.getLogger(name);
-		return new LogbackLogger(logger);
-	}
-	
-	LogbackLoggerFactory(boolean failIfNOP) {
-    	super(null);
+    @Override
+    public VitamLogger newInstance(String name) {
+        final Logger logger = (Logger) LoggerFactory.getLogger(name);
+        return new LogbackLogger(logger);
+    }
+    
+    LogbackLoggerFactory(boolean failIfNOP) {
+        super(null);
         assert failIfNOP; // Should be always called with true.
 
         // SFL4J writes it error messages to System.err. Capture them so that the user does not see such a message on
@@ -104,24 +104,24 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
             }
         } finally {
             System.setErr(err);
-    		seLevelSpecific(currentLevel);
+            seLevelSpecific(currentLevel);
         }
     }
 
-	@Override
-	protected VitamLogLevel getLevelSpecific() {
-		Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
-		if (logger.isTraceEnabled()) {
-			return VitamLogLevel.TRACE;
-		} else if (logger.isDebugEnabled()) {
-			return VitamLogLevel.DEBUG;
-		} else if (logger.isInfoEnabled()) {
-			return VitamLogLevel.INFO;
-		} else if (logger.isWarnEnabled()) {
-			return VitamLogLevel.WARN;
-		} else if (logger.isErrorEnabled()) {
-			return VitamLogLevel.ERROR;
-		}
-		return null;
-	}
+    @Override
+    protected VitamLogLevel getLevelSpecific() {
+        Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
+        if (logger.isTraceEnabled()) {
+            return VitamLogLevel.TRACE;
+        } else if (logger.isDebugEnabled()) {
+            return VitamLogLevel.DEBUG;
+        } else if (logger.isInfoEnabled()) {
+            return VitamLogLevel.INFO;
+        } else if (logger.isWarnEnabled()) {
+            return VitamLogLevel.WARN;
+        } else if (logger.isErrorEnabled()) {
+            return VitamLogLevel.ERROR;
+        }
+        return null;
+    }
 }

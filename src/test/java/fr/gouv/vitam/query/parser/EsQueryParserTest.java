@@ -84,8 +84,8 @@ public class EsQueryParserTest {
             List<TypeRequest> request1 = command1.getRequests();
             List<TypeRequest> request = command.getRequests();
             for (int i = 0; i < request1.size(); i++) {
-				assertTrue("TypeRequest should be equald", request1.get(i).toString().equals(request.get(i).toString()));
-			}
+                assertTrue("TypeRequest should be equald", request1.get(i).toString().equals(request.get(i).toString()));
+            }
             assertTrue("Projection should be equal", command1.projection.toString().equals(command.projection.toString()));
             assertTrue("OrderBy should be equal", command1.orderBy.toString().equals(command.orderBy.toString()));
             assertTrue("ContractId should be equal", command1.contractId.equals(command.contractId));

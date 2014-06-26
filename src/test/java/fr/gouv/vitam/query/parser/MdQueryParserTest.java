@@ -68,7 +68,7 @@ public class MdQueryParserTest {
         } catch (Exception e) {
         }
         try {
-        	MdQueryParser command1 = new MdQueryParser(true);
+            MdQueryParser command1 = new MdQueryParser(true);
             command1.parse(exampleMd);
             assertNotNull(command1);
             Query query = new Query();
@@ -105,12 +105,12 @@ public class MdQueryParserTest {
             List<TypeRequest> request1 = command1.getRequests();
             List<TypeRequest> request = command.getRequests();
             for (int i = 0; i < request1.size(); i++) {
-            	if (! request1.get(i).toString().equals(request.get(i).toString())) {
-            		System.err.println(request1.get(i));
-            		System.err.println(request.get(i));
-            	}
-				assertTrue("TypeRequest should be equal", request1.get(i).toString().equals(request.get(i).toString()));
-			}
+                if (! request1.get(i).toString().equals(request.get(i).toString())) {
+                    System.err.println(request1.get(i));
+                    System.err.println(request.get(i));
+                }
+                assertTrue("TypeRequest should be equal", request1.get(i).toString().equals(request.get(i).toString()));
+            }
             assertTrue("Projection should be equal", command1.projection.toString().equals(command.projection.toString()));
             assertTrue("OrderBy should be equal", command1.orderBy.toString().equals(command.orderBy.toString()));
             assertTrue("ContractId should be equal", command1.contractId.equals(command.contractId));

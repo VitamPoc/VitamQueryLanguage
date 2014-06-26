@@ -26,55 +26,55 @@ import org.apache.log4j.Logger;
 public class Log4JLoggerFactory extends VitamLoggerFactory {
 
     public Log4JLoggerFactory(VitamLogLevel level) {
-		super(level);
-		seLevelSpecific(currentLevel);
-	}
+        super(level);
+        seLevelSpecific(currentLevel);
+    }
 
-	@Override
+    @Override
     public VitamLogger newInstance(String name) {
         return new Log4JLogger(Logger.getLogger(name));
     }
 
-	@Override
-	protected void seLevelSpecific(VitamLogLevel level) {
-		Logger logger = Logger.getRootLogger();
-		switch (level) {
-		case TRACE:
-			logger.setLevel(Level.TRACE);
-			break;
-		case DEBUG:
-			logger.setLevel(Level.DEBUG);
-			break;
-		case INFO:
-			logger.setLevel(Level.INFO);
-			break;
-		case WARN:
-			logger.setLevel(Level.WARN);
-			break;
-		case ERROR:
-			logger.setLevel(Level.ERROR);
-			break;
-		default:
-			logger.setLevel(Level.WARN);
-			break;
-		}
-	}
-	@Override
-	protected VitamLogLevel getLevelSpecific() {
-		Logger logger = Logger.getRootLogger();
-		Level level = logger.getLevel();
-		if (level == Level.TRACE || level == Level.ALL) {
-			return VitamLogLevel.TRACE;
-		} else if (level == Level.DEBUG) {
-			return VitamLogLevel.DEBUG;
-		} else if (level == Level.INFO) {
-			return VitamLogLevel.INFO;
-		} else if (level == Level.WARN) {
-			return VitamLogLevel.WARN;
-		} else if (level == Level.ERROR || level == Level.FATAL) {
-			return VitamLogLevel.ERROR;
-		}
-		return null;
-	}
+    @Override
+    protected void seLevelSpecific(VitamLogLevel level) {
+        Logger logger = Logger.getRootLogger();
+        switch (level) {
+        case TRACE:
+            logger.setLevel(Level.TRACE);
+            break;
+        case DEBUG:
+            logger.setLevel(Level.DEBUG);
+            break;
+        case INFO:
+            logger.setLevel(Level.INFO);
+            break;
+        case WARN:
+            logger.setLevel(Level.WARN);
+            break;
+        case ERROR:
+            logger.setLevel(Level.ERROR);
+            break;
+        default:
+            logger.setLevel(Level.WARN);
+            break;
+        }
+    }
+    @Override
+    protected VitamLogLevel getLevelSpecific() {
+        Logger logger = Logger.getRootLogger();
+        Level level = logger.getLevel();
+        if (level == Level.TRACE || level == Level.ALL) {
+            return VitamLogLevel.TRACE;
+        } else if (level == Level.DEBUG) {
+            return VitamLogLevel.DEBUG;
+        } else if (level == Level.INFO) {
+            return VitamLogLevel.INFO;
+        } else if (level == Level.WARN) {
+            return VitamLogLevel.WARN;
+        } else if (level == Level.ERROR || level == Level.FATAL) {
+            return VitamLogLevel.ERROR;
+        }
+        return null;
+    }
 
 }

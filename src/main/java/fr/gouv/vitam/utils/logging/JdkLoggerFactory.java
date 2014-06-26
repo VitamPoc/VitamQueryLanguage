@@ -28,53 +28,53 @@ import java.util.logging.Logger;
 public class JdkLoggerFactory extends VitamLoggerFactory {
 
     public JdkLoggerFactory(VitamLogLevel level) {
-		super(level);
-		seLevelSpecific(currentLevel);
-	}
+        super(level);
+        seLevelSpecific(currentLevel);
+    }
 
-	@Override
+    @Override
     public VitamLogger newInstance(String name) {
         return new JdkLogger(Logger.getLogger(name));
     }
 
-	@Override
-	protected void seLevelSpecific(VitamLogLevel level) {
-		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-		switch (level) {
-		case TRACE:
-			logger.setLevel(Level.FINEST);
-			break;
-		case DEBUG:
-			logger.setLevel(Level.FINE);
-			break;
-		case INFO:
-			logger.setLevel(Level.INFO);
-			break;
-		case WARN:
-			logger.setLevel(Level.WARNING);
-			break;
-		case ERROR:
-			logger.setLevel(Level.SEVERE);
-			break;
-		default:
-			logger.setLevel(Level.WARNING);
-			break;
-		}
-	}
-	@Override
-	protected VitamLogLevel getLevelSpecific() {
-		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-		if (logger.isLoggable(Level.FINEST)) {
-			return VitamLogLevel.TRACE;
-		} else if (logger.isLoggable(Level.FINE)) {
-			return VitamLogLevel.DEBUG;
-		} else if (logger.isLoggable(Level.INFO)) {
-			return VitamLogLevel.INFO;
-		} else if (logger.isLoggable(Level.WARNING)) {
-			return VitamLogLevel.WARN;
-		} else if (logger.isLoggable(Level.SEVERE)) {
-			return VitamLogLevel.ERROR;
-		}
-		return null;
-	}
+    @Override
+    protected void seLevelSpecific(VitamLogLevel level) {
+        Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+        switch (level) {
+        case TRACE:
+            logger.setLevel(Level.FINEST);
+            break;
+        case DEBUG:
+            logger.setLevel(Level.FINE);
+            break;
+        case INFO:
+            logger.setLevel(Level.INFO);
+            break;
+        case WARN:
+            logger.setLevel(Level.WARNING);
+            break;
+        case ERROR:
+            logger.setLevel(Level.SEVERE);
+            break;
+        default:
+            logger.setLevel(Level.WARNING);
+            break;
+        }
+    }
+    @Override
+    protected VitamLogLevel getLevelSpecific() {
+        Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+        if (logger.isLoggable(Level.FINEST)) {
+            return VitamLogLevel.TRACE;
+        } else if (logger.isLoggable(Level.FINE)) {
+            return VitamLogLevel.DEBUG;
+        } else if (logger.isLoggable(Level.INFO)) {
+            return VitamLogLevel.INFO;
+        } else if (logger.isLoggable(Level.WARNING)) {
+            return VitamLogLevel.WARN;
+        } else if (logger.isLoggable(Level.SEVERE)) {
+            return VitamLogLevel.ERROR;
+        }
+        return null;
+    }
 }

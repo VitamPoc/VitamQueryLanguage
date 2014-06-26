@@ -29,54 +29,54 @@ import org.apache.commons.logging.LogFactory;
 public class CommonsLoggerFactory extends VitamLoggerFactory {
 
     public CommonsLoggerFactory(VitamLogLevel level) {
-		super(level);
-		seLevelSpecific(currentLevel);
-	}
+        super(level);
+        seLevelSpecific(currentLevel);
+    }
 
     @Override
     public VitamLogger newInstance(String name) {
-    	return new CommonsLogger(LogFactory.getLog(name), name);
+        return new CommonsLogger(LogFactory.getLog(name), name);
     }
 
-	@Override
-	protected void seLevelSpecific(VitamLogLevel level) {
-		//XXX FIXME does not work for Apache Commons Logger
-		switch (level) {
-		case TRACE:
-			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.FINEST);
-			break;
-		case DEBUG:
-			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.FINE);
-			break;
-		case INFO:
-			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.INFO);
-			break;
-		case WARN:
-			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.WARNING);
-			break;
-		case ERROR:
-			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.SEVERE);
-			break;
-		default:
-			LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.WARNING);
-			break;
-		}
-	}
+    @Override
+    protected void seLevelSpecific(VitamLogLevel level) {
+        //XXX FIXME does not work for Apache Commons Logger
+        switch (level) {
+        case TRACE:
+            LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.FINEST);
+            break;
+        case DEBUG:
+            LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.FINE);
+            break;
+        case INFO:
+            LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.INFO);
+            break;
+        case WARN:
+            LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.WARNING);
+            break;
+        case ERROR:
+            LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.SEVERE);
+            break;
+        default:
+            LogFactory.getFactory().setAttribute(LogFactory.PRIORITY_KEY, Level.WARNING);
+            break;
+        }
+    }
 
-	@Override
-	protected VitamLogLevel getLevelSpecific() {
-		Log logger = LogFactory.getFactory().getInstance("foo");
-		if (logger.isTraceEnabled()) {
-			return VitamLogLevel.TRACE;
-		} else if (logger.isDebugEnabled()) {
-			return VitamLogLevel.DEBUG;
-		} else if (logger.isInfoEnabled()) {
-			return VitamLogLevel.INFO;
-		} else if (logger.isWarnEnabled()) {
-			return VitamLogLevel.WARN;
-		} else if (logger.isErrorEnabled()) {
-			return VitamLogLevel.ERROR;
-		}
-		return null;
-	}
+    @Override
+    protected VitamLogLevel getLevelSpecific() {
+        Log logger = LogFactory.getFactory().getInstance("foo");
+        if (logger.isTraceEnabled()) {
+            return VitamLogLevel.TRACE;
+        } else if (logger.isDebugEnabled()) {
+            return VitamLogLevel.DEBUG;
+        } else if (logger.isInfoEnabled()) {
+            return VitamLogLevel.INFO;
+        } else if (logger.isWarnEnabled()) {
+            return VitamLogLevel.WARN;
+        } else if (logger.isErrorEnabled()) {
+            return VitamLogLevel.ERROR;
+        }
+        return null;
+    }
 }

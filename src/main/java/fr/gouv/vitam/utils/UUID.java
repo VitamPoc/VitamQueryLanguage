@@ -36,6 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 import net.iharder.Base64;
@@ -53,8 +54,8 @@ import net.iharder.Base64;
  *
  */
 public final class UUID {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UUID.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UUID.class);
+    
     private static final int KEYSIZE            = 18;
     private static final int KEYB64SIZE            = 24;
     private static final int KEYB16SIZE            = KEYSIZE*2;
@@ -146,18 +147,21 @@ public final class UUID {
     /**
      * Constructor that takes a byte array as this UUID's content
      * @param bytes UUID content
+     * @throws InvalidUuidOperationException 
      */
-    public UUID(final byte[] bytes) {
-        if (bytes.length != KEYSIZE)
-            throw new RuntimeException("Attempted to parse malformed UUID: " + Arrays.toString(bytes));
+    public UUID(final byte[] bytes) throws InvalidUuidOperationException {
+        if (bytes.length != KEYSIZE) {
+            throw new InvalidUuidOperationException("Attempted to parse malformed UUID: " + Arrays.toString(bytes));
+        }
 
         uuid = Arrays.copyOf(bytes, KEYSIZE);
     }
     /**
      * Build from String key
      * @param idsource
+     * @throws InvalidUuidOperationException 
      */
-    public UUID(final String idsource) {
+    public UUID(final String idsource) throws InvalidUuidOperationException {
         final String id = idsource.trim();
 
         int len = id.length();
@@ -173,10 +177,10 @@ public final class UUID {
             try {
                 uuid = Base64.decode(id, Base64.URL_SAFE|Base64.DONT_GUNZIP);
             } catch (IOException e) {
-                throw new RuntimeException("Attempted to parse malformed UUID: " + id, e);
+                throw new InvalidUuidOperationException("Attempted to parse malformed UUID: " + id, e);
             }
            } else {
-               throw new RuntimeException("Attempted to parse malformed UUID: ("+len+") " + id);
+               throw new InvalidUuidOperationException("Attempted to parse malformed UUID: ("+len+") " + id);
            }
     }
     /**
@@ -195,8 +199,9 @@ public final class UUID {
      * 
      * @param idsource
      * @return the array of UUID according to the source (concatenation of UUIDs)
+     * @throws InvalidUuidOperationException 
      */
-    public static UUID[] getUuids(String idsource) {
+    public static UUID[] getUuids(String idsource) throws InvalidUuidOperationException {
         final String id = idsource.trim();
         int nb = id.length()/KEYB64SIZE;
         UUID []uuids = new UUID[nb];
@@ -229,8 +234,9 @@ public final class UUID {
      * 
      * @param idsource
      * @return the last UUID from this idsource
+     * @throws InvalidUuidOperationException 
      */
-    public static UUID getLast(String idsource) {
+    public static UUID getLast(String idsource) throws InvalidUuidOperationException {
         final String id = idsource.trim();
         int nb = id.length()/KEYB64SIZE - 1;
         int pos = KEYB64SIZE*nb;
@@ -240,8 +246,9 @@ public final class UUID {
      * 
      * @param idsource
      * @return the first UUID from this idsource
+     * @throws InvalidUuidOperationException 
      */
-    public static UUID getFirst(String idsource) {
+    public static UUID getFirst(String idsource) throws InvalidUuidOperationException {
         final String id = idsource.trim().substring(0, KEYB64SIZE);
         return new UUID(id);
     }
@@ -268,8 +275,9 @@ public final class UUID {
      * 
      * @param idsource
      * @return the array of UUID according to the source (concatenation of UUIDs separated by '#')
+     * @throws InvalidUuidOperationException 
      */
-    public static UUID[] getUuidsSharp(String idsource) {
+    public static UUID[] getUuidsSharp(String idsource) throws InvalidUuidOperationException {
         final String id = idsource.trim();
         int nb = id.length()/(KEYB64SIZE+1)+1;
         UUID []uuids = new UUID[nb];
@@ -342,8 +350,9 @@ public final class UUID {
      * @return id of process that generated the UUID, or -1 for unrecognized format
      */
     public int getProcessId() {
-        if (getVersion() != VERSION)
+        if (getVersion() != VERSION) {
             return -1;
+        }
 
         return ((uuid[3] & 0xFF) << 8) | (uuid[4] & 0xFF);
     }
@@ -362,8 +371,9 @@ public final class UUID {
      * @return millisecond UTC timestamp from generation of the UUID, or -1 for unrecognized format
      */
     public long getTimestamp() {
-        if (getVersion() != VERSION)
+        if (getVersion() != VERSION) {
             return -1;
+        }
 
         long time;
         time  = ((long)uuid[11] & 0xFF) << 48;
@@ -383,8 +393,9 @@ public final class UUID {
      * @return byte array of UUID fragment, or null for unrecognized format
      */
     public byte[] getMacFragment() {
-        if (getVersion() != VERSION)
+        if (getVersion() != VERSION) {
             return null;
+        }
 
         final byte[] x = new byte[6];
 
@@ -400,7 +411,9 @@ public final class UUID {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof UUID)) return false;
+        if (o == null || !(o instanceof UUID)) {
+            return false;
+        }
         return (this == o) || Arrays.equals(this.uuid, ((UUID) o).uuid);
     }
 
@@ -438,26 +451,8 @@ public final class UUID {
                 machineId = defaultMachineId();
             }
             return machineId;
-            /*
-            byte[] mac = null;
-            Enumeration<NetworkInterface> enumset = NetworkInterface.getNetworkInterfaces();
-            while (enumset.hasMoreElements()) {
-                mac = enumset.nextElement().getHardwareAddress();
-                if (mac != null && mac.length >= MACHINE_ID_LEN) {
-                    break;
-                } else {
-                    mac = null;
-                }
-            }
-            // if the machine is not connected to a network it has no active MAC address
-            if (mac == null || mac.length < MACHINE_ID_LEN) {
-                //System.err.println("No MAC Address found");
-                mac = getRandom(6);
-            }
-            return mac;
-            */
         } catch (Exception e) {
-        	LOGGER.error("Could not get MAC address", e);
+            LOGGER.error("Could not get MAC address", e);
             return getRandom(MACHINE_ID_LEN);
         }
     }
@@ -627,17 +622,17 @@ public final class UUID {
             final int index = jvmName.indexOf('@');
     
             if (index < 1) {
-            	LOGGER.error("Could not get JVMPID");
+                LOGGER.error("Could not get JVMPID");
                 return RANDOM.nextInt(MAX_PID);
             }
             try {
                 return Integer.parseInt(jvmName.substring(0, index)) % MAX_PID;
             } catch (NumberFormatException e) {
-            	LOGGER.error("Could not get JVMPID", e);
+                LOGGER.error("Could not get JVMPID", e);
                 return RANDOM.nextInt(MAX_PID);
             }
         } catch (Exception e) {
-        	LOGGER.error("Error while getting JVMPID", e);
+            LOGGER.error("Error while getting JVMPID", e);
             return RANDOM.nextInt(MAX_PID);
         }
     }

@@ -43,8 +43,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * 
  */
 public abstract class AbstractQueryParser {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractQueryParser.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractQueryParser.class);
+    
     public static final int MONGODB = 0;
     public static final int ELASTICSEARCH = 1;
     public static enum ES_KEYWORDS {

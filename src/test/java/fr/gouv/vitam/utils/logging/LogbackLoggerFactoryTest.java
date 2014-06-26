@@ -23,16 +23,16 @@ public class LogbackLoggerFactoryTest {
 
     @Test
     public void testCreation() {
-    	VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
-    	assertTrue(VitamLoggerFactory.getDefaultFactory() instanceof LogbackLoggerFactory);
-    	assertEquals(VitamLogLevel.WARN, VitamLoggerFactory.currentLevel);
+        VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
+        assertTrue(VitamLoggerFactory.getDefaultFactory() instanceof LogbackLoggerFactory);
+        assertEquals(VitamLogLevel.WARN, VitamLoggerFactory.currentLevel);
         VitamLogger logger0 = VitamLoggerFactory.getDefaultFactory().newInstance("foo");
         assertTrue(logger0 instanceof LogbackLogger);
         assertEquals("foo", logger0.name());
         assertFalse(logger0.isTraceEnabled());
-    	VitamLoggerFactory.setLogLevel(VitamLogLevel.TRACE);
+        VitamLoggerFactory.setLogLevel(VitamLogLevel.TRACE);
         assertTrue(logger0.isTraceEnabled());
-    	logger0 = VitamLoggerFactory.getDefaultFactory().newInstance("foo");
+        logger0 = VitamLoggerFactory.getDefaultFactory().newInstance("foo");
         assertTrue(logger0.isTraceEnabled());
     }
 }

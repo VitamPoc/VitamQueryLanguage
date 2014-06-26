@@ -86,29 +86,29 @@ public abstract class VitamLoggerFactory {
         return getDefaultFactory().newInstance(name);
     }
 
-	public static void setLogLevel(VitamLogLevel level) {
-		setInternalLogLevel(level);
-		if (currentLevel != null) {
-			getDefaultFactory().seLevelSpecific(currentLevel);
-		}
-	}
+    public static void setLogLevel(VitamLogLevel level) {
+        setInternalLogLevel(level);
+        if (currentLevel != null) {
+            getDefaultFactory().seLevelSpecific(currentLevel);
+        }
+    }
 
-	protected static synchronized void setInternalLogLevel(VitamLogLevel level) {
-		if (level != null) {
-			currentLevel = level;
-		}
-	}
-	
-	public VitamLoggerFactory(VitamLogLevel level) {
-		setInternalLogLevel(level);
-		if (currentLevel == null) {
-			setInternalLogLevel(getLevelSpecific());
-		}
-	}
+    protected static synchronized void setInternalLogLevel(VitamLogLevel level) {
+        if (level != null) {
+            currentLevel = level;
+        }
+    }
+    
+    public VitamLoggerFactory(VitamLogLevel level) {
+        setInternalLogLevel(level);
+        if (currentLevel == null) {
+            setInternalLogLevel(getLevelSpecific());
+        }
+    }
 
-	protected abstract VitamLogLevel getLevelSpecific();
-	protected abstract void seLevelSpecific(VitamLogLevel level);
-	
+    protected abstract VitamLogLevel getLevelSpecific();
+    protected abstract void seLevelSpecific(VitamLogLevel level);
+    
     /**
      * Creates a new logger instance with the specified name.
      */

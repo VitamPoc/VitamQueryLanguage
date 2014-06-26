@@ -45,12 +45,12 @@ public class VitamLoggerFactoryTest {
 
     @Test(expected = NullPointerException.class)
     public void shouldNotAllowNullDefaultFactory() {
-    	VitamLoggerFactory.setDefaultFactory(null);
+        VitamLoggerFactory.setDefaultFactory(null);
     }
 
     @Test
     public void shouldGetInstance() {
-    	VitamLoggerFactory.setDefaultFactory(oldLoggerFactory);
+        VitamLoggerFactory.setDefaultFactory(oldLoggerFactory);
 
         String helloWorld = "Hello, world!";
 

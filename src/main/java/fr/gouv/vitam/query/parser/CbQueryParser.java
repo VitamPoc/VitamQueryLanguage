@@ -40,8 +40,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * 
  */
 public class CbQueryParser extends AbstractQueryParser {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CbQueryParser.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CbQueryParser.class);
+    
     public CbQueryParser(boolean simul) {
         super(simul);
         usingCouchBase = true;
@@ -56,7 +56,7 @@ public class CbQueryParser extends AbstractQueryParser {
             throws InvalidParseOperationException {
         if (tr.depth > 1 || lastDepth - prevDepth > 1) {
             // CouchBase not allowed
-        	LOGGER.debug("ES only: {}", command);
+            LOGGER.debug("ES only: {}", command);
             throw new InvalidParseOperationException("Command not allowed with CouchBase while Depth step: "+(lastDepth-prevDepth)+":"+lastDepth+":"+prevDepth+":"+tr.depth+" "+tr);
         }
     }

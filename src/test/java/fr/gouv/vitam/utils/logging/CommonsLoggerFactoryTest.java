@@ -23,8 +23,8 @@ public class CommonsLoggerFactoryTest {
 
     @Test
     public void testCreation() {
-    	VitamLoggerFactory.setDefaultFactory(new CommonsLoggerFactory(VitamLogLevel.TRACE));
-    	assertTrue(VitamLoggerFactory.getDefaultFactory() instanceof CommonsLoggerFactory);
+        VitamLoggerFactory.setDefaultFactory(new CommonsLoggerFactory(VitamLogLevel.TRACE));
+        assertTrue(VitamLoggerFactory.getDefaultFactory() instanceof CommonsLoggerFactory);
         VitamLogger logger0 = VitamLoggerFactory.getDefaultFactory().newInstance("foo");
         assertTrue(logger0 instanceof CommonsLogger);
         assertEquals("foo", logger0.name());

@@ -41,8 +41,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * 
  */
 public class EsQueryParser extends AbstractQueryParser {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EsQueryParser.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EsQueryParser.class);
+    
     public EsQueryParser(boolean simul) {
         super(simul);
         usingElasticSearch = true;

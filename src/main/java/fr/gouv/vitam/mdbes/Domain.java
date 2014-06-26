@@ -41,8 +41,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  *
  */
 public class Domain extends VitamType {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Domain.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Domain.class);
+    
     private static final long serialVersionUID = 8152306914666919955L;
     
     /**
@@ -80,14 +80,14 @@ public class Domain extends VitamType {
                 try {
                     dbvitam.daips.collection.update(new BasicDBObject(ID, new BasicDBObject("$in", ids)), update, false, true);
                 } catch (MongoException e) {
-                	LOGGER.error("Exception for " + update, e);
+                    LOGGER.error("Exception for " + update, e);
                     throw e;
                 }
             } else {
                 try {
                     dbvitam.daips.collection.update(new BasicDBObject(ID, ids.get(0)), update);
                 } catch (MongoException e) {
-                	LOGGER.error("Exception for " + update, e);
+                    LOGGER.error("Exception for " + update, e);
                     throw e;
                 }
             }
@@ -146,7 +146,7 @@ public class Domain extends VitamType {
                 nb = 0;
                 dbvitam.domains.collection.update(new BasicDBObject(ID, this.get(ID)), update);
             } catch (MongoException e) {
-            	LOGGER.error("Exception for {}", update, e);
+                LOGGER.error("Exception for {}", update, e);
                 throw e;
             }
             list.clear();

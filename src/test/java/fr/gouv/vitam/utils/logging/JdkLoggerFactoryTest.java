@@ -23,7 +23,7 @@ public class JdkLoggerFactoryTest {
 
     @Test
     public void testCreation() {
-    	VitamLogger logger = new JdkLoggerFactory(null).newInstance("foo");
+        VitamLogger logger = new JdkLoggerFactory(null).newInstance("foo");
         assertTrue(logger instanceof JdkLogger);
         assertEquals("foo", logger.name());
     }

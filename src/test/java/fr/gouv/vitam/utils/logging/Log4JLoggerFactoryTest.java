@@ -23,7 +23,7 @@ public class Log4JLoggerFactoryTest {
 
     @Test
     public void testCreation() {
-    	VitamLogger logger = new Log4JLoggerFactory(null).newInstance("foo");
+        VitamLogger logger = new Log4JLoggerFactory(null).newInstance("foo");
         assertTrue(logger instanceof Log4JLogger);
         assertEquals("foo", logger.name());
     }

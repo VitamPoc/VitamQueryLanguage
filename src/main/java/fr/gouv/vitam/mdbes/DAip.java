@@ -166,7 +166,7 @@ public class DAip extends VitamType {
                 nb = 0;
                 dbvitam.daips.collection.update(new BasicDBObject(ID, this.get(ID)), update);
             } catch (MongoException e) {
-            	LOGGER.error("Exception for " + update, e);
+                LOGGER.error("Exception for " + update, e);
                 throw e;
             }
             list.clear();
@@ -211,7 +211,7 @@ public class DAip extends VitamType {
     public void save(MongoDbAccess dbvitam) {
         putBeforeSave();
         if (updated(dbvitam)) {
-        	LOGGER.debug("Updated: {}", this); 
+            LOGGER.debug("Updated: {}", this); 
             return;
         }
         LOGGER.debug("Save: {}", this);
@@ -264,7 +264,7 @@ public class DAip extends VitamType {
             try {
                 dbvitam.daips.collection.update(new BasicDBObject(ID, new BasicDBObject("$in", ids)), update, false, true);
             } catch (MongoException e) {
-            	LOGGER.error("Exception for " + update, e);
+                LOGGER.error("Exception for " + update, e);
                 throw e;
             }
             nb += ids.size();
@@ -485,7 +485,7 @@ public class DAip extends VitamType {
         LOGGER.debug("{}", this);
         indexes.put((String) this.get(ID), maip.toString());
         if (indexes.size() > GlobalDatas.LIMIT_ES_NEW_INDEX) {
-        	dbvitam.addEsEntryIndex(indexes, model);
+            dbvitam.addEsEntryIndex(indexes, model);
             //dbvitam.flushOnDisk();
             indexes.clear();
         }

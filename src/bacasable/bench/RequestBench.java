@@ -215,12 +215,12 @@ public class RequestBench extends VitamType {
         BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         BasicDBObject idProjection = new BasicDBObject("_id", 1).append(DAip.NBCHILD, 1);
         if (simulate) {
-        	LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
+            LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
             return 1;
         }
         LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
         if (GlobalDatas.printRequest) {
-        	LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
+            LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
         }
         DBCursor cursor = dbvitam.domains.collection.find(condition, idProjection);
         resultRequest.init();
@@ -247,13 +247,13 @@ public class RequestBench extends VitamType {
         // new path' = path,(id,mindepth)
         // for each previous paths
         if (debug) {
-        	LOGGER.debug("Final In: newlist: "+newlist.toString()+" subdepth: "+subdepth+" ddss#: "+ddss.size());
+            LOGGER.debug("Final In: newlist: "+newlist.toString()+" subdepth: "+subdepth+" ddss#: "+ddss.size());
             for (Map<String, Integer> map : ddss) {
-            	LOGGER.debug("\tmapDdss: "+map.toString());
+                LOGGER.debug("\tmapDdss: "+map.toString());
             }
             LOGGER.debug("AllPath#: "+resultRequest.allPaths.size());
             for (Map<String, Integer> map : resultRequest.allPaths) {
-            	LOGGER.debug("\tmapprev: "+map.toString());
+                LOGGER.debug("\tmapprev: "+map.toString());
             }
         }
         for (Map<String, Integer> path : resultRequest.allPaths) {
@@ -296,9 +296,9 @@ public class RequestBench extends VitamType {
         resultRequest.lastIds = new HashSet<>(newlist);
         resultRequest.allPaths = newpaths;
         if (debug) {
-        	LOGGER.debug("NewAllPath#: "+resultRequest.allPaths.size()+":"+resultRequest.lastIds.size());
+            LOGGER.debug("NewAllPath#: "+resultRequest.allPaths.size()+":"+resultRequest.lastIds.size());
             for (Map<String, Integer> map : newpaths) {
-            	LOGGER.debug("Path: "+map.toString());
+                LOGGER.debug("Path: "+map.toString());
             }
         }
         // clean
@@ -322,12 +322,12 @@ public class RequestBench extends VitamType {
             QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
             FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
             if (simulate) {
-            	LOGGER.info("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
+                LOGGER.info("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
                 return 1;
             }
             LOGGER.debug("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
             if (GlobalDatas.printRequest) {
-            	LOGGER.info("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
+                LOGGER.info("Req1LevelES: {}\n\tFilter: {}", srequest, sfilter);
             }
             ResultRequest subresult = 
                     dbvitam.es.getSubDepth(GlobalDatas.indexName, model, aroots, key, 1, query, filter);
@@ -359,12 +359,12 @@ public class RequestBench extends VitamType {
         BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         query.putAll((BSONObject) condition);
         if (simulate) {
-        	LOGGER.info("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
+            LOGGER.info("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
             return 1;
         }
         LOGGER.debug("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
         if (GlobalDatas.printRequest) {
-        	LOGGER.info("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
+            LOGGER.info("Req1LevelMD: {}\n\t{}", query, idNbchildDomdepths);
         }
         DBCursor cursor = dbvitam.daips.collection.find(query, idNbchildDomdepths);
         Set<String> newlist = new HashSet<>();
@@ -405,12 +405,12 @@ public class RequestBench extends VitamType {
         QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
         FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
         if (simulate) {
-        	LOGGER.info("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
+            LOGGER.info("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
             return 1;
         }
         LOGGER.debug("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
         if (GlobalDatas.printRequest) {
-        	LOGGER.info("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
+            LOGGER.info("Req1Depth: {}\n\tFilter: {}", srequest, sfilter);
         }
         ResultRequest subresult = 
                 dbvitam.es.getSubDepth(GlobalDatas.indexName, model, aroots, key, subdepth, query, filter);

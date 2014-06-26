@@ -60,7 +60,7 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * 
  */
 public class QueryExec extends VitamType {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueryExec.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueryExec.class);
     
     private static final long serialVersionUID = -2179544540441187504L;
     public static final String REFREQ = "_refreq";
@@ -213,12 +213,12 @@ public class QueryExec extends VitamType {
         BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         BasicDBObject idProjection = new BasicDBObject(ID, 1).append(DAip.NBCHILD, 1);
         if (simulate) {
-        	LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
+            LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
             return 1;
         }
-    	LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
+        LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
         if (GlobalDatas.PRINT_REQUEST) {
-        	LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
+            LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
         }
         DBCursor cursor = dbvitam.domains.collection.find(condition, idProjection);
         resultRequest.init();

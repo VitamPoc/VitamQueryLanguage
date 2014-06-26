@@ -29,6 +29,7 @@ import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollection;
+import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;
@@ -40,14 +41,14 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  */
 @SuppressWarnings("serial")
 public abstract class VitamType extends BasicDBObject {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamType.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamType.class);
+    
     public static final String ID = "_id";
 
     public VitamType() {
     }
 
-    public final void setRoot() {
+    public final void setRoot() throws InvalidUuidOperationException {
         String id = (String) this.get(ID);
         UUID uuid = null;
         if (id == null) {
@@ -135,7 +136,7 @@ public abstract class VitamType extends BasicDBObject {
         try {
             collection.collection.update(new BasicDBObject(ID, this.get(ID)), update);
         } catch (MongoException e) {
-        	LOGGER.error("Exception for " + update, e);
+            LOGGER.error("Exception for " + update, e);
             throw e;
         }
     }

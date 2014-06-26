@@ -60,7 +60,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
         case ERROR:
             return isErrorEnabled();
         default:
-            throw new Error();
+            return true;
         }
     }
 
@@ -105,10 +105,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             warn(msg, cause);
             break;
         case ERROR:
+        default:
             error(msg, cause);
             break;
-        default:
-            throw new Error();
         }
     }
 
@@ -128,10 +127,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
                 warn(cause);
                 break;
             case ERROR:
+            default:
                 error(cause);
                 break;
-            default:
-                throw new Error();
         }
     }
 
@@ -151,10 +149,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             warn(msg);
             break;
         case ERROR:
+        default:
             error(msg);
             break;
-        default:
-            throw new Error();
         }
     }
 
@@ -174,10 +171,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             warn(format, arg);
             break;
         case ERROR:
+        default:
             error(format, arg);
             break;
-        default:
-            throw new Error();
         }
     }
 
@@ -197,10 +193,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             warn(format, argA, argB);
             break;
         case ERROR:
+        default:
             error(format, argA, argB);
             break;
-        default:
-            throw new Error();
         }
     }
 
@@ -220,10 +215,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             warn(format, arguments);
             break;
         case ERROR:
+        default:
             error(format, arguments);
             break;
-        default:
-            throw new Error();
         }
     }
 
@@ -231,22 +225,22 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
         return VitamLoggerFactory.getInstance(name());
     }
     public static final String simpleClassName(Object o) {
-    	if (o == null) {
-    		return "null_object";
-    	} else {
-    		return simpleClassName(o.getClass());
-    	}
+        if (o == null) {
+            return "null_object";
+        } else {
+            return simpleClassName(o.getClass());
+        }
     }
     public static final String simpleClassName(Class<?> clazz) {
-    	if (clazz == null) {
-    		return "null_class";
-    	}
-    	Package pkg = clazz.getPackage();
-    	if (pkg != null) {
-    		return clazz.getName().substring(pkg.getName().length() + 1);
-    	} else {
-    		return clazz.getName();
-    	}
+        if (clazz == null) {
+            return "null_class";
+        }
+        Package pkg = clazz.getPackage();
+        if (pkg != null) {
+            return clazz.getName().substring(pkg.getName().length() + 1);
+        } else {
+            return clazz.getName();
+        }
     }
     @Override
     public String toString() {
@@ -254,75 +248,75 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
     
     private static int BASELEVEL;
-	private static int LOGLEVEL;
+    private static int LOGLEVEL;
 
-	/**
-	 * Determine the good level
-	 * 
-	 * @return the default base level
-	 */
-	private static final int detectLoggingBaseLevel() {
-		StackTraceElement[] elt = Thread.currentThread().getStackTrace();
-		int i = 0;
-		for (i = 0; i < elt.length; i++) {
-			if (elt[i].getMethodName().equalsIgnoreCase("detectLoggingBaseLevel")) {
-				break;
-			}
-		}
-		return i;
-	}
+    /**
+     * Determine the good level
+     * 
+     * @return the default base level
+     */
+    private static final int detectLoggingBaseLevel() {
+        StackTraceElement[] elt = Thread.currentThread().getStackTrace();
+        int i = 0;
+        for (i = 0; i < elt.length; i++) {
+            if (elt[i].getMethodName().equalsIgnoreCase("detectLoggingBaseLevel")) {
+                break;
+            }
+        }
+        return i;
+    }
 
-	{
-		BASELEVEL = detectLoggingBaseLevel();
-		LOGLEVEL = BASELEVEL + 2;
-	}
+    {
+        BASELEVEL = detectLoggingBaseLevel();
+        LOGLEVEL = BASELEVEL + 2;
+    }
 
-	/**
-	 * To be used in message for logger (rank 2) like
-	 * logger.warn(code,"message:"+getImmediateMethodAndLine(),null);
-	 * 
-	 * @return "ClassAndMethodName(FileName:LineNumber)"
-	 */
-	public static final String getImmediateMethodAndLine() {
-		StackTraceElement elt = Thread.currentThread().getStackTrace()[BASELEVEL + 1];
-		return getMethodAndLine(elt);
-	}
+    /**
+     * To be used in message for logger (rank 2) like
+     * logger.warn(code,"message:"+getImmediateMethodAndLine(),null);
+     * 
+     * @return "ClassAndMethodName(FileName:LineNumber)"
+     */
+    public static final String getImmediateMethodAndLine() {
+        StackTraceElement elt = Thread.currentThread().getStackTrace()[BASELEVEL + 1];
+        return getMethodAndLine(elt);
+    }
 
-	// FIXME TODO for JDK6 IBM add 1 (2->3 and 3->4)
-	/**
-	 * To be used only by Logger (rank 5)
-	 * 
-	 * @return "MethodName(FileName:LineNumber)"
-	 */
-	public static final String getLoggerMethodAndLine() {
-		StackTraceElement elt = Thread.currentThread().getStackTrace()[LOGLEVEL];
-		return getMethodAndLine(elt);
-	}
+    // FIXME TODO for JDK6 IBM add 1 (2->3 and 3->4)
+    /**
+     * To be used only by Logger (rank 5)
+     * 
+     * @return "MethodName(FileName:LineNumber)"
+     */
+    public static final String getLoggerMethodAndLine() {
+        StackTraceElement elt = Thread.currentThread().getStackTrace()[LOGLEVEL];
+        return getMethodAndLine(elt);
+    }
 
-	/**
-	 * @param rank
-	 *            is the current depth of call+1 (immediate = 1+1=2)
-	 * @return "ClassAndMethodName(FileName:LineNumber)"
-	 */
-	protected static final String getRankMethodAndLine(int rank) {
-		StackTraceElement elt = Thread.currentThread().getStackTrace()[rank];
-		return getMethodAndLine(elt);
-	}
+    /**
+     * @param rank
+     *            is the current depth of call+1 (immediate = 1+1=2)
+     * @return "ClassAndMethodName(FileName:LineNumber)"
+     */
+    protected static final String getRankMethodAndLine(int rank) {
+        StackTraceElement elt = Thread.currentThread().getStackTrace()[rank];
+        return getMethodAndLine(elt);
+    }
 
-	/**
-	 * 
-	 * @param elt
-	 * @return "MethodName(FileName:LineNumber) " from elt
-	 */
-	private static final String getMethodAndLine(StackTraceElement elt) {
-		StringBuilder builder = new StringBuilder(elt.getClassName());
-		builder.append('.');
-		builder.append(elt.getMethodName());
-		builder.append('(');
-		builder.append(elt.getFileName());
-		builder.append(':');
-		builder.append(elt.getLineNumber());
-		builder.append(") : ");
-		return builder.toString();
-	}
+    /**
+     * 
+     * @param elt
+     * @return "MethodName(FileName:LineNumber) " from elt
+     */
+    private static final String getMethodAndLine(StackTraceElement elt) {
+        StringBuilder builder = new StringBuilder(elt.getClassName());
+        builder.append('.');
+        builder.append(elt.getMethodName());
+        builder.append('(');
+        builder.append(elt.getFileName());
+        builder.append(':');
+        builder.append(elt.getLineNumber());
+        builder.append(") : ");
+        return builder.toString();
+    }
 }

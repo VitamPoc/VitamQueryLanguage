@@ -40,8 +40,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  *
  */
 public class MongoDbAccess {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
-	
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
+    
     public DB db = null;
     public DB dbadmin = null;
     public VitamCollection[]collections = null;
