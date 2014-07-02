@@ -284,7 +284,7 @@ public abstract class AbstractQueryParser {
             if (jdepth != null) {
                 depth = jdepth.asInt();
                 if (depth == 0) {
-                    depth = GlobalDatas.maxDepth;
+                    depth = GlobalDatas.MAXDEPTH;
                 }
                 isDepth = true;
             }

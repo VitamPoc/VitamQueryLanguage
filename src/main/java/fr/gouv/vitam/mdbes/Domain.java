@@ -22,6 +22,7 @@ package fr.gouv.vitam.mdbes;
 
 import static fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections.Cdomain;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,13 +102,13 @@ public class Domain extends VitamType {
      * @param dbvitam
      * @param maips
      */
-    public void addMetaAipNoSave(MongoDbAccess dbvitam, List<DAip> maips) {
+    public void addMetaAipNoSave(MongoDbAccess dbvitam, OutputStream outputStream, List<DAip> maips) {
         for (DAip maip : maips) {
             MongoDbAccess.addAsymmetricLinksetNoSave(this, VitamLinks.Domain2DAip.field1to2, maip, false);
             if (MongoDbAccess.addAsymmetricLinksetNoSave(maip, VitamLinks.Domain2DAip.field2to1, this, false)) {
                 nb++;
             }
-            maip.saveToFile(dbvitam, 1);
+            maip.saveToFile(dbvitam, outputStream, 1);
         }
     }
 

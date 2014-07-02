@@ -22,7 +22,6 @@ package fr.gouv.vitam.utils;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author "Frederic Bregier"
@@ -37,22 +36,13 @@ public final class GlobalDatas {
      * set of Roots Domain : must be updated each time a new Domain is created
      */
     public static final Set<String> ROOTS = new HashSet<>();
-    public static int maxDepth = 20;
-    public static int nbThread = 1;
-    public static int nb = 400;
-    public static int firstLevel = 10;// was 100
-    public static int lastLevel = 1000; // was 1000
-    public static float nbr = 100; // could enhance the number of request with 1000
-    public static long waitBetweenQuery = 200; // could be used to simulate Little's law, for instance = 100ms
     public static boolean useFilter = true; // Should we use filter to select from graph parents, or within query
     public static boolean useNewNode = false;
-    public static AtomicLong cptMaip = new AtomicLong();
     public static final String INDEXNAME = "vitamidx";
     public static long limitES = 10001; // limit before using ES in 1 level only
     public static int limitLoad = 10000; // limit for loading result
     public static final long LIMIT_ES_NEW_INDEX = 49999; // limit before flushing ES with Bulk
     public static final int MAXDEPTH = 100; // should be 20 but let a great margin
     public static final boolean PRINT_REQUEST = false;
-    public static int minleveltofile = 0;
     public static final boolean BLOCKING = true;
 }

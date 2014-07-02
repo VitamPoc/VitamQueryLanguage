@@ -18,18 +18,22 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cdbes;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.bson.BSONObject;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -46,11 +50,11 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * @author "Frederic Bregier"
  *
  */
-public class MongoDbAccess {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
+public class CouchbaseAccess {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CouchbaseAccess.class);
     
-    private DB db = null;
-    private DB dbadmin = null;
+    private Cluster cc = null;
+    private Bucket bucket = null;
     private VitamCollection[]collections = null;
     protected VitamCollection domains = null;
     protected VitamCollection daips = null;
@@ -107,12 +111,6 @@ public class MongoDbAccess {
             this.name = clasz.getSimpleName();
             this.rank = ordinal();
         }
-        public String getName() {
-        	return name;
-        }
-        public DBCollection getCollection() {
-        	return collection;
-        }
     }
     
     protected static class VitamCollection{
@@ -131,9 +129,7 @@ public class MongoDbAccess {
             }
             this.coll.collection = this.collection;
         }
-        public DBCollection getCollection() {
-        	return collection;
-        }
+        
     }
     
     // Structure Access
@@ -199,21 +195,30 @@ public class MongoDbAccess {
         }
         
     }
-    
-    public MongoDbAccess(MongoClient mongoClient, String dbname, String esname, String unicast, boolean recreate) throws InvalidUuidOperationException {
-        db = mongoClient.getDB(dbname);
-        dbadmin = mongoClient.getDB("admin");
+    /**
+     * 
+     * @param hostnames as List of hostname (default if null = localhost)
+     * @param bucketname as "default"
+     * @param pwd as ""
+     * @param esname
+     * @param unicast
+     * @param recreate
+     * @throws InvalidUuidOperationException
+     */
+    public CouchbaseAccess(String [] hostnames, String bucketname, String pwd, String esname, String unicast, boolean recreate) throws InvalidUuidOperationException {
+    	cc = new CouchbaseCluster(hostnames);
+    	bucket = cc.openBucket(bucketname, pwd).toBlockingObservable().single();
         // Authenticate - optional
         // boolean auth = db.authenticate("foo", "bar");
         
         collections = new VitamCollection[VitamCollections.values().length];
         // get a collection object to work with
-        domains = collections[VitamCollections.Cdomain.rank] = new VitamCollection(db, VitamCollections.Cdomain, recreate);
-        daips = collections[VitamCollections.Cdaip.rank] = new VitamCollection(db, VitamCollections.Cdaip, recreate);
-        paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(db, VitamCollections.Cpaip, recreate);
-        saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(db, VitamCollections.Csaip, recreate);
-        duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(db, VitamCollections.Cdua, recreate);
-        requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(db, VitamCollections.Crequests, recreate);
+        domains = collections[VitamCollections.Cdomain.rank] = new VitamCollection(bucket, VitamCollections.Cdomain, recreate);
+        daips = collections[VitamCollections.Cdaip.rank] = new VitamCollection(bucket, VitamCollections.Cdaip, recreate);
+        paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(bucket, VitamCollections.Cpaip, recreate);
+        saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(bucket, VitamCollections.Csaip, recreate);
+        duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(bucket, VitamCollections.Cdua, recreate);
+        requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(bucket, VitamCollections.Crequests, recreate);
         DBCursor cursor = domains.collection.find();
         for (DBObject dbObject : cursor) {
             Domain dom = (Domain) dbObject;
@@ -224,19 +229,8 @@ public class MongoDbAccess {
         es = new ElasticSearchAccess(esname, unicast);
     }
     
-    public final void reset(String model) {
-		for (int i = 0; i < collections.length; i++) {
-			collections[i].collection.drop();
-		}
-		es.deleteIndex(GlobalDatas.INDEXNAME);
-		es.addIndex(GlobalDatas.INDEXNAME, model);
-		ensureIndex();
-    }
-    
-    public void updateEsIndex(String model) {
-		es.addIndex(GlobalDatas.INDEXNAME, model);
-    }
     public final void close() {
+    	cc.disconnect();
         es.close();
     }
     
@@ -251,48 +245,7 @@ public class MongoDbAccess {
         DuaRef.addIndexes(this);
         ResultCached.addIndexes(this);
     }
-    
-    public void removeIndexBeforeImport() {
-    	try {
-			daips.collection.dropIndex(new BasicDBObject(VitamLinks.DAip2DAip.field2to1, 1));
-			daips.collection.dropIndex(new BasicDBObject(VitamLinks.Domain2DAip.field2to1, 1));
-			daips.collection.dropIndex(new BasicDBObject(DAip.DAIPDEPTHS, 1));
-		} catch (Exception e) {
-			LOGGER.error("Error while removing indexes before import", e);
-		}
-    }
-    public void resetIndexAfterImport() {
-		LOGGER.info("Rebuild indexes");
-		daips.collection.createIndex(new BasicDBObject(VitamLinks.DAip2DAip.field2to1, 1));
-		daips.collection.createIndex(new BasicDBObject(VitamLinks.Domain2DAip.field2to1, 1));
-		daips.collection.createIndex(new BasicDBObject(DAip.DAIPDEPTHS, 1));
-    }
-    public String toString() {
-    	StringBuilder builder = new StringBuilder();
-    	// get a list of the collections in this database and print them out
-    	Set<String> collectionNames = db.getCollectionNames();
-		for (String s : collectionNames) {
-			builder.append(s);
-			builder.append('\n');
-		}
-		for (VitamCollection coll : collections) {
-			List<DBObject> list = coll.collection.getIndexInfo();
-			for (DBObject dbObject : list) {
-				builder.append(coll.coll.name);
-				builder.append(' ');
-				builder.append(dbObject);
-				builder.append('\n');
-			}
-		}
-		return builder.toString();
-    }
 
-    public long getDaipSize() {
-    	return daips.collection.count();
-    }
-    public long getPaipSize() {
-    	return paips.collection.count();
-    }
     public void flushOnDisk() {
         dbadmin.command(new BasicDBObject("fsync", 1).append("async", true));
     }
@@ -315,24 +268,6 @@ public class MongoDbAccess {
         vt.putAll(obj);
         vt.getAfterLoad();
         return vt;
-    }
-
-    /**
-     * 
-     * @param collection
-     * @param field
-     * @param ref
-     * @return the VitamType casted object
-     */
-    public final VitamType fineOne(VitamCollections col, String field, String ref) {
-        BasicDBObject obj = new BasicDBObject(field, ref);
-        VitamType vitobj = (VitamType) col.collection.findOne(obj);
-        if (vitobj == null) {
-            return null;
-        } else {
-            vitobj.getAfterLoad();
-        }
-        return vitobj;
     }
 
     /**
@@ -401,15 +336,7 @@ public class MongoDbAccess {
      * @param model
      */
     public final void addEsEntryIndex(Map<String, String> indexes, String model) {
-        addEsEntryIndex(GlobalDatas.BLOCKING, indexes, model);
-    }
-    /**
-     * Add indexes to ES model
-     * @param indexes
-     * @param model
-     */
-    public final void addEsEntryIndex(boolean blocking, Map<String, String> indexes, String model) {
-        if (blocking) {
+        if (GlobalDatas.BLOCKING) {
             es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
         } else {
             es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
@@ -425,22 +352,22 @@ public class MongoDbAccess {
     public final DBObject addLink(VitamType obj1, VitamLinks relation, VitamType obj2) {
         switch (relation.type) {
             case AsymLink1:
-                MongoDbAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
+                CouchbaseAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
                 break;
             case SymLink11:
-                MongoDbAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
-                return MongoDbAccess.addAsymmetricLinkUpdate(obj2, relation.field2to1, obj1);
+                CouchbaseAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
+                return CouchbaseAccess.addAsymmetricLinkUpdate(obj2, relation.field2to1, obj1);
             case AsymLinkN:
-                MongoDbAccess.addAsymmetricLinkset(obj1, relation.field1to2, obj2, false);
+                CouchbaseAccess.addAsymmetricLinkset(obj1, relation.field1to2, obj2, false);
                 break;
             case SymLink1N:
-                return MongoDbAccess.addSymmetricLink(obj1, relation.field1to2, 
+                return CouchbaseAccess.addSymmetricLink(obj1, relation.field1to2, 
                         obj2, relation.field2to1);
             case SymLinkN1:
-                return MongoDbAccess.addReverseSymmetricLink(obj1, relation.field1to2, 
+                return CouchbaseAccess.addReverseSymmetricLink(obj1, relation.field1to2, 
                         obj2, relation.field2to1);
             case SymLinkNN:
-                return MongoDbAccess.addSymmetricLinkset(obj1, relation.field1to2, 
+                return CouchbaseAccess.addSymmetricLinkset(obj1, relation.field1to2, 
                         obj2, relation.field2to1);
             case SymLink_N_N:
                 return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);

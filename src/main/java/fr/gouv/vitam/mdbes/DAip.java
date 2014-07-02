@@ -23,6 +23,7 @@ package fr.gouv.vitam.mdbes;
 import static fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections.Cdaip;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +37,6 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
 import fr.gouv.vitam.mdbes.MongoDbAccess.VitamLinks;
-import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
@@ -73,6 +73,10 @@ public class DAip extends VitamType {
         // empty 
     }
 
+    public void update(DBObject update) {
+    	Cdaip.getCollection().update(new BasicDBObject(ID, getId()), update);
+    }
+    
     @Override
     protected boolean updated(MongoDbAccess dbvitam) {
         DAip vt = (DAip) dbvitam.daips.collection.findOne(new BasicDBObject(ID, get(ID)));
@@ -182,8 +186,8 @@ public class DAip extends VitamType {
         return false;
     }
 
-    public void saveToFile(MongoDbAccess dbvitam, int level) {
-        if (level < GlobalDatas.minleveltofile) {
+    public void saveToFile(MongoDbAccess dbvitam, OutputStream outputStream, int level) {
+        if (level < MainIngestFile.minleveltofile) {
             save(dbvitam);
             return;
         }
@@ -197,14 +201,14 @@ public class DAip extends VitamType {
             }
         }
         this.append(NBCHILD, nb);
-        /*String toprint = this.toStringDirect()+"\n";
+        String toprint = this.toStringDirect()+"\n";
         // XXX FIXME
         try {
-            MainIngestFile.bufferedOutputStream.write(toprint.getBytes());
+            outputStream.write(toprint.getBytes());
         } catch (IOException e) {
             LOGGER.error("Cannot save to File", e);
         }
-        toprint = null;*/
+        toprint = null;
         LOGGER.debug("{}", this);
     }
 
@@ -464,33 +468,19 @@ public class DAip extends VitamType {
     /**
      * Should be called only once saved (last time), but for the moment let the object as it is, next should remove not indexable entries
      * @param dbvitam
+     * @param indexes
+     * @param model
+     * @return the number of DAip inserted in ES
      */
-    public void addEsIndex(MongoDbAccess dbvitam, Map<String, String> indexes, String model) {
+    public int addEsIndex(MongoDbAccess dbvitam, Map<String, String> indexes, String model) {
         BasicDBObject maip = (BasicDBObject) this.copy();
         if (! maip.containsField(NBCHILD)) {
             maip.append(NBCHILD, this.nb);
         }
-        maip.removeField(VitamLinks.DAip2DAip.field1to2);
-        maip.removeField(VitamLinks.DAip2DAip.field2to1);
-        maip.removeField(VitamLinks.Domain2DAip.field2to1);
-        maip.removeField(VitamLinks.DAip2Dua.field1to2);
-        maip.removeField(VitamLinks.DAip2PAip.field1to2);
-        maip.removeField(ID);
-        // DOMDEPTH already ok but duplicate it
-        @SuppressWarnings("unchecked")
-        HashMap<String, Integer> map = (HashMap<String, Integer>) maip.get(DAIPDEPTHS);
-        List<String> list = new ArrayList<>();
-        list.addAll(map.keySet());
-        maip.append(DAIPPARENTS, list);
-        LOGGER.debug("{}", this);
-        indexes.put((String) this.get(ID), maip.toString());
-        if (indexes.size() > GlobalDatas.LIMIT_ES_NEW_INDEX) {
-            dbvitam.addEsEntryIndex(indexes, model);
-            //dbvitam.flushOnDisk();
-            indexes.clear();
-        }
+    	int nb = ElasticSearchAccess.addEsIndex(dbvitam, model, indexes, maip);
         maip.clear();
         maip = null;
+        return nb;
     }
     
     @Override

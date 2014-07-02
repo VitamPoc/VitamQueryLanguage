@@ -18,17 +18,15 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cdbes;
 
 
 import org.bson.BSONObject;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-import com.mongodb.util.JSON;
+import com.couchbase.client.java.document.Document;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonObject;
 
-import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollection;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
@@ -40,16 +38,18 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  *
  */
 @SuppressWarnings("serial")
-public abstract class VitamType extends BasicDBObject {
+public abstract class VitamType {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamType.class);
     
     public static final String ID = "_id";
-
+    JsonDocument document = null;
+    String id = null;
+    JsonObject values = JsonObject.empty();
+    
     public VitamType() {
     }
 
     public final void setRoot() throws InvalidUuidOperationException {
-        String id = (String) this.get(ID);
         if (id == null) {
             id = new UUID().toString();
         }
@@ -57,20 +57,21 @@ public abstract class VitamType extends BasicDBObject {
     }
     
     public final void setNewId() {
-        this.append(ID, new UUID().toString());
+    	id = new UUID().toString();
     }
     public final void setId(String id) {
-        this.append(ID, id);
+    	this.id = id;
     }
     public String getId() {
-        return this.getString(ID);
+        return id;
     }
     /**
      * Load from a JSON String
      * @param json
      */
     public final void load(String json) {
-        this.putAll((BSONObject) JSON.parse(json));
+    	
+        this.values.putAll((BSONObject) JSON.parse(json));
         this.getAfterLoad();
     }
     

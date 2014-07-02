@@ -18,16 +18,12 @@
    You should have received a copy of the GNU General Public License
    along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cdbes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bson.BSONObject;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -41,14 +37,11 @@ import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermsFilterBuilder;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-
-import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.mdbes.MongoDbAccess.VitamLinks;
 import fr.gouv.vitam.utils.GlobalDatas;
@@ -133,12 +126,10 @@ public class ElasticSearchAccess {
                         DAip.DAIPPARENTS+" : { type : \"string\", index : \"not_analyzed\" }, "+
                         // NBCHILD as the number of immediate child
                         DAip.NBCHILD+" : { type : \"long\" },"+
-                        // Immediate parents will be included but not tokenized [ UUID1, UUID2 ]
-                        VitamLinks.DAip2DAip.field2to1+" : { type : \"string\", index : \"not_analyzed\" }, "+
                         //"_id : { type : \"object\", enabled : false }, " +
                         // All following items will neither be integrated neither analyzed
                         VitamLinks.DAip2DAip.field1to2+" : { type : \"object\", enabled : false }, " +
-                        //VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
+                        VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
                         VitamLinks.Domain2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
                         VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
                         VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
@@ -184,47 +175,7 @@ public class ElasticSearchAccess {
         return !bulkResponse.hasFailures();
         // Should process failures by iterating through each bulk response item
     }
-    /**
-     * Should be called only once saved (last time), but for the moment let the object as it is, next should remove not indexable entries
-     * 
-     * @param dbvitam
-     * @param model
-     * @param indexes
-     * @param bson
-     * @return the number of DAip incorporated (0 if none)
-     */
-	public static final int addEsIndex(MongoDbAccess dbvitam, String model, Map<String, String> indexes, BSONObject bson) {
-		BasicDBObject maip = new BasicDBObject();
-		maip.putAll(bson);
-		maip.removeField(VitamLinks.DAip2DAip.field1to2);
-		//Keep it maip.removeField(VitamLinks.DAip2DAip.field2to1);
-		maip.removeField(VitamLinks.Domain2DAip.field2to1);
-		maip.removeField(VitamLinks.DAip2Dua.field1to2);
-		maip.removeField(VitamLinks.DAip2PAip.field1to2);
-		String id = maip.getObjectId(VitamType.ID).toString();
-		maip.removeField(VitamType.ID);
-		//maip.removeField(ParserIngest.REFID);
-		// DOMDEPTH already ok but duplicate it
-		@SuppressWarnings("unchecked")
-		HashMap<String, Integer> map = (HashMap<String, Integer>) maip.get(DAip.DAIPDEPTHS);
-		List<String> list = new ArrayList<>();
-		list.addAll(map.keySet());
-		maip.append(DAip.DAIPPARENTS, list);
-		//System.err.println(maip);
-		//System.err.println(this);
-		indexes.put(id, maip.toString());
-		int nb = 0;
-		if (indexes.size() > GlobalDatas.LIMIT_ES_NEW_INDEX) {
-			nb = indexes.size();
-			dbvitam.addEsEntryIndex(indexes, model);
-			//dbvitam.flushOnDisk();
-			indexes.clear();
-			System.out.print(".");
-		}
-		maip.clear();
-		maip = null;
-		return nb;
-	}
+    
 
     /**
      * @param squery
@@ -261,12 +212,7 @@ public class ElasticSearchAccess {
             /*
              * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
              */
-        	QueryBuilder domdepths = null;
-        	if (subdepth == 1) {
-        		domdepths = QueryBuilders.termsQuery(VitamLinks.DAip2DAip.field2to1, currentNodes);
-        	} else {
-        		domdepths = QueryBuilders.termsQuery(DAip.DAIPPARENTS, currentNodes);
-        	}
+            QueryBuilder domdepths = QueryBuilders.termsQuery(DAip.DAIPPARENTS, currentNodes);
             /*QueryBuilder domdepths = null;
             if (subdepth == 1) {
                 domdepths = QueryBuilders.multiMatchQuery(1, currentNodes);
@@ -302,17 +248,11 @@ public class ElasticSearchAccess {
          * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
          */
         FilterBuilder domdepths = null;
-        TermsFilterBuilder filter = null;
-        if (subdepth == 1) {
-        	filter = FilterBuilders.termsFilter(VitamLinks.DAip2DAip.field2to1, currentNodes);
-        } else {
-        	filter = FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes);
-        }
         if (filterCond != null) {
             domdepths = FilterBuilders.boolFilter()
-                    .must(filter).must(filterCond);
+                    .must(FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes)).must(filterCond);
         } else {
-            domdepths = filter;
+            domdepths = FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes);
         }
         /*if (currentNodes.length > 1) {
             BoolFilterBuilder boolQuery = FilterBuilders.boolFilter();
