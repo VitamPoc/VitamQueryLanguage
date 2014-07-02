@@ -187,10 +187,6 @@ public class DAip extends VitamType {
     }
 
     public void saveToFile(MongoDbAccess dbvitam, OutputStream outputStream, int level) {
-        if (level < MainIngestFile.minleveltofile) {
-            save(dbvitam);
-            return;
-        }
         putBeforeSave();
         dbvitam.updateLinksToFile(this, VitamLinks.DAip2DAip, false);
         dbvitam.updateLinksToFile(this, VitamLinks.Domain2DAip, false);
