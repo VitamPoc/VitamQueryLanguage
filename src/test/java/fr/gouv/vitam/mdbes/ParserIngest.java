@@ -677,8 +677,7 @@ public class ParserIngest {
 					if (father == null) {
 						listmetaaips.add(metaaip2);
 					}
-					int nbEs = metaaip2.addEsIndex(dbvitam, esIndex, model);
-					//MainIngestFile.cptMaip.addAndGet(nbEs);
+					metaaip2.addEsIndex(dbvitam, esIndex, model);
 			        if (level < MainIngestFile.minleveltofile) {
 			            metaaip2.save(dbvitam);
 			        } else {
@@ -755,8 +754,7 @@ public class ParserIngest {
 				DAIP_BELOW_MINLEVEL.put(maip.getString(REFID), maip);
 			}
 			//System.out.println("M: "+maip.toString());
-			int nbEs = maip.addEsIndex(dbvitam, esIndex, model);
-			//MainIngestFile.cptMaip.addAndGet(nbEs);
+			maip.addEsIndex(dbvitam, esIndex, model);
 			if (metaCreated && father == null) {
 				listmetaaips.add(maip);
 			} else if (father != null) {

@@ -40,72 +40,229 @@ public final class ActionHelper {
     private ActionHelper() {
         // empty
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return an AddAction
+     * @throws InvalidCreateOperationException
+     */
     public static final AddAction add(String variableName, String ...value) throws InvalidCreateOperationException {
         return new AddAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return an AddAction
+     * @throws InvalidCreateOperationException
+     */
     public static final AddAction add(String variableName, boolean ...value) throws InvalidCreateOperationException {
         return new AddAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return an AddAction
+     * @throws InvalidCreateOperationException
+     */
     public static final AddAction add(String variableName, long ...value) throws InvalidCreateOperationException {
         return new AddAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return an AddAction
+     * @throws InvalidCreateOperationException
+     */
     public static final AddAction add(String variableName, double ...value) throws InvalidCreateOperationException {
         return new AddAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return an IncAction
+     * @throws InvalidCreateOperationException
+     */
     public static final IncAction inc(String variableName, long value) throws InvalidCreateOperationException {
         return new IncAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @return an IncAction using default value 1
+     * @throws InvalidCreateOperationException
+     */
     public static final IncAction inc(String variableName) throws InvalidCreateOperationException {
         return new IncAction(variableName);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PopAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PopAction pop(String variableName, String ...value) throws InvalidCreateOperationException {
         return new PopAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PopAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PopAction pop(String variableName, boolean ...value) throws InvalidCreateOperationException {
         return new PopAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PopAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PopAction pop(String variableName, long ...value) throws InvalidCreateOperationException {
         return new PopAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PopAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PopAction pop(String variableName, double ...value) throws InvalidCreateOperationException {
         return new PopAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PullAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PullAction pull(String variableName, long value) throws InvalidCreateOperationException {
         return new PullAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @return a PullAction using default value 1
+     * @throws InvalidCreateOperationException
+     */
     public static final PullAction pull(String variableName) throws InvalidCreateOperationException {
         return new PullAction(variableName);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PushAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PushAction push(String variableName, String ...value) throws InvalidCreateOperationException {
         return new PushAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PushAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PushAction push(String variableName, boolean ...value) throws InvalidCreateOperationException {
         return new PushAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PushAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PushAction push(String variableName, long ...value) throws InvalidCreateOperationException {
         return new PushAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a PushAction
+     * @throws InvalidCreateOperationException
+     */
     public static final PushAction push(String variableName, double ...value) throws InvalidCreateOperationException {
         return new PushAction(variableName, value);
     }
-    public static final RenameAction rename(String variableName, String value) throws InvalidCreateOperationException {
-        return new RenameAction(variableName, value);
+    /**
+     * 
+     * @param variableName
+     * @param newName
+     * @return a RenameAction
+     * @throws InvalidCreateOperationException
+     */
+    public static final RenameAction rename(String variableName, String newName) throws InvalidCreateOperationException {
+        return new RenameAction(variableName, newName);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a SetAction
+     * @throws InvalidCreateOperationException
+     */
     public static final SetAction set(String variableName, String value) throws InvalidCreateOperationException {
         return new SetAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a SetAction
+     * @throws InvalidCreateOperationException
+     */
     public static final SetAction set(String variableName, boolean value) throws InvalidCreateOperationException {
         return new SetAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a SetAction
+     * @throws InvalidCreateOperationException
+     */
     public static final SetAction set(String variableName, long value) throws InvalidCreateOperationException {
         return new SetAction(variableName, value);
     }
+    /**
+     * 
+     * @param variableName
+     * @param value
+     * @return a SetAction
+     * @throws InvalidCreateOperationException
+     */
     public static final SetAction set(String variableName, double value) throws InvalidCreateOperationException {
         return new SetAction(variableName, value);
     }
+    /**
+     * 
+     * @param map map of variableName for values
+     * @return a SectAction
+     * @throws InvalidCreateOperationException
+     */
     public static final SetAction set(Map<String, ?> map) throws InvalidCreateOperationException {
         return new SetAction(map);
     }
+    /**
+     * 
+     * @param variableName
+     * @return an UnsetAction
+     * @throws InvalidCreateOperationException
+     */
     public static final UnsetAction unset(String ...variableName) throws InvalidCreateOperationException {
         return new UnsetAction(variableName);
     }

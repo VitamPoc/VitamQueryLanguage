@@ -43,6 +43,7 @@ import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
+ * MongoDb Access base class
  * @author "Frederic Bregier"
  *
  */
@@ -107,10 +108,10 @@ public class MongoDbAccess {
             this.name = clasz.getSimpleName();
             this.rank = ordinal();
         }
-        public String getName() {
+        protected String getName() {
         	return name;
         }
-        public DBCollection getCollection() {
+        protected DBCollection getCollection() {
         	return collection;
         }
     }
@@ -131,7 +132,7 @@ public class MongoDbAccess {
             }
             this.coll.collection = this.collection;
         }
-        public DBCollection getCollection() {
+        protected DBCollection getCollection() {
         	return collection;
         }
     }
@@ -199,7 +200,15 @@ public class MongoDbAccess {
         }
         
     }
-    
+    /**
+     * 
+     * @param mongoClient the current valid MongoClient to use as connector to the database
+     * @param dbname the MongoDB database name
+     * @param esname the ElasticSearch name
+     * @param unicast the unicast addresses for ElasticSearch
+     * @param recreate shall we recreate the index
+     * @throws InvalidUuidOperationException
+     */
     public MongoDbAccess(MongoClient mongoClient, String dbname, String esname, String unicast, boolean recreate) throws InvalidUuidOperationException {
         db = mongoClient.getDB(dbname);
         dbadmin = mongoClient.getDB("admin");
@@ -223,7 +232,10 @@ public class MongoDbAccess {
         LOGGER.info("ES on cluster name: "+esname+":"+unicast);
         es = new ElasticSearchAccess(esname, unicast, GlobalDatas.localNetworkAddress);
     }
-    
+    /**
+     * Drop all data and index from MongoDB and ElasticSearch
+     * @param model
+     */
     public final void reset(String model) {
 		for (int i = 0; i < collections.length; i++) {
 			collections[i].collection.drop();
@@ -232,14 +244,22 @@ public class MongoDbAccess {
 		es.addIndex(GlobalDatas.INDEXNAME, model);
 		ensureIndex();
     }
-    
+    /**
+     * Update the Index for a new model
+     * @param model
+     */
     public void updateEsIndex(String model) {
 		es.addIndex(GlobalDatas.INDEXNAME, model);
     }
+    /**
+     * Close database access (in particular for ElasticSearch)
+     */
     public final void close() {
         es.close();
     }
-    
+    /**
+     * Ensure that all MongoDB database schema are indexed
+     */
     public void ensureIndex() {
         for (int i = 0; i < collections.length; i++) {
             collections[i].collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
@@ -251,7 +271,9 @@ public class MongoDbAccess {
         DuaRef.addIndexes(this);
         ResultCached.addIndexes(this);
     }
-    
+    /**
+     * Remove temporarily the MongoDB Index (import optimization?)
+     */
     public void removeIndexBeforeImport() {
     	try {
 			daips.collection.dropIndex(new BasicDBObject(VitamLinks.DAip2DAip.field2to1, 1));
@@ -261,6 +283,9 @@ public class MongoDbAccess {
 			LOGGER.error("Error while removing indexes before import", e);
 		}
     }
+    /**
+     * Reset MongoDB Index (import optimization?)
+     */
     public void resetIndexAfterImport() {
 		LOGGER.info("Rebuild indexes");
 		daips.collection.createIndex(new BasicDBObject(VitamLinks.DAip2DAip.field2to1, 1));
@@ -286,17 +311,32 @@ public class MongoDbAccess {
 		}
 		return builder.toString();
     }
-
+    /**
+     * 
+     * @return the current number of DAip
+     */
     public long getDaipSize() {
     	return daips.collection.count();
     }
+    /**
+     * 
+     * @return the current number of PAip
+     */
     public long getPaipSize() {
     	return paips.collection.count();
     }
+    /**
+     * Force flush on disk (MongoDB): should not be used
+     */
     public void flushOnDisk() {
         dbadmin.command(new BasicDBObject("fsync", 1).append("async", true));
     }
-    
+    /**
+     * 
+     * @param collection
+     * @param ref
+     * @return a VitamType generic object from ID ref value
+     */
     public final VitamType loadFromObjectId(VitamCollection collection, String ref) {
         BasicDBObject obj = new BasicDBObject(VitamType.ID, ref);
         return (VitamType) collection.collection.findOne(obj);
@@ -449,7 +489,14 @@ public class MongoDbAccess {
         }
         return null;
     }
-    
+    /**
+     * Update the link
+     * @param obj1
+     * @param vtReloaded
+     * @param relation
+     * @param src
+     * @return the update part
+     */
     public final BasicDBObject updateLink(VitamType obj1, VitamType vtReloaded, VitamLinks relation, boolean src) {
         //DBCollection coll = (src ? relation.col1.collection : relation.col2.collection);
         String fieldname = (src ? relation.field1to2 : relation.field2to1);
@@ -478,7 +525,14 @@ public class MongoDbAccess {
         }
         return null;
     }
-
+    /**
+     * Update the links
+     * @param obj1
+     * @param vtReloaded
+     * @param relation
+     * @param src
+     * @return the update part
+     */
     public final BasicDBObject updateLinks(VitamType obj1, VitamType vtReloaded, VitamLinks relation, boolean src) {
         //DBCollection coll = (src ? relation.col1.collection : relation.col2.collection);
         String fieldname = (src ? relation.field1to2 : relation.field2to1);
@@ -586,7 +640,14 @@ public class MongoDbAccess {
         obj1.put(obj1ToObj2, refChild);
         return new BasicDBObject("$set", new BasicDBObject(obj1ToObj2, refChild));
     }
-
+    /**
+     * Add a one way relation (n) from Obj1 to Obj2, with no Save
+     * @param obj1
+     * @param obj1ToObj2
+     * @param obj2
+     * @param toUpdate
+     * @return true if the link is updated
+     */
     public final static boolean addAsymmetricLinksetNoSave(VitamType obj1, String obj1ToObj2, VitamType obj2, boolean toUpdate) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);

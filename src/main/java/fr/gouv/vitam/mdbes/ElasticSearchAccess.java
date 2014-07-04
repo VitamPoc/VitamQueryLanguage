@@ -56,6 +56,7 @@ import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
+ * ElasticSearch model with MongoDB main database
  * @author "Frederic Bregier"
  *
  */
@@ -70,14 +71,16 @@ public class ElasticSearchAccess {
         });
     }
     
-    public static final String TODEL = "_td";
-    public static final String PREVIDS = "#PREVIDS#";
-    public static final char SEPARATOR = '#';
-    
     static Node node;
     Node localNode;
     Client client;
-    
+
+    /**
+     * Create an ElasticSearch access
+     * @param clusterName the name of the Cluster
+     * @param unicast the unicast list of addresses
+     * @param networkAddress the local network address (if any)
+     */
     public ElasticSearchAccess(String clusterName, String unicast, String networkAddress) {
     	Settings settings = null;
     	if (networkAddress != null) {
@@ -104,14 +107,20 @@ public class ElasticSearchAccess {
         }
         client = localNode.client();
     }
-    
+    /**
+     * Close the ElasticSearch connection
+     */
     public void close() {
         client.close();
         if (GlobalDatas.useNewNode) {
             localNode.close();
         }
     }
-    
+    /**
+     * Delete the index
+     * @param idxName
+     * @return True if ok
+     */
     public final boolean deleteIndex(String idxName) {
         try {
             if (client.admin().indices().prepareExists(idxName).execute().actionGet().isExists()) {
@@ -125,7 +134,12 @@ public class ElasticSearchAccess {
             return true;
         }
     }
-    
+    /**
+     * Add a type to an index
+     * @param indexName
+     * @param type
+     * @return True if ok
+     */
     public final boolean addIndex(String indexName, String type) {
 		LOGGER.debug("addIndex");
         if (! client.admin().indices().prepareExists(indexName).execute().actionGet().isExists()) {
@@ -170,14 +184,27 @@ public class ElasticSearchAccess {
         //System.err.println("not needed add Index");
 //        return true;
     }
-    
+    /**
+     * Add an entry in the ElasticSearch index
+     * @param indexName
+     * @param type
+     * @param id
+     * @param json
+     * @return True if ok
+     */
     public final boolean addEntryIndex(String indexName, String type, String id, String json) {
         client.prepareIndex(indexName, type, id)
                 .setSource(json)
                 .execute();
-                return true;
+        return true;
     }
-    
+    /**
+     * Add a set of entries in the ElasticSearch index
+     * @param indexName
+     * @param type
+     * @param mapIdJson
+     * @return True if ok
+     */
     public final boolean addEntryIndexes(String indexName, String type, Map<String, String> mapIdJson) {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -191,7 +218,13 @@ public class ElasticSearchAccess {
         return true; //!bulkResponse.hasFailures();
         // Should process failures by iterating through each bulk response item
     }
-    
+    /**
+     * Add a set of entries in the ElasticSearch index in blocking mode
+     * @param indexName
+     * @param type
+     * @param mapIdJson
+     * @return True if ok
+     */
     public final boolean addEntryIndexesBlocking(String indexName, String type, Map<String, String> mapIdJson) {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 

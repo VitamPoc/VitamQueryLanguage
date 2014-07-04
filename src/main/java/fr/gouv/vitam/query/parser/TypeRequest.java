@@ -23,8 +23,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
-
+/**
+ * A Type of Request class
+ * @author "Frederic Bregier"
+ *
+ */
 public class TypeRequest {
+	/**
+	 * The type of Request
+	 */
     public REQUEST type;
     /**
      * Relative depth
@@ -34,14 +41,35 @@ public class TypeRequest {
      * Exact depth
      */
     public int exactdepth = 0;
+    /**
+     * Is this request a Depth request (relative or absolute)
+     */
     public boolean isDepth = false;
+    /**
+     * Is this request an ElasticSearch only request
+     */
     public boolean isOnlyES;
+    /**
+     * In case of Path request, the list of IDs
+     */
     public List<String> refId;
+    /**
+     * The Couchbase related request
+     */
     public String requestCb;
+    /**
+     * Request Model: MongoDB or ElasticSearch
+     */
     public ObjectNode []requestModel;
-    // shall be used only to filter on "parent" relation and some others
+    /**
+     * Filter model: shall be used only to filter on "parent" relation and some others
+     */
     public ObjectNode []filterModel;
 
+    /**
+     * 
+     * @param nbModel the number of model supported
+     */
     public TypeRequest(int nbModel) {
         isOnlyES = false;
         requestModel = new ObjectNode[nbModel];

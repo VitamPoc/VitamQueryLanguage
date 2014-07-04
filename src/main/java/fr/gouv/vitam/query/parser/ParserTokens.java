@@ -35,7 +35,26 @@ public class ParserTokens {
      * { expression, $depth : exactdepth, $relativedepth : /- depth }
      */
     public static enum GLOBAL {
-        query, filter, projection, action, data;
+    	/**
+    	 * Query part (where condition)
+    	 */
+        query,
+        /**
+         * Filter part (limit, order by, ... for Query, or isMulti for others)
+         */
+        filter,
+        /**
+         * Projection part (returned fields for Query)
+         */
+        projection,
+        /**
+         * Action part (in case of update)
+         */
+        action,
+        /**
+         * Data part (in case of insert)
+         */
+        data;
         
         public final String exactToken() {
             return "$"+this.name();
@@ -268,8 +287,39 @@ public class ParserTokens {
      * Arguments to REQUEST commands
      *
      */
-    public static enum REQUESTARGS { 
-        type, coordinates, maxDistance, like, fields, max_expansions, depth, relativedepth;
+    public static enum REQUESTARGS {
+    	/**
+    	 * Used in geometric requests
+    	 */
+        type,
+        /**
+    	 * Used in geometric requests
+         */
+        coordinates,
+        /**
+    	 * Used in geometric requests
+         */
+        maxDistance,
+        /**
+         * Used in MLT requests
+         */
+        like,
+        /**
+         * Used in MLT requests
+         */
+        fields,
+        /**
+         * Used in Match request
+         */
+        max_expansions,
+        /**
+         * Used in Set Depth part of each query
+         */
+        depth,
+        /**
+         * Used in Set Depth of each query
+         */
+        relativedepth;
         
         public final String exactToken() {
             return "$"+this.name();
@@ -309,7 +359,18 @@ public class ParserTokens {
      * @all:1 means all, while @all:0 means none
      */
     public static enum PROJECTIONARGS {
-        nbleaves, dua, all;
+    	/**
+    	 * Number of leaves from the result
+    	 */
+        nbleaves,
+        /**
+         * All Dua for the dresult
+         */
+        dua,
+        /**
+         * All fields for the result
+         */
+        all;
         
         public final String exactToken() {
             return "@"+this.name();
@@ -321,7 +382,14 @@ public class ParserTokens {
      *
      */
     public static enum FILTERARGS {
-        cache, nocache;
+    	/**
+    	 * Cache could be used for this request
+    	 */
+        cache,
+        /**
+         * Cache should not be used for this request
+         */
+        nocache;
         
         public final String exactToken() {
             return this.name();
@@ -376,6 +444,9 @@ public class ParserTokens {
         }
     }
     public static enum UPDATEARGS {
+    	/**
+    	 * Update argument
+    	 */
         each;
         public final String exactToken() {
             return "$"+this.name();

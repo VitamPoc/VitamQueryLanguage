@@ -36,6 +36,7 @@ import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
+ * The default Vitam Type object to be stored in the database (MongoDb/ElasticSearch mode)
  * @author "Frederic Bregier"
  *
  */
@@ -44,10 +45,15 @@ public abstract class VitamType extends BasicDBObject {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamType.class);
     
     public static final String ID = "_id";
-
+    /**
+     * Empty constructor
+     */
     public VitamType() {
     }
-
+    /**
+     * This (Domain) is a root
+     * @throws InvalidUuidOperationException
+     */
     public final void setRoot() throws InvalidUuidOperationException {
         String id = (String) this.get(ID);
         if (id == null) {
@@ -55,13 +61,23 @@ public abstract class VitamType extends BasicDBObject {
         }
         GlobalDatas.ROOTS.add(id);
     }
-    
+    /**
+     * Create a new ID
+     */
     public final void setNewId() {
         this.append(ID, new UUID().toString());
     }
+    /**
+     * Set a new ID
+     * @param id
+     */
     public final void setId(String id) {
         this.append(ID, id);
     }
+    /**
+     * 
+     * @return the ID
+     */
     public String getId() {
         return this.getString(ID);
     }
@@ -137,13 +153,20 @@ public abstract class VitamType extends BasicDBObject {
             throw e;
         }
     }
-    
+    /**
+     * 
+     * @return the bypass toString
+     */
     public String toStringDirect() {
         return super.toString();
     }
     public String toString() {
         return this.getClass().getSimpleName()+": "+super.toString();
     }
+    /**
+     * 
+     * @return the toString for Debug mode
+     */
     public String toStringDebug() {
         return this.getClass().getSimpleName()+": "+this.get(ID);
     }
