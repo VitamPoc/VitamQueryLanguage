@@ -1,0 +1,49 @@
+Comme promis, voici la structure des télégrammes qui est utilisée dans les correspondances diplomatiques :
+  - Tg_Schuman.xsd est utilisé pour valider le format XML d'export
+  - TD_test.xml et TD_test_2.xml sont 2 exemples fournis par notre service Exploitation.
+ 
+ 
+Détail des champs :
+ 
+3 types de télégrammes :
+  - TD : Télégramme Diplomatie
+  - TG : Télégramme de Gestion
+  - TS : Télégramme de Service
+
+3 types "d'urgence" :
+  - Routine
+  - Urgent
+  - Immédiat
+
+3 mentions de protection :
+  - Public
+  - Limité
+  - Restreint
+ 
+3 sortes de distributions pour "protection=Restreint" :
+  - Services
+  - Directeurs
+  - Message
+Pour les autres protection, distribution=<vide>
+
+
+16 thématiques : 
+- Affaires consulaires 
+- Affaires européennes 
+- Culture et éducation 
+- Droit et Justice 
+- Economie Finances 
+- Environnement – Développement durable 
+- Francophonie 
+- MAEE Gestion financière 
+- MAEE Orientations 
+- MAEE Personnel 
+- MAEE Support 
+- Politique internationale 
+- Sciences, recherche et techniques 
+- Situation politique des Etats 
+- Société 
+- Sécurité – Défense
+ 
+Pour les champs "service_emetteur" et "destinataire" (AD, CQ, RT), on peut prendre la liste des postes en PJ.
+ 

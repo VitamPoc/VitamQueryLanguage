@@ -1,0 +1,61 @@
+
+Valeurs fixes: valeur
+=====================
+	valeurSimple = "chaine" | nombre
+		ou "chaine" = une chaine de caractere fixe
+		ou nombre = un nombre fixe
+		
+	valeur = valeurSimple | listeValeurs
+		ou listeValeurs = [ valeurSimple, ... ]
+
+L'expression des champs: champs
+===============================
+	nomfield = "chaine"
+	champ = nomfield : valeur | typeSimple | typeComplexe
+		=> associe a un nom de champ (chaine) une valeur ou un type simple ou un type complexe
+	
+	champs = champ | champ, champs
+		La notation "champ, champ, ..." signifie serie de champs (exemple : { champ1 : val1, champ2 : val2, champ3 : val3 } )
+
+L'expression des requetes : requests
+====================================
+	requests = [ subrequests ]
+	subrequests = subrequest1 | subrequest1, subrequests2  (mais avec une seule fois $domain autorise)
+	subrequests2 = subrequest | subrequest, subrequests2  (mais avec une seule fois $domain autorise)
+	subrequest1 = { $model : model, $domain : { request } } | { $model : model, $maip : { request } }
+	subrequest = { $maip : { request } }
+		les requetes sur $domain ne peuvent concerner que le champ "name", $model ne doit apparaître qu'une seule fois, au plus haut
+
+L'expression d'une requete : request
+====================================
+	request = reqdepth | reqterm | reqnested | reqin | reqbool | reqexist | reqmissing | reqrange | 
+			reqmatch | reqflt | reqmlt | reqfield | reqwildcard | reqlimit
+	
+	(*)reqdepth = $depth : { depth: nombre, request }
+	reqterm = $term : { nomfield : valeurSimple }
+	reqnested = $nested : { path : nomfield, request }  ou request exprimera les champs avec nomfield.X
+	reqin = $in : { nomfield : valeurSimple }
+	reqbool = bool : [ subrequests ]
+		bool = $and | $or | $not
+	reqexist = $exists : nomfield 
+	reqmissing = $missing : nomfield
+	reqrange = $range : { nomfield : { rangeconditions } }
+		rangeconditions = rangecondition | rangecondition, rangeconditions
+		rangecondition = from|to|gt|gte|lt|lte : valeurSimple | include_lower : bool | include_upper : bool
+			(defaut : include_lower | include_upper = true)
+	(*)reqmatch = ($match | $match_phrase ) : { nomfield : valeurSimple } | 
+		$match_phrase_prefix : { nomfield : valeurSimple, max_expansions : nombre } | 
+		$multi_match : { query : valeurSimple, fields : [ nomfield, ... ] }
+	(*)reqflt = $flt : { fields : [ nomfield, ... ], like_text : valeurSimple } | $flt_field : { nomfield : { like_text : valeurSimple } }
+	(*)reqmlt = $mlt : { fields : [ nomfield, ... ], like_text : valeurSimple [, stop_words : listeValeurs] } | 
+		$mlt_field : { nomfield : { like_text : valeurSimple [, stop_words : listeValeurs] } }
+	(*)reqfield = $field : { nomfield : valeurSimple }
+		ou valeurSimple peut contenir : +/- (obligatoire/sauf) */? (serie de caracteres / 1 caractere) AND/OR (surtout le OR car +=AND)
+		NB: si */? => analyze_wildcard : true
+	(*)reqwildcard = $wildcard : { nomfield : valeurSimple }
+		ou valeurSimple peut contenir : */? (serie de caracteres / 1 caractere)
+	(+)reqregex = $regexp : { field : { $regex : exprReg, $options : o } }
+		NB : garde cette possibilite ?
+	reqlimit = $limit : number
+	
+(*) ES only, (+) MD only

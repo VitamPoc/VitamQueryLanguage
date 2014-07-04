@@ -91,6 +91,6 @@ public class SAip extends VitamType {
         return (SAip) dbvitam.findOne(Csaip, refid);
     }
     public static void addIndexes(MongoDbAccess dbvitam) {
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2SAip.field2to1, 1));
+        dbvitam.saips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2SAip.field2to1, 1));
     }
 }

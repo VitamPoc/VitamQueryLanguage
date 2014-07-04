@@ -78,11 +78,20 @@ public class ElasticSearchAccess {
     Node localNode;
     Client client;
     
-    public ElasticSearchAccess(String clusterName, String unicast) {
-        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
-                .put("discovery.zen.ping.multicast.enabled", false)
-                .put("discovery.zen.ping.unicast.hosts", unicast)
-                .build();
+    public ElasticSearchAccess(String clusterName, String unicast, String networkAddress) {
+    	Settings settings = null;
+    	if (networkAddress != null) {
+            settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
+                    .put("discovery.zen.ping.multicast.enabled", false)
+                    .put("discovery.zen.ping.unicast.hosts", unicast)
+                    .put("network.host", networkAddress)
+                    .build();
+    	} else {
+            settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
+                    .put("discovery.zen.ping.multicast.enabled", false)
+                    .put("discovery.zen.ping.unicast.hosts", unicast)
+                    .build();
+    	}
         if (GlobalDatas.useNewNode) {
             localNode = NodeBuilder.nodeBuilder().clusterName(clusterName).client(true).settings(settings).node();
             registerShutdownHook(localNode);
@@ -118,33 +127,45 @@ public class ElasticSearchAccess {
     }
     
     public final boolean addIndex(String indexName, String type) {
+		LOGGER.debug("addIndex");
         if (! client.admin().indices().prepareExists(indexName).execute().actionGet().isExists()) {
+			LOGGER.debug("createIndex");
             client.admin().indices().prepareCreate(indexName).execute().actionGet();
         }
+        if (type == null) {
+        	return false;
+        }
+        String mapping = "{"+type+
+                // Will keep DAIPDEPTHS and NBCHILD as value to get (_id is implicit)
+//Change since DAIPDEPTHS not useful as source                        " : { _source : { includes : [\""+DAip.DAIPDEPTHS+".*\", \""+DAip.NBCHILD+"\"] },"+
+                " : { _source : { includes : [\""+DAip.NBCHILD+"\"] },"+
+                // DAIPDEPTHS will not be parsed and analyzed since it cannot be requested efficiently { UUID1 : depth2, UUID2 : depth2 }
+                "properties : { "+DAip.DAIPDEPTHS+" : { type : \"object\", enabled : false }, "+
+                // DAIPPARENTS will be included but not tokenized [ UUID1, UUID2 ]
+                DAip.DAIPPARENTS+" : { type : \"string\", index : \"not_analyzed\" }, "+
+                // NBCHILD as the number of immediate child
+                DAip.NBCHILD+" : { type : \"long\" },"+
+                // Immediate parents will be included but not tokenized [ UUID1, UUID2 ]
+                VitamLinks.DAip2DAip.field2to1+" : { type : \"string\", index : \"not_analyzed\" }, "+
+                //"_id : { type : \"object\", enabled : false }, " +
+                // All following items will neither be integrated neither analyzed
+                VitamLinks.DAip2DAip.field1to2+" : { type : \"object\", enabled : false }, " +
+                //VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
+                VitamLinks.Domain2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
+                VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
+                VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
+                " } } }";
+		LOGGER.debug("setMapping: "+indexName+" type: "+type+"\n\t"+mapping);
+		try {
 //        if (! client.admin().indices().prepareTypesExists(type).execute().actionGet().isExists()) {
             PutMappingResponse response = client.admin().indices().preparePutMapping().setIndices(indexName).setType(type)
-                .setSource("{"+type+
-                        // Will keep DAIPDEPTHS and NBCHILD as value to get (_id is implicit)
-// Change since DAIPDEPTHS not useful as source                        " : { _source : { includes : [\""+DAip.DAIPDEPTHS+".*\", \""+DAip.NBCHILD+"\"] },"+
-                        " : { _source : { includes : [\""+DAip.NBCHILD+"\"] },"+
-                        // DAIPDEPTHS will not be parsed and analyzed since it cannot be requested efficiently { UUID1 : depth2, UUID2 : depth2 }
-                        "properties : { "+DAip.DAIPDEPTHS+" : { type : \"object\", enabled : false }, "+
-                        // DAIPPARENTS will be included but not tokenized [ UUID1, UUID2 ]
-                        DAip.DAIPPARENTS+" : { type : \"string\", index : \"not_analyzed\" }, "+
-                        // NBCHILD as the number of immediate child
-                        DAip.NBCHILD+" : { type : \"long\" },"+
-                        // Immediate parents will be included but not tokenized [ UUID1, UUID2 ]
-                        VitamLinks.DAip2DAip.field2to1+" : { type : \"string\", index : \"not_analyzed\" }, "+
-                        //"_id : { type : \"object\", enabled : false }, " +
-                        // All following items will neither be integrated neither analyzed
-                        VitamLinks.DAip2DAip.field1to2+" : { type : \"object\", enabled : false }, " +
-                        //VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
-                        VitamLinks.Domain2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
-                        VitamLinks.DAip2Dua.field1to2+" : { type : \"object\", enabled : false }, " +
-                        VitamLinks.DAip2PAip.field1to2+" : { type : \"object\", enabled : false } " +
-                        " } }").execute().actionGet();
+                .setSource(mapping).execute().actionGet();
             LOGGER.info(type+":"+response.isAcknowledged());
             return response.isAcknowledged();
+		} catch (Exception e) {
+			LOGGER.error("Error while set Mapping", e);
+			return false;
+		}
 //        }
         //System.err.println("not needed add Index");
 //        return true;
@@ -201,7 +222,7 @@ public class ElasticSearchAccess {
 		maip.removeField(VitamLinks.Domain2DAip.field2to1);
 		maip.removeField(VitamLinks.DAip2Dua.field1to2);
 		maip.removeField(VitamLinks.DAip2PAip.field1to2);
-		String id = maip.getObjectId(VitamType.ID).toString();
+		String id = maip.getString(VitamType.ID);
 		maip.removeField(VitamType.ID);
 		//maip.removeField(ParserIngest.REFID);
 		// DOMDEPTH already ok but duplicate it

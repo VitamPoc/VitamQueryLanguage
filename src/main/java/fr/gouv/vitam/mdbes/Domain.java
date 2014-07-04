@@ -126,8 +126,9 @@ public class Domain extends VitamType {
 
     @Override
     protected boolean updated(MongoDbAccess dbvitam) {
-        Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, (String) get(ID)));
+        Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, getId()));
         BasicDBObject update = null;
+        LOGGER.warn("Previous Domain exists ? "+(vt != null));
         if (vt != null) {
             List<DBObject> list = new ArrayList<>();
             BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
@@ -165,6 +166,7 @@ public class Domain extends VitamType {
         if (updated(dbvitam)) {
             return;
         }
+        LOGGER.warn("Domain will be saved: {}", this);
         updateOrSave(dbvitam.domains);
     }
     @SuppressWarnings("unchecked")
@@ -180,7 +182,7 @@ public class Domain extends VitamType {
         removeField(VitamLinks.Domain2DAip.field1to2);
         removeField(ID);
         removeField("_refid");
-        removeField("_nb");
+        removeField(NBCHILD);
     }
     
     @Override

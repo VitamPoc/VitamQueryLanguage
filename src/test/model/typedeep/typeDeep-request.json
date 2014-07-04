@@ -1,0 +1,14 @@
+[	{	"$model" : "TypeDeep2",
+		"$domain" : { "$term" : { "Fonds" : "ArchivesNationales" } } },
+	{	"$maip" : { "$term" : { "name" : "##L1##" } },
+        "vary" : [ {"__name" : "##none##", "__type" : "setdistrib"}, 
+            { "__name" : "##L1##", "__type" : "serie", "__serie" : { "__prefix" : "TypeDeep2_", "__modulo" : 100 }, "__save" : "L1" } ] },
+	{	"$maip" : { "$term" : { "name" : "##L2##" } },
+        "vary" : [ { "__name" : "##L2##", "__type" : "interval", "__low" : 0, "__high" : 9, "__subprefix" : [ "L1", "_" ], "__save" : "L2" } ] },
+	{	"$maip" : { "$term" : { "name" : "##L3##" } },
+        "vary" : [ { "__name" : "##L3##", "__type" : "interval", "__low" : 0, "__high" : 49, "__subprefix" : [ "L2", "_" ], "__save" : "L3" } ] },
+	{	"$maip" : { "$term" : { "name" : "##L4##" } },
+        "vary" : [ { "__name" : "##L4##", "__type" : "interval", "__low" : 0, "__high" : 199, "__subprefix" : [ "L3", "_" ], "__save" : "L4" } ] },
+	{	"$maip" : { "$term" : { "name" : "##L5##" } },
+        "vary" : [ { "__name" : "##L5##", "__type" : "interval", "__low" : 0, "__high" : 999, "__subprefix" : [ "L4", "_" ], "__save" : "L5" } ] }
+]

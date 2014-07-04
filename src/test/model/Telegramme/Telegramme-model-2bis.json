@@ -1,0 +1,72 @@
+{ "Domaine" : "MAE", "__model" : "telegramme", "Fonds" : "MAE",
+	"MetaAip" : [
+		{ "__occur" : 1}, 
+		{ "Subfonds" : "Telegrammes", "_refid" : "Telegrammes" },
+		
+		{ "MetaAip" : [
+			{ "__occur" : 15, "__notempty" : 1}, 
+			{ 
+            "THEMATIQUE" : { "__type" : "listeorder", 
+							"__listeorder" : [ "Affaires consulaires", "Affaires européennes", "Culture et éducation", "Droit et Justice", 
+								"Economie Finances", "Environnement - Développement durable", "Francophonie", "MAEE Gestion financière", 
+								"MAEE Orientations", "MAEE Personnel", "MAEE Support", "Politique internationale", 
+								"Sciences, recherche et techniques", "Situation politique des Etats", "Société", "Sécurité - DéfenseTD" ],
+                                "__save" : "THM"},
+            "Series" : "Thematique", 
+            "_refid" : { "__type" : "save", "__subprefix" : [ "Telegrammes", ".", "THM" ] } },
+
+            { "MetaAip" : [
+				{ "__occur" : 1900, "__high" : 2013, "__notempty" : 1}, 
+				{ "Subseries" : "Annees", "Annee" : { "__type" : "serie",  "__serie" : { "__prefix" : ""}, "__save" : "AN" },
+                    "_refid" : { "__type" : "save", "__subprefix" : [ "Telegrammes", ".", "THM", ".", "AN" ] } },
+                    
+                { "MetaAip" : [
+                    { "__occur" : 239, "__distrib" : 0, "__notempty" : 1}, 
+                    {
+                    "POSTE" : { "__type" : "listeorder", "__listeorder" : [ "ABIDJAN", "ABOU_DABI", "ABUJA", "ACCRA", "ACHGABAT", "ADDIS_ABEBA",
+                        "AGADIR_Fslt", "ALEXANDRIE_Fslt", "ALGER", "ALMATY", "AMMAN", "AMSTERDAM_Fslt", "ANDORRE", "ANKARA", "ANNABA_Fslt", 
+                        "ANVERS_Fslt", "ASMARA", "ASSOMPTION", "ASTANA", "ATHENES", "ATLANTA", "BAGDAD", "BAKOU", "BAMAKO", "BANGALORE_Fslt", 
+                        "BANGKOK", "BANGUI", "BARCELONE", "BELGRADE", "BERLIN", "BERNE", "BEYROUTH", "BILBAO", "BISSAO", "BOGOTA", "BOMBAY_Fslt", 
+                        "BOSTON_Fslt", "BRASILIA", "BRATISLAVA", "BRAZZAVILLE", "BRUNEI", "BRUXELLES", "BUCAREST", "BUDAPEST", "BUENOS_AIRES", 
+                        "BUJUMBURA", "CALCUTTA_Fslt", "CANBERRA", "CANTON_Fslt", "CARACAS", "CASABLANCA_Fslt", "CASTRIES", "CHENGDU_Fslt", 
+                        "CHICAGO_Fslt", "CHISINAU", "COLOMBO", "CONAKRY", "COPENHAGUE", "COTONOU", "CRACOVIE", "DACCA", "DAKAR", "DAMAS", 
+                        "DAR_ES_SALAM", "DIEGO_SUAREZ_Fslt", "DJEDDAH", "DJIBOUTI", "DOHA", "DOUALA", "DUBAI", "DUBLIN", "DUSSELDORF_Fslt", 
+                        "EDIMBOURG_Fslt", "EKATERINBOURG_Fslt", "ERBIL_Fslt", "EREVAN", "FES_Fslt", "FRANCFORT_Fslt", "GABORONE", "GUATEMALA", 
+                        "HAIFA_Fslt", "HAMBOURG_Fslt", "HANOI", "HARARE", "HELSINKI", "HO_CHI_MINH_VILLE_Fslt", "HONG_KONG_Fslt", "HOUSTON_Fslt",
+                        "ISLAMABAD", "ISTANBUL_Fslt", "JAKARTA", "JERUSALEM_Fslt", "JOHANNESBURG_Fslt", "KABOUL", "KAMPALA", "KARACHI_Fslt", 
+                        "KATHMANDOU", "KHARTOUM", "KIEV", "KIGALI", "KINGSTON", "KINSHASA", "KOWEIT", "KUALA_LUMPUR", "KYOTO_Fslt", "LA_HAVANE", 
+                        "LA_HAYE", "LA_NLLE_ORLEANS_Fslt", "LA_PAZ", "LA_VALETTE", "LAGOS", "LE_CAIRE", "LE_CAP_Fslt", "LIBREVILLE", "LIEGE_Fslt", 
+                        "LIMA", "LISBONNE", "LJUBLJANA", "LOME", "LONDRES", "LOS_ANGELES_Fslt", "LUANDA", "LUSAKA", "LUXEMBOURG", "MADRID", 
+                        "MAJUNGA_Fslt", "MALABO", "MANAGUA", "MANAMA", "MANILLE", "MAPUTO", "MARRAKECH_Fslt", "MASCATE", "MEXICO", "MIAMI_Fslt", 
+                        "MILAN_Fslt", "MINSK", "MONACO", "MONCTON_Fslt", "MONROVIA", "MONTEVIDEO", "MONTREAL_Fslt", "MORONI", "MOSCOU", 
+                        "MUNICH_Fslt", "NAIROBI", "NAPLES_Fslt", "NDJAMENA", "NEW_DELHI", "NEW_YORK_Fslt", "NIAMEY", "NICOSIE", "NOUAKCHOTT", 
+                        "NOUMEA", "OSLO", "OTTAWA", "OUAGADOUGOU", "OULAN_BATOR", "PANAMA", "PAPEETE_Haus", "PARAMARIBO", "PEKIN", "PHNOM_PENH", 
+                        "POINTE_NOIRE_Fslt", "PONDICHERY_Fslt", "PORT_AU_PRINCE", "PORT_DESPAGNE", "PORT_GENTIL_Fslt", "PORT_LOUIS", "PORT_MORESBY",
+                        "PORT_VILA", "PORTO_Fslt", "PRAGUE", "PRAIA", "PRETORIA", "PRISTINA", "QUEBEC", "QUITO", "RABAT", "RANGOUN", "RECIFE_Fslt",
+                        "REYKJAVIK", "RIGA", "RIO_DE_JANEIRO", "RIYAD", "ROME", "SAINT_DOMINGUE", "SAINT_LOUIS_Fslt", "SAINT_PETERSBOURG_Fslt", 
+                        "SAINTE_HELENE", "SAN_FRANCISCO_Fslt", "SAN_JOSE_CR", "SAN_SALVADOR", "SANAA", "SANTIAGO", "SAO_PAULO_Fslt", "SARAJEVO",
+                        "SARREBRUCK_Fslt", "SEOUL", "SEVILLE_Fslt", "SHANGHAI_Fslt", "SHENYANG_Fslt", "SINGAPOUR", "SKOPJE", "SOFIA", "STOCKHOLM",
+                        "STUTTGART_Fslt", "SUVA", "SYDNEY_Fslt", "TACHKENT", "TAIPEI_IFT", "TALLINN", "TAMATAVE_Fslt", "TANANARIVE_Fslt", 
+                        "TANGER_Fslt", "TBILISSI", "TEGUCIGALPA", "TEHERAN", "TEL_AVIV", "THESSALONIQUE_Fslt", "TIRANA", "TOKYO", "TORONTO_Fslt",
+                        "TRIPOLI", "TUNIS", "TURIN_Fslt", "VANCOUVER_Fslt", "VARSOVIE", "VICTORIA", "VIENNE", "VIENTIANE", "VILNIUS", "WASHINGTON",
+                        "WELLINGTON_Fslt", "WINDHOEK", "WUHAN_Fslt", "YAOUNDE", "ZAGREB", "ZURICH" ], "__save" : "PST" },
+                    "_refid" : { "__type" : "save", "__subprefix" : [ "Telegrammes", ".", "THM", ".", "AN", ".", "PST" ] } },
+                    
+                    { "MetaAip" : [
+                        { "__occur" : 10000, "_was" : 1000, "__notempty" : 1 }, 
+                        {
+                            "Rank" : { "__type" : "serie",  
+                                "__serie" : { "__modulo" : 10000 }, "__save" : "RK" },  
+                            "NUMERO" : { "__type" : "save",  
+                                "__subprefix" : ["PST", ".", "AN", ".", "RK"], "__save" : "NOMTEL" },  
+                            "_refid" : { "__type" : "select", "__select" : [ {"__field" : "THEMATIQUE", "__value": ["THM"]}, {"__field" : "_refid", "__value": ["Telegrammes", ".", "NOMTEL"]} ] }
+                        },
+                        { "fake" : "fake" } ] }
+					]
+				}
+				]
+			}
+			]
+		}
+		]
+}

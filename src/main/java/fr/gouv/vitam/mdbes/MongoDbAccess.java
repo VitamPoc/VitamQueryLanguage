@@ -221,7 +221,7 @@ public class MongoDbAccess {
         }
         // elasticsearch index
         LOGGER.info("ES on cluster name: "+esname+":"+unicast);
-        es = new ElasticSearchAccess(esname, unicast);
+        es = new ElasticSearchAccess(esname, unicast, GlobalDatas.localNetworkAddress);
     }
     
     public final void reset(String model) {

@@ -150,8 +150,8 @@ public class PAip extends VitamType {
         return (PAip) dbvitam.findOne(Cpaip, refid);
     }
     public static void addIndexes(MongoDbAccess dbvitam) {
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2SAip.field1to2, 1));
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2Dua.field1to2, 1));
+        dbvitam.paips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
+        dbvitam.paips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2SAip.field1to2, 1));
+        dbvitam.paips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.PAip2Dua.field1to2, 1));
     }
 }

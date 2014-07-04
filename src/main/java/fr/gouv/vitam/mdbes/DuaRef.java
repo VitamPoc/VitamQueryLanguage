@@ -89,7 +89,7 @@ public class DuaRef extends VitamType {
         return (DuaRef) dbvitam.findOne(Cdua, refid);
     }
     public static void addIndexes(MongoDbAccess dbvitam) {
-        //dbvitam.requests.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
+        //dbvitam.duarefs.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
     }
 
 }

@@ -1,0 +1,10 @@
+[	{	"$model" : "TypeDeep1",
+		"$domain" : { "$term" : { "Fonds" : "ArchivesNationales" } } },
+	{	"$maip" : { "$depth" : { "depth" : 5, "$match_phrase" : { "name" : "##FULL##" } } },
+        "vary" : [ {"__name" : "##none##", "__type" : "setdistrib"}, 
+            { "__name" : "##L1##", "__type" : "serie", "__serie" : { "__prefix" : "TypeDeep1_", "__modulo" : 100 }, "__save" : "L1" },
+            { "__name" : "##L2##", "__type" : "interval", "__low" : 0, "__high" : 9, "__subprefix" : [ "L1", "_" ], "__save" : "L2" },
+            { "__name" : "##L3##", "__type" : "interval", "__low" : 0, "__high" : 49, "__subprefix" : [ "L2", "_" ], "__save" : "L3" },
+            { "__name" : "##L4##", "__type" : "interval", "__low" : 0, "__high" : 19, "__subprefix" : [ "L3", "_" ], "__save" : "L4" },
+            { "__name" : "##FULL##", "__type" : "interval", "__low" : 0, "__high" : 99, "__subprefix" : [ "L4", "_" ], "__save" : "L5" } ] }
+]

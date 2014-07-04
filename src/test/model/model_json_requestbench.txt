@@ -1,0 +1,90 @@
+
+Valeurs fixes: valeur
+=====================
+	valeurSimple = "chaine" | nombre
+		ou "chaine" = une chaine de caractere fixe
+		ou nombre = un nombre fixe
+		
+	valeur = valeurSimple | listeValeurs
+		ou listeValeurs = [ valeurSimple, ... ]
+
+L'expression des champs: champs
+===============================
+	nomfield = "chaine"
+	champ = nomfield : valeur | idref
+		=> associe a un nom de champ (chaine) une valeur ou un type simple ou un type variable (idref)
+	
+	champs = champ | champ, champs
+		La notation "champ, champ, ..." signifie serie de champs (exemple : { champ1 : val1, champ2 : val2, champ3 : val3 } )
+		
+Types complexes: variabilisation
+================================
+	variabilisation = vary : [ types ]
+	types = type | type, types
+	
+	type = { "__name" : "idref", "__type" : "interval", "__low" : valeur, "__high" : valeur }
+		=> prend une valeur aléatoire entre low et high (inclus)
+	
+	type = { "__name" : "idref", "__type" : "liste", "__liste" : listeValeurs }
+		=> de maniere aleatoire, un element de la liste sera attribue au champ
+
+	type = { "__name" : "idref", "__type" : "listeorder", "__listeorder" : listeValeurs }
+		=> le premier objet du pere commun aura pour valeur la valeur de rang 1, le deuxieme la valeur de rang 2, etc. 
+		Si le nombre de fils du pere depasse le nombre de valeurs dans la liste, la derniere valeur est re-utilisee.
+		Exemple : { champ : { "__type" : "listeorder", "__listeorder" : [ "A", "B" ] } } avec 5 fils de ce type (occurence._occur = 3)
+		=> premier fils : { champ : "A" }
+		=> deuxieme fils : { champ : "B" }
+		=> troisieme fils : { champ : "B" }
+
+	type = { "__name" : "idref", "__type" : "serie", "__serie" : { "__prefix" : chaine, "__idcpt" : "nomDuCompteur", "__modulo" : nombre } }
+		=> une chaine aleatoire sera produite du type : "prefixe"+Valeur" ou Valeur sera
+		__idcpt est precise : la valeur courante du compteur specifie est utilisee
+		__idcpt non precise : la valeur courante du compteur de reference est utilisee
+		__modulo est precise : la valeur est calcule par nombre = (nombre % modulo)+1
+		__modulo n'est pas precise : la valeur est non modifiee
+		Exemple : { champ : { "__type" : "serie", "__serie" : { "__prefix" : "Pref_", "__idcpt" : "moncpt", "__modulo" : 3 } } } avec __occur = 4 et moncpt = 10 au depart
+		=> premier fils : moncpt = 11 => (11 mod 3) +1 = 3 => { champ : "Pref_3" }
+		=> deuxieme fils : moncpt = 12 => (12 mod 3) +1 = 1 => { champ : "Pref_1" }
+		=> troisieme fils : moncpt = 13 => (13 mod 3) +1 = 2 => { champ : "Pref_2" }
+		=> quatrieme fils : moncpt = 14 => (14 mod 3) +1 = 3 => { champ : "Pref_3" }
+
+L'expression des requetes : requests
+====================================
+	requests = [ subrequests ]
+	subrequests = subrequest | subrequest, subrequests  (mais avec une seule fois $domain autorise)
+	subrequest = { $domain : { request }, variabiliation } | { $maip : { request }, variabiliation }
+		les requetes sur $domain ne peuvent concerner que le champ "name"
+
+L'expression d'une requete : request
+====================================
+	request = reqdepth | reqterm | reqnested | reqin | reqbool | reqexist | reqmissing | reqrange | 
+			reqmatch | reqflt | reqmlt | reqfield | reqwildcard | reqlimit
+	
+	(*)reqdepth = $depth : { depth: nombre, request }
+	(=)reqterm = $term : { nomfield : typeComplexe }
+	reqnested = $nested : { path : nomfield, request }  ou request exprimera les champs avec nomfield.X
+	reqin = $in : { nomfield : listeValeurs }
+	reqbool = bool : [ subrequests ]
+		bool = $and | $or | $not
+	reqexist = $exists : nomfield 
+	reqmissing = $missing : nomfield
+	(=)reqrange = $range : { nomfield : { rangeconditions } }
+		rangeconditions = rangecondition | rangecondition, rangeconditions
+		rangecondition = from|to|gt|gte|lt|lte : typeComplexe | include_lower : bool | include_upper : bool
+			(defaut : include_lower | include_upper = true)
+	(=)(*)reqmatch = ($match | $match_phrase ) : { nomfield : typeComplexe } | 
+		$match_phrase_prefix : { nomfield : typeComplexe, max_expansions : nombre } | 
+		$multi_match : { query : typeComplexe, fields : [ nomfield, ... ] }
+	(=)(*)reqflt = $flt : { fields : [ nomfield, ... ], like_text : typeComplexe } | $flt_field : { nomfield : { like_text : typeComplexe } }
+	(=)(*)reqmlt = $mlt : { fields : [ nomfield, ... ], like_text : typeComplexe [, stop_words : listeValeurs] } | 
+		$mlt_field : { nomfield : { like_text : typeComplexe [, stop_words : listeValeurs] } }
+	(=)(*)reqfield = $field : { nomfield : valeurSimple }
+		ou valeurSimple peut contenir : +/- (obligatoire/sauf) */? (serie de caracteres / 1 caractere) AND/OR (surtout le OR car +=AND)
+		NB: si */? => analyze_wildcard : true
+	(*)reqwildcard = $wildcard : { nomfield : valeurSimple }
+		ou valeurSimple peut contenir : */? (serie de caracteres / 1 caractere)
+	(+)reqregex = $regexp : { field : { $regex : exprReg, $options : o } }
+		NB : garde cette possibilite ?
+	reqlimit = $limit : number
+	
+(*) ES only, (+) MD only, (=) variabilité possible

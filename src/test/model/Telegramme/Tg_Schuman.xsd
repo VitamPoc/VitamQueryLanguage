@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="TELEGRAMME">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="TYPE_TELEGRAMME" type="xs:string" />
+				<xs:element name="POSTE" type="xs:string" />
+				<xs:element name="NUMERO" type="xs:string" />
+				<xs:element name="URGENCE" type="xs:string" />
+				<xs:element name="DATE_HEURE" type="xs:dateTime" />
+				<xs:element name="OBJET" type="xs:string" />
+				<xs:element name="REDACTEUR" type="xs:string" />
+				<xs:element name="SERVICE_EMETTEUR" type="xs:string" />
+				<xs:element name="MENTION_CONFIDENTIALITE" type="xs:string" />
+				<xs:element name="MENTION_SPECIALE" type="xs:string" />
+				<xs:element name="DISTRIBUTION" type="xs:string" />
+				<xs:element name="REFERENCE" type="xs:string" />
+				<xs:element name="THEMATIQUE" type="xs:string" />
+				<xs:element name="SOUS_THEMATIQUE" type="xs:string" />
+				<xs:element name="SIGNATAIRE" type="xs:string" />
+				<xs:element name="AD">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DESTINATAIRE" type="xs:string"
+								minOccurs="1" maxOccurs="unbounded" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="CQ">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DESTINATAIRE" type="xs:string"
+								minOccurs="0" maxOccurs="unbounded" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="RT">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DESTINATAIRE" type="xs:string"
+								minOccurs="0" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="NOM">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="PJ" type="xs:string" minOccurs="0"
+								maxOccurs="unbounded" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

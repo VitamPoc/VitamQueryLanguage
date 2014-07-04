@@ -1,0 +1,40 @@
+{
+    "Domaine": "ArchivesNationales", "__model" : "TypeDeep2", "Fonds" : "ArchivesNationales",
+    "MetaAip": [
+    	{ "__occur" : 0, "__high" : 99, "_was" : 100, "__distrib" : 0},
+        {
+            "_refid": { "__type" : "serie", "__serie" : { "__prefix" : "TypeDeep2_", "__modulo" : 100 }, "__save" : "L1" }, 
+            "name": { "__type" : "save", "__subprefix" : [ "L1" ] }, 
+            "DuaRef": "25ans" },
+        {"MetaAip": [
+			{ "__occur" : 0, "__high" : 9},
+			{
+	            "_refid": { "__type" : "serie", "__serie" : { "__prefix" : "_", "__modulo" : 10 }, "__subprefix" : [ "L1" ], "__save" : "L2" }, 
+	            "name": { "__type" : "save", "__subprefix" : [ "L2" ] } }, 
+            {"MetaAip": [
+				{ "__occur" : 0, "__high" : 49, "_was" : 50},
+                {
+		            "_refid": { "__type" : "serie", "__serie" : { "__prefix" : "_", "__modulo" : 50 }, "__subprefix" : [ "L2" ], "__save" : "L3" }, 
+		            "name": { "__type" : "save", "__subprefix" : [ "L3" ] }, 
+		            "DuaRef": "50ans" },
+				{"MetaAip": [
+					{ "__occur" : 0, "__high" : 199, "_was" : 400},
+					{
+			            "_refid": { "__type" : "serie", "__serie" : { "__prefix" : "_", "__modulo" : 400 }, "__subprefix" : [ "L3" ], "__save" : "L4" }, 
+	    		        "name": { "__type" : "save", "__subprefix" : [ "L4" ] } }, 
+					{"MetaAip": [
+						{ "__occur" : 1000, "_was" : 1000},
+						{
+				            "_refid": { "__type" : "serie", "__serie" : { "__prefix" : "_", "__modulo" : 100000000 }, "__subprefix" : [ "L4" ], "__save" : "L5" }, 
+		    		        "name": { "__type" : "save", "__subprefix" : [ "L5" ] } }, 
+						{"DataObject": { "date": "2012-12-12", "status": "closed" } }
+								]
+					}
+                      		]
+                }
+                    	]
+            }
+            		]
+        }
+    		]
+}

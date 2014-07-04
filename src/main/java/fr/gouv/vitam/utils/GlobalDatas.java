@@ -36,13 +36,29 @@ public final class GlobalDatas {
      * set of Roots Domain : must be updated each time a new Domain is created
      */
     public static final Set<String> ROOTS = new HashSet<>();
-    public static boolean useFilter = true; // Should we use filter to select from graph parents, or within query
+    /**
+     * Should we use filter to select from graph parents, or within query
+     */
+    public static boolean useFilter = true;
     public static boolean useNewNode = false;
     public static final String INDEXNAME = "vitamidx";
-    public static long limitES = 10001; // limit before using ES in 1 level only
-    public static int limitLoad = 10000; // limit for loading result
-    public static final long LIMIT_ES_NEW_INDEX = 49999; // limit before flushing ES with Bulk
-    public static final int MAXDEPTH = 100; // should be 20 but let a great margin
+    public static String localNetworkAddress = "192.168.56.102";
+    /**
+     * limit before using ES in 1 level only
+     */
+    public static long limitES = 10001;
+    /**
+     * limit for loading result
+     */
+    public static int limitLoad = 10000;
+    /**
+     * limit before flushing ES with Bulk
+     */
+    public static final long LIMIT_ES_NEW_INDEX = 99999;
+    /**
+     * should be 20 but let a great margin
+     */
+    public static final int MAXDEPTH = 100;
     public static final boolean PRINT_REQUEST = false;
     public static final boolean BLOCKING = true;
 }

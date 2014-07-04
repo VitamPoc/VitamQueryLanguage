@@ -44,12 +44,16 @@ import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.FileUtil;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
 public class ParserIngest {
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserIngest.class);
+	
 	protected BufferedOutputStream bufferedOutputStream = null;
 	private static final Map<String, DAip> DAIP_BELOW_MINLEVEL = new HashMap<String, DAip>();
 	private static final String CPTLEVEL = "__cptlevel__";
@@ -533,18 +537,16 @@ public class ParserIngest {
 		System.out.println("Start To File");
 		this.dbvitam = dbvitam;
 		// Domain
-		try {
-			domobj = Domain.findOne(dbvitam, domRefid);
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new InvalidExecOperationException(e);
-		}
+		domobj = (Domain) dbvitam.fineOne(VitamCollections.Cdomain, REFID, domRefid);
+		LOGGER.warn("Found Domain ? "+(domobj != null));
 		if (domobj == null) {
 			domobj = new Domain();
-			domobj.setId(domRefid);
+			domobj.put(REFID, domRefid);
 			domobj.put("name", domRefid);
 			domobj.putAll(domObj);
 			domobj.save(dbvitam);
 			domobj.setRoot();
+			LOGGER.warn("Create Domain: {}", domobj);
 			//System.err.println("Load: "+domobj);
 		}
 		// Set DISTRIB to start-stop
@@ -676,7 +678,7 @@ public class ParserIngest {
 						listmetaaips.add(metaaip2);
 					}
 					int nbEs = metaaip2.addEsIndex(dbvitam, esIndex, model);
-					MainIngestFile.cptMaip.addAndGet(nbEs);
+					//MainIngestFile.cptMaip.addAndGet(nbEs);
 			        if (level < MainIngestFile.minleveltofile) {
 			            metaaip2.save(dbvitam);
 			        } else {
@@ -754,7 +756,7 @@ public class ParserIngest {
 			}
 			//System.out.println("M: "+maip.toString());
 			int nbEs = maip.addEsIndex(dbvitam, esIndex, model);
-			MainIngestFile.cptMaip.addAndGet(nbEs);
+			//MainIngestFile.cptMaip.addAndGet(nbEs);
 			if (metaCreated && father == null) {
 				listmetaaips.add(maip);
 			} else if (father != null) {

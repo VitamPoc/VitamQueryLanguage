@@ -1,0 +1,74 @@
+{ "Domaine" : "MAE", "__model" : "telegramme",
+	{ "MetaAip" :
+		{ "SousDomaine" : "Telegramme" },
+		
+		{ "MetaAip" : 
+			{ "POSTE" : { "__type" : "list", "__list" : [ "ABIDJAN", "ABOU DABI", "ABUJA", "ACCRA", "ACHGABAT", "ADDIS ABEBA",
+				"AGADIR Fslt", "ALEXANDRIE Fslt", "ALGER", "ALMATY", "AMMAN", "AMSTERDAM Fslt", "ANDORRE", "ANKARA", "ANNABA Fslt", 
+				"ANVERS Fslt", "ASMARA", "ASSOMPTION", "ASTANA", "ATHENES", "ATLANTA", "BAGDAD", "BAKOU", "BAMAKO", "BANGALORE Fslt", 
+				"BANGKOK", "BANGUI", "BARCELONE", "BELGRADE", "BERLIN", "BERNE", "BEYROUTH", "BILBAO", "BISSAO", "BOGOTA", "BOMBAY Fslt", 
+				"BOSTON Fslt", "BRASILIA", "BRATISLAVA", "BRAZZAVILLE", "BRUNEI", "BRUXELLES", "BUCAREST", "BUDAPEST", "BUENOS AIRES", 
+				"BUJUMBURA", "CALCUTTA Fslt", "CANBERRA", "CANTON Fslt", "CARACAS", "CASABLANCA Fslt", "CASTRIES", "CHENGDU Fslt", 
+				"CHICAGO Fslt", "CHISINAU", "COLOMBO", "CONAKRY", "COPENHAGUE", "COTONOU", "CRACOVIE", "DACCA", "DAKAR", "DAMAS", 
+				"DAR ES SALAM", "DIEGO SUAREZ Fslt", "DJEDDAH", "DJIBOUTI", "DOHA", "DOUALA", "DUBAI", "DUBLIN", "DUSSELDORF Fslt", 
+				"EDIMBOURG Fslt", "EKATERINBOURG Fslt", "ERBIL Fslt", "EREVAN", "FES Fslt", "FRANCFORT Fslt", "GABORONE", "GUATEMALA", 
+				"HAIFA Fslt", "HAMBOURG Fslt", "HANOI", "HARARE", "HELSINKI", "HO CHI MINH VILLE Fslt", "HONG KONG Fslt", "HOUSTON Fslt",
+				"ISLAMABAD", "ISTANBUL Fslt", "JAKARTA", "JERUSALEM Fslt", "JOHANNESBURG Fslt", "KABOUL", "KAMPALA", "KARACHI Fslt", 
+				"KATHMANDOU", "KHARTOUM", "KIEV", "KIGALI", "KINGSTON", "KINSHASA", "KOWEIT", "KUALA LUMPUR", "KYOTO Fslt", "LA HAVANE", 
+				"LA HAYE", "LA NLLE ORLEANS Fslt", "LA PAZ", "LA VALETTE", "LAGOS", "LE CAIRE", "LE CAP Fslt", "LIBREVILLE", "LIEGE Fslt", 
+				"LIMA", "LISBONNE", "LJUBLJANA", "LOME", "LONDRES", "LOS ANGELES Fslt", "LUANDA", "LUSAKA", "LUXEMBOURG", "MADRID", 
+				"MAJUNGA Fslt", "MALABO", "MANAGUA", "MANAMA", "MANILLE", "MAPUTO", "MARRAKECH Fslt", "MASCATE", "MEXICO", "MIAMI Fslt", 
+				"MILAN Fslt", "MINSK", "MONACO", "MONCTON Fslt", "MONROVIA", "MONTEVIDEO", "MONTREAL Fslt", "MORONI", "MOSCOU", 
+				"MUNICH Fslt", "NAIROBI", "NAPLES Fslt", "NDJAMENA", "NEW DELHI", "NEW YORK Fslt", "NIAMEY", "NICOSIE", "NOUAKCHOTT", 
+				"NOUMEA", "OSLO", "OTTAWA", "OUAGADOUGOU", "OULAN BATOR", "PANAMA", "PAPEETE Haus", "PARAMARIBO", "PEKIN", "PHNOM PENH", 
+				"POINTE NOIRE Fslt", "PONDICHERY Fslt", "PORT AU PRINCE", "PORT DESPAGNE", "PORT GENTIL Fslt", "PORT LOUIS", "PORT MORESBY",
+				"PORT VILA", "PORTO Fslt", "PRAGUE", "PRAIA", "PRETORIA", "PRISTINA", "QUEBEC", "QUITO", "RABAT", "RANGOUN", "RECIFE Fslt",
+				"REYKJAVIK", "RIGA", "RIO DE JANEIRO", "RIYAD", "ROME", "SAINT DOMINGUE", "SAINT LOUIS Fslt", "SAINT PETERSBOURG Fslt", 
+				"SAINTE HELENE", "SAN FRANCISCO Fslt", "SAN JOSE CR", "SAN SALVADOR", "SANAA", "SANTIAGO", "SAO PAULO Fslt", "SARAJEVO",
+				"SARREBRUCK Fslt", "SEOUL", "SEVILLE Fslt", "SHANGHAI Fslt", "SHENYANG Fslt", "SINGAPOUR", "SKOPJE", "SOFIA", "STOCKHOLM",
+				"STUTTGART Fslt", "SUVA", "SYDNEY Fslt", "TACHKENT", "TAIPEI IFT", "TALLINN", "TAMATAVE Fslt", "TANANARIVE Fslt", 
+				"TANGER Fslt", "TBILISSI", "TEGUCIGALPA", "TEHERAN", "TEL AVIV", "THESSALONIQUE Fslt", "TIRANA", "TOKYO", "TORONTO Fslt",
+				"TRIPOLI", "TUNIS", "TURIN Fslt", "VANCOUVER Fslt", "VARSOVIE", "VICTORIA", "VIENNE", "VIENTIANE", "VILNIUS", "WASHINGTON",
+				"WELLINGTON Fslt", "WINDHOEK", "WUHAN Fslt", "YAOUNDE", "ZAGREB", "ZURICH" ] } },
+
+			{ "MetaAip" : 
+				{ "TYPE_TELEGRAMME" : { "__type" : "list", "__list" : [ "TD", "TG", "TS" ] } },
+
+				{ "MetaAip" : 
+					{
+						"NUMERO" : { "__type" : "serie",  
+							"__serie" : { "__prefix" : "POSTE.TYPE_TELEGRAMME", "__nb" : 1000, "_startFrom" : 1, "__modulo" : 0 } },  
+						"URGENCE" : { "__type" : "list", "__list" : [ "ROUTINE", "URGENCE", "IMMEDIAT" ] },
+						"DATE_HEURE" : { "__type" : "date" },
+						"OBJET" : { "__type" : "message" },
+						"REDACTEUR" : { "__type" : "message" },
+						"SERVICE_EMETTEUR": { "__type" : "message" },
+						"MENTION_CONFIDENTIALITE": { "__type" : "list", "__list" : [ "CLAIR", "LIMITE", "RESTREINT" ] },
+						"MENTION_SPECIALE" : { "__type" : "message" },
+						"DISTRIBUTION" : { "__type" : "list", "__list" : [ "SERVICES", "DIRECTEURS", "MESSAGE" ] },
+						"REFERENCE" : { "__type" : "message" },
+						"THEMATIQUE" : { "__type" : "list", 
+							"__list" : [ "Affaires consulaires", "Affaires européennes", "Culture et éducation", "Droit et Justice", 
+								"Economie Finances", "Environnement – Développement durable", "Francophonie", "MAEE Gestion financière", 
+								"MAEE Orientations", "MAEE Personnel", "MAEE Support", "Politique internationale", 
+								"Sciences, recherche et techniques", "Situation politique des Etats", "Société", "Sécurité – DéfenseTD" ] },
+						"SOUS_THEMATIQUE" : { "__type" : "message" },
+						"SIGNATAIRE" : { "__type" : "message" },
+						"AD" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "list", "__listtype" : "message" } } },
+						"CQ" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "list", "__listtype" : "message" } } },
+						"RT" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "list", "__listtype" : "message" } } }
+					},
+					
+					{ "MetaAip" : 
+						{
+							"TYPEOBJECT" : { "__type" : "listeOrder", "__listeOrder" : [ "CORPS", "PJ" ] },
+							"NOM" : { "__type" : "serie",
+								"__serie" : { "__prefix" : "TYPEOBJET", "__nb" : 3, "_startFrom" : 1, "__modulo" : 0 } }
+						},
+						{ "DataObject" : champs_fichier }
+					}
+				}
+			}
+		}
+	}
+}

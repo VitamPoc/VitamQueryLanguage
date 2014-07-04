@@ -495,6 +495,7 @@ public class DAip extends VitamType {
         //dbvitam.metaaips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2DAip.field1to2, 1));
         dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, 1));
         dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field1to2, 1));
+        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2Dua.field1to2, 1));
 
         // does not improve anything 
         dbvitam.daips.collection.createIndex(new BasicDBObject(DAIPDEPTHS, 1));

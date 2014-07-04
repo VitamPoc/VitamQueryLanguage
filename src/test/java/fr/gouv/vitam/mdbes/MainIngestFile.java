@@ -45,24 +45,31 @@ import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.FileUtil;
 import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.logging.LogbackLoggerFactory;
+import fr.gouv.vitam.utils.logging.VitamLogLevel;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  * 
  */
 public class MainIngestFile implements Runnable {
+	private static VitamLogger LOGGER = null;
+	
 	private static AtomicLong loadt = new AtomicLong(0);
 	private static AtomicLong mongoLoad = new AtomicLong(0);
 	
 	private static MongoClient mongoClient = null;
-	private static final int MAXTHREAD = 1;
+	private static int MAXTHREAD = 1;
 	
-	private static boolean eraze = true;
+	private static boolean eraze = false;
 	private static boolean simulate = false;
 	private static String ingest;
 	private static String model;
 	private static int startFrom = 0;
 	private static String host = "localhost";
+	private static String database = "VitamLinks";
 	private static String esbase = "vitam";
 	private static String unicast = "mdb002, mdb003, mdb004";
 	private static String commandMongo = null;
@@ -84,85 +91,130 @@ public class MainIngestFile implements Runnable {
 
 	/**
 	 * Will save to a File and to ElasticSearch, then to MongoDB
-	 * @param args
+	 * @param args logfile eraze/noeraze host database escluster unicast start nbload file fileout limitdepth nbThread mongoimport stopindex/xx 
+	 * 
+	 * <ol>
+	 * <li>logfile = Log4J configuration log file</li>
+	 * <li>eraze/noeraze/index = eraze will delete all data in DB (!), index will (re)create index, else nothing is done</li>
+	 * <li>host = MongoDB host</li>
+	 * <li>database = MongoDB database name as VitamLinks</li>
+	 * <li>escluster = ElasticSearch cluster name</li>
+	 * <li>unicast = ElasticSearch unicast servers list (as in "mdb001, mdb002, mdb003")</li>
+	 * <li>start = start index in the bench (will be for instance between 1-1000 start from 100)</li>
+	 * <li>nbload = number of iteration from start</li>
+	 * <li>file = ingest file</li>
+	 * <li>fileout = output saved</li>
+	 * <li>limitdepth = from which level the output is saved to the file and not to MongoDB</li>
+	 * <li>nbThread = number of thread (default 1)</li>
+	 * <li>mongoimport = optional command for import</li>
+	 * <li>stopindex/xx = shall we stop index during import in MongoDB</li>
+	 * </ol>
 	 */
 	public static void main(String[] args) throws Exception {
-		if (args.length < 8) {
-			System.err.println("need: logfile eraze/noeraze host escluster unicast nbload files start fileout limitdepth mongoimport 0/1 nbThread");
-			System.err.println("need: logfile nbload files eraze/noeraze start host escluster unicast fileout limitdepth mongoimport 0/1 (1=stop index)");
+		if (args.length < 6) {
+			System.err.println("need: logfile eraze/noeraze host database escluster unicast nbload file start fileout limitdepth mongoimport stopindex/xx nbThread");
+			//System.err.println("before was need: logfile nbload files eraze/noeraze start host escluster unicast fileout limitdepth mongoimport 0/1 (1=stop index)");
 			return;
 		}
 		String log4j = args[0];
 		PropertyConfigurator.configure(log4j);
+		VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
+		LOGGER = VitamLoggerFactory.getInstance(MainIngestFile.class);
+		boolean reindex = false;
 		if (args.length > 1) {
 			eraze = args[1].equals("eraze");
+			if (eraze) {
+				reindex = eraze;
+			} else {
+				reindex = args[1].equals("index");
+			}
 		}
+		if (simulate) {
+			eraze = false;
+		}
+		String networkHost = "192.168.56.102";
+		GlobalDatas.localNetworkAddress = networkHost;
 		// connect to the local database server
 		if (args.length > 2) {
 			host = args[2];
 		}
 		if (args.length > 3) {
-			esbase = args[3];
+			database = args[3];
 		}
 		if (args.length > 4) {
-			unicast = args[4];
+			esbase = args[4];
+		}
+		if (args.length > 5) {
+			unicast = args[5];
 		}
 		int realnb = -1;
-		if (args.length > 5) {
-			realnb = Integer.parseInt(args[5]);
-		}
 		if (args.length > 6) {
-			ingest = FileUtil.readFile(args[6]);
-		}
-		if (args.length > 7) {
-			startFrom = Integer.parseInt(args[7]);
-		}
-		if (simulate) {
+			startFrom = Integer.parseInt(args[6]);
 			eraze = false;
 		}
+		if (args.length > 7) {
+			realnb = Integer.parseInt(args[7]);
+		}
 		if (args.length > 8) {
-			fileout = args[8];
+			ingest = FileUtil.readFile(args[8]);
 		}
 		if (args.length > 9) {
-			int stoplevel = Integer.parseInt(args[9]);
-			MainIngestFile.minleveltofile = stoplevel;
+			fileout = args[9];
 		}
 		if (args.length > 10) {
-			commandMongo = args[10];
+			int stoplevel = Integer.parseInt(args[10]);
+			minleveltofile = stoplevel;
 		}
-		boolean stopindex = false;
 		if (args.length > 11) {
-			stopindex = args[11].equals("1");
+			nbThread = Integer.parseInt(args[11]);
 		}
 		if (args.length > 12) {
-			nbThread = Integer.parseInt(args[12]);
+			commandMongo = args[12];
+		}
+		boolean stopindex = false;
+		if (args.length > 13) {
+			stopindex = args[13].equalsIgnoreCase("stopindex");
+		}
+		LOGGER.debug("Start with "+eraze+":"+reindex+":"+host+":"+database+":"+esbase+":"+unicast);
+		if (args.length > 6) {
+			LOGGER.debug("and "+startFrom+":"+realnb+":"+ingest+":"+fileout+":"+minleveltofile+":"+nbThread+":"+commandMongo+":"+stopindex);
 		}
 		MongoDbAccess dbvitam = null;
 		try {
+			MAXTHREAD += nbThread;
 			MongoClientOptions options = new MongoClientOptions.Builder().connectionsPerHost(MAXTHREAD).build();
 			mongoClient = new MongoClient(host, options);
 			mongoClient.setReadPreference(ReadPreference.primaryPreferred());
-			boolean reindex = eraze;
-			dbvitam = new MongoDbAccess(mongoClient, "VitamLinks", esbase, unicast, reindex);
+			dbvitam = new MongoDbAccess(mongoClient, database, esbase, unicast, eraze);
 			// get a list of the collections in this database and print them out
-			System.out.println(dbvitam.toString());
-			if (MainIngestFile.eraze) {
+			LOGGER.debug(dbvitam.toString());
+			if (eraze) {
 				reinit(dbvitam);
+				LOGGER.warn(dbvitam.toString());
 				return;
 			}
-			dbvitam.updateEsIndex(model);
+			if (realnb < 0) {
+				return;
+			}
 			// drop all the data in it
 			ParserIngest parser = new ParserIngest(true);
 			parser.parse(ingest);
 			model = parser.getModel();
+			if (reindex) {
+				LOGGER.debug("ensureIndex");
+				dbvitam.ensureIndex();
+				if (model != null) {
+					LOGGER.debug("updateEsIndex");
+					dbvitam.updateEsIndex(model);
+				}
+				LOGGER.debug("end Index");
+			}
+			LOGGER.warn(dbvitam.toString());
 			
 			int stepnb = realnb;
-			MainIngestFile.nb = stepnb;
-			MainIngestFile.loadt = new AtomicLong(0);
-			MainIngestFile.cptMaip.set(0);
-			if (stopindex) {
-				dbvitam.removeIndexBeforeImport();
-			}
+			nb = stepnb;
+			loadt = new AtomicLong(0);
+			cptMaip.set(0);
 			runOnce(dbvitam);
 			// Continue with MongoDB Loading if setup
 			if (! MainIngestFile.eraze) {
@@ -225,20 +277,20 @@ public class MainIngestFile implements Runnable {
 	}
 	
 	private static final void runOnce(MongoDbAccess dbvitam) throws InterruptedException, InstantiationException, IllegalAccessException, IOException {
-		MainIngestFile[] ingests = new MainIngestFile[MainIngestFile.nbThread];
-		MainIngestFile.nb = MainIngestFile.nb / MainIngestFile.nbThread;
+		MainIngestFile[] ingests = new MainIngestFile[nbThread];
+		nb = nb / nbThread;
 		ExecutorService executorService = null;
 		int step = startFrom;
-		executorService = Executors.newFixedThreadPool(MainIngestFile.nbThread);
-		int interval = MainIngestFile.nb;
-		System.out.print("Load starting... "+MainIngestFile.nbThread+":"+MainIngestFile.nb+":"+interval);
+		executorService = Executors.newFixedThreadPool(nbThread);
+		int interval = nb;
+		System.out.print("Load starting... "+nbThread+":"+nb+":"+interval);
 		ingests[0] = new MainIngestFile();
 		ingests[0].start = step;
 		ingests[0].stop = step + interval - 1;
 		step += interval;
 		executorService.execute(ingests[0]);
 		Thread.sleep(100);
-		for (int i = 1; i < MainIngestFile.nbThread; i++) {
+		for (int i = 1; i < nbThread; i++) {
 			ingests[i] = new MainIngestFile();
 			ingests[i].start = step;
 			ingests[i].stop = step + interval - 1;
@@ -255,18 +307,18 @@ public class MainIngestFile implements Runnable {
 		DbVitam.printStructure(dbvitam);*/
 		long nbBigM = dbvitam.getDaipSize();
 		long nbBigD = dbvitam.getPaipSize();
-		System.out.println("\n Big Test ("+MainIngestFile.nbThread + " Threads chacune " + MainIngestFile.nb+" itérations de load, nb MAIP: "+MainIngestFile.cptMaip.get()+") with MAIP: " + nbBigM + " DATA: " + nbBigD
-				+ " => Load:" + (MainIngestFile.loadt.get()) / ((float) MainIngestFile.cptMaip.get()));
+		System.out.println("\n Big Test ("+nbThread + " Threads chacune " + nb+" itérations de load, nb MAIP: "+cptMaip.get()+") with MAIP: " + nbBigM + " DATA: " + nbBigD
+				+ " => Load:" + (loadt.get()) / ((float) cptMaip.get()));
 		
 		System.out.println("\nThread;nbLoad;nbTotal;Load");
-		System.out.println(MainIngestFile.nbThread+";"+MainIngestFile.cptMaip.get()+";"+nbBigM+";"+(MainIngestFile.loadt.get()) / ((float) MainIngestFile.cptMaip.get()));
+		System.out.println(nbThread+";"+cptMaip.get()+";"+nbBigM+";"+(loadt.get()) / ((float) cptMaip.get()));
 	}
 	
 	@Override
 	public void run() {
 		MongoDbAccess dbvitam = null;
 		try {
-			dbvitam = new MongoDbAccess(mongoClient, "VitamLinks", esbase, unicast, false);
+			dbvitam = new MongoDbAccess(mongoClient, database, esbase, unicast, false);
 			// now ingest metaaip/metafield/data
 			long date11 = System.currentTimeMillis();
 			parserIngest = new ParserIngest(simulate);
@@ -278,8 +330,8 @@ public class MainIngestFile implements Runnable {
 			parserIngest.parse(ingest);
 			parserIngest.executeToFile(dbvitam, start, stop);
 			long date12 = System.currentTimeMillis();
-			MainIngestFile.loadt.addAndGet(date12-date11);
-			MainIngestFile.cptMaip.addAndGet(parserIngest.getTotalCount());
+			loadt.addAndGet(date12-date11);
+			cptMaip.addAndGet(parserIngest.getTotalCount());
 			files.add(file);
 			return;
 		} catch (InvalidExecOperationException e) {
@@ -316,11 +368,14 @@ public class MainIngestFile implements Runnable {
 	}
 
 	private static final void runOnceMongo(MongoDbAccess dbvitam, boolean stopindex) throws InterruptedException, InstantiationException, IllegalAccessException, IOException {
-		MongoRunImport[] ingests = new MongoRunImport[MainIngestFile.nbThread];
+		if (stopindex) {
+			dbvitam.removeIndexBeforeImport();
+		}
+		MongoRunImport[] ingests = new MongoRunImport[nbThread];
 		ExecutorService executorService = null;
-		executorService = Executors.newFixedThreadPool(MainIngestFile.nbThread);
-		System.out.print("Load starting... "+MainIngestFile.nbThread+":"+MainIngestFile.nb);
-		for (int i = 1; i < MainIngestFile.nbThread; i++) {
+		executorService = Executors.newFixedThreadPool(nbThread);
+		System.out.print("Load starting... "+nbThread+":"+nb);
+		for (int i = 1; i < nbThread; i++) {
 			ingests[i] = new MongoRunImport();
 			ingests[i].file = files.get(i);
 			executorService.execute(ingests[i]);
@@ -338,11 +393,11 @@ public class MainIngestFile implements Runnable {
 		long stop = System.currentTimeMillis();
 		System.out.println("End of MongoImport MaipES:MaipMD:MaipReindex:MaipTotal:MAIP/s");
 		System.out.println("End of MongoImport "+
-				(MainIngestFile.loadt.get()) / ((float) MainIngestFile.cptMaip.get())+":"+
-				(MainIngestFile.mongoLoad.get()) / ((float) MainIngestFile.cptMaip.get())+":"+
-				(stop-start) / ((float) MainIngestFile.cptMaip.get())+":"+
-				(MainIngestFile.loadt.get()+MainIngestFile.mongoLoad.get()+stop-start) / ((float) MainIngestFile.cptMaip.get())+
-				":"+ (MainIngestFile.cptMaip.get() / ((double)(MainIngestFile.loadt.get()+MainIngestFile.mongoLoad.get()+stop-start))));
+				(loadt.get()) / ((float) cptMaip.get())+":"+
+				(mongoLoad.get()) / ((float) cptMaip.get())+":"+
+				(stop-start) / ((float) cptMaip.get())+":"+
+				(loadt.get()+mongoLoad.get()+stop-start) / ((float) cptMaip.get())+
+				":"+ (cptMaip.get() / ((double)(loadt.get()+mongoLoad.get()+stop-start))));
 	}
 
 	private static class MongoRunImport implements Runnable {
@@ -408,7 +463,7 @@ public class MainIngestFile implements Runnable {
 				e.printStackTrace();
 			}
 			long date12 = System.currentTimeMillis();
-			MainIngestFile.mongoLoad.addAndGet(date12-date11);
+			mongoLoad.addAndGet(date12-date11);
 		}
 	}
 }

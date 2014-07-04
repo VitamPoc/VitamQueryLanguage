@@ -1,0 +1,209 @@
+Ingest-1
+========
+ Big Test (1 Threads chacune 239 itérations de load, nb MAIP: 1341986) with MAIP: 1341986 DATA: 1003800 => Load:3,8608055
+Telegrammes - 1
+Thread;nbLoad;nbTotal;cpuload;Load
+1;1341986;1341986;0,17065376043319702;3,8608055
+Disk: ES = 420 Mo, MD = 4500 Mo
+[2013-05-06 11:39:42,932]-[2013-05-06 13:06:12,184] = 5190s => 3,86ms/item
+Ingest-2
+========
+ Big Test (1 Threads chacune 239 itérations de load, nb MAIP: 364301) with MAIP: 1392323 DATA: 1003800 => Load:10,742877
+Telegrammes - 2 (extension)
+Thread;nbLoad;nbTotal;cpuload;Load
+1;364301;1392323;0,09877622127532959;10,742877
+Disk: ES = 611 Mo, MD = 6010 Mo
+[2013-05-06 13:33:32,873]-[2013-05-06 14:38:46,912] = 3914s => 10,74ms/item
+
+Request
+=======
+ Big Test (1 Threads each with 239 requests) with MAIP: 1392323 DATA: 1003800 Tree:8,589958 DepthMax:5,506276
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;1392323;0,5319967269897461;8,589958;5,506276
+
+ Big Test (1 Threads each with 239 requests) with MAIP: 1392323 DATA: 1003800 Tree:7,9037657 DepthMax:5,3640165
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;1392323;0,5691449642181396;7,9037657;5,3640165
+ Big Test (2 Threads each with 239 requests) with MAIP: 1392323 DATA: 1003800 Tree:9,221757 DepthMax:7,5041842
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;478;1392323;0,679425835609436;9,221757;7,5041842
+ Big Test (4 Threads each with 239 requests) with MAIP: 1392323 DATA: 1003800 Tree:15,172594 DepthMax:12,959205
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;956;1392323;0,895290195941925;15,172594;12,959205
+
+JMeter
+======
+10 clients x 2; 1000 requests; 300ms; Telegramme; 1342K Maip; 1004 K Data = 2000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme tree;10000;12;10;21;5;74;0,0;30,95189456546635;0,0
+telegramme depth;10000;8;7;16;3;62;0,0;31,182859405841796;0,0
+TOTAL;20000;10;9;19;3;74;0,0;61,9037891309327;0,0
+
+10 clients x 2; 1000 requests; 150ms; Telegramme; 1342K Maip; 1004 K Data = 4000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme tree;10000;11;9;20;5;95;0,0;57,79044030536468;0,0
+telegramme depth;10000;8;6;15;3;86;0,0;59,318665804568724;0,0
+TOTAL;20000;9;8;18;3;95;0,0;115,58088061072937;0,0
+
+10 clients x 2; 1000 requests; 75ms; Telegramme; 1342K Maip; 1004 K Data (40% CPU) = 8000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme tree;10000;14;13;23;5;60;0,0;98,11424422597673;0,0
+telegramme depth;10000;10;9;18;3;73;0,0;101,92848697353936;0,0
+TOTAL;20000;12;11;21;3;73;0,0;196,22848845195347;0,0
+
+10 clients x 2; 1000 requests; 25ms; Telegramme; 1342K Maip; 1004 K Data (97% CPU) = 24000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme depth;10000;21;21;33;3;66;0,0;147,6995790561997;0,0
+telegramme tree;10000;26;26;40;5;72;0,0;140,5086412814388;0,0
+TOTAL;20000;24;24;37;3;72;0,0;280,9264955824309;0,0
+
+50 clients x 2; 1000 requests; 300ms; Telegramme; 1342K Maip; 1004 K Data (50% CPU) = 10000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme tree;50000;50;42;104;5;218;0,0;132,00623069408877;0,0
+telegramme depth;50000;44;35;95;3;236;0,0;130,1846017653032;0,0
+TOTAL;100000;47;38;100;3;236;0,0;260,3651360668201;0,0
+
+Ingest-Courriel
+===============
+ Big Test (1 Threads chacune 60 itérations de load, nb MAIP: 1344901) with MAIP: 2737224 DATA: 2011800 => Load:4,7069316
+Thread;nbLoad;nbTotal;cpuload;Load
+1;1344901;2737224;0,13849759101867676;4,7069316
+Disk: ES = 989 Mo (611 Mo), MD = 9020 Mo (6010 Mo)
+[2013-05-06 16:10:33,527]-[2013-05-06 17:56:05,573] = 6360s => 4,73ms/item
+
+Request-Telegramme (apres chargement de Courriel)
+==================
+ Big Test (1 Threads each with 239 requests) with MAIP: 2737224 DATA: 2011800 Tree:9,631799 DepthMax:6,422594
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;2737224;0,4585387706756592;9,631799;6,422594
+
+ Big Test (2 Threads each with 239 requests) with MAIP: 2737224 DATA: 2011800 Tree:12,451883 DepthMax:7,9769874
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;478;2737224;0,5415022373199463;12,451883;7,9769874
+
+ Big Test (4 Threads each with 239 requests) with MAIP: 2737224 DATA: 2011800 Tree:16,766737 DepthMax:13,520921
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;956;2737224;0,842109739780426;16,766737;13,520921
+
+Request-Courriel
+================
+ Big Test (1 Threads each with 239 requests) with MAIP: 2737224 DATA: 2011800 Tree:12,564854 DepthMax:6,0543933
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;2737224;0,6262099742889404;12,564854;6,0543933
+
+ Big Test (2 Threads each with 239 requests) with MAIP: 2737224 DATA: 2011800 Tree:16,451883 DepthMax:8,228033
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;478;2737224;0,6884910464286804;16,451883;8,228033
+
+ Big Test (4 Threads each with 239 requests) with MAIP: 2737224 DATA: 2011800 Tree:27,65795 DepthMax:14,095188
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;956;2737224;0,8887112140655518;27,65795;14,095188
+
+50 clients x 2; 1000 requests; 300ms; Telegramme; 2737K Maip; 2012 K Data (50% CPU) = 10000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme tree;50000;48;39;103;5;367;0,0;131,89967183361648;0,0
+telegramme depth;50000;41;31;93;3;344;0,0;129,1956280199478;0,0
+TOTAL;100000;45;35;98;3;367;0,0;258,2517903305365;0,0
+
+Ingest TypeDeep : + 6.4M Maip, + 6.3M Data
+===============
+Disk: ES = 1350 Mo (989 Mo), MD = 18000 Mo (9020 Mo)
+Request-Telegramme (apres chargement de TypeDeep)
+=================================================
+ Big Test (1 Threads each with 239 requests) with MAIP: 9126165 DATA: 8335572 Tree:15,359833 DepthMax:5,3849373
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;9126165;0,3346174359321594;15,359833;5,3849373
+
+ Big Test (2 Threads each with 239 requests) with MAIP: 9126165 DATA: 8335572 Tree:15,930963 DepthMax:7,4811716
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;478;9126165;0,4053477644920349;15,930963;7,4811716
+
+ Big Test (4 Threads each with 239 requests) with MAIP: 9126165 DATA: 8335572 Tree:18,237448 DepthMax:12,786611
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;956;9126165;0,8145869970321655;18,237448;12,786611
+
+Ingest-Courriel
+===============
+ Big Test (1 Threads chacune 10 itérations de load, nb MAIP: 2020610) with MAIP: 11713088 DATA: 10896095 => Load:6,390791
+Thread;nbLoad;nbTotal;cpuload;Load
+1;2020610;11713088;0,10747236013412476;6,390791
+Disk: ES = 1560 Mo (1350 Mo), MD = 21100 Mo (18000 Mo)
+
+Request-Telegramme (apres chargement de TypeDeep 2M)
+=================================================
+ Big Test (1 Threads each with 239 requests) with MAIP: 11713088 DATA: 10896095 Tree:13,138075 DepthMax:4,6443515
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;11713088;0,3872796893119812;13,138075;4,6443515
+
+ Big Test (2 Threads each with 239 requests) with MAIP: 11713088 DATA: 10896095 Tree:12,069037 DepthMax:7,332636
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;478;11713088;0,5248380899429321;12,069037;7,332636
+
+ Big Test (4 Threads each with 239 requests) with MAIP: 11713088 DATA: 10896095 Tree:16,869247 DepthMax:12,842051
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;956;11713088;0,8292967677116394;16,869247;12,842051
+
+Request-TypeDeep 2M / 11.7M
+================
+50 clients x 2; 1000 requests; 300ms; TypeDeep; 11713K Maip; 10896 K Data (50% CPU) = 10000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+TypeDeep7 depth;50000;10;8;19;3;252;0,0;153,75011915634235;0,0
+TypeDeep7 tree;50000;8;5;17;1;290;0,0;154,88507527414657;0,0
+TOTAL;100000;9;6;18;1;290;0,0;307,4926739870423;0,0
+
+Request-Telegramme 1.4M / 11.7M
+==================
+50 clients x 2; 1000 requests; 300ms; Telegramme; 11713K Maip; 10896 K Data (50% CPU) = 10000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme depth;50000;57;41;120;3;736;0,0;118,59779455541245;0,0
+telegramme tree;50000;67;53;133;5;773;0,0;120,68112426535366;0,0
+TOTAL;100000;62;47;127;3;773;0,0;237,1955891108249;0,0
+
+Ingest TypeDeep : + 8M Maip, + 8M Data
+===============
+
+ Big Test (1 Threads chacune 40 itérations de load, nb MAIP: 8082440) with MAIP: 19795528 DATA: 18896095 => Load:6,8890
+Thread;nbLoad;nbTotal;cpuload;Load
+1;8082440;19795528;0,07201778888702393;6,8890
+Disk: ES = 2140 Mo (1560 Mo), MD = 33000 Mo (21100 Mo)
+
+
+Request-Telegramme 1,4M / 19,8M
+==================
+ Big Test (1 Threads each with 239 requests) with MAIP: 19795528 DATA: 18896095 Tree:14,85774 DepthMax:4,74477
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;239;19795528;0,3038960099220276;14,85774;4,74477
+
+ Big Test (2 Threads each with 239 requests) with MAIP: 19795528 DATA: 18896095 Tree:13,165272 DepthMax:6,2343097
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;478;19795528;0,3899683952331543;13,165272;6,2343097
+
+ Big Test (4 Threads each with 239 requests) with MAIP: 19795528 DATA: 18896095 Tree:16,095188 DepthMax:10,154812
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;956;19795528;0,7099504470825195;16,095188;10,154812
+
+50 clients x 2; 1000 requests; 300ms; Telegramme; 19795K Maip; 18896 K Data (50% CPU) = 10000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+telegramme tree;50000;18;15;34;4;263;0,0;150,18397536982803;0,0
+telegramme depth;50000;13;10;27;3;219;0,0;151,61439002498605;0,0
+TOTAL;100000;15;12;31;3;263;0,0;300,36795073965607;0,0
+
+Request-TypeDeep 10M / 19,8M
+================
+ Big Test (1 Threads each with 100 requests) with MAIP: 19795528 DATA: 18896095 Tree:42,7 DepthMax:24,52
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+1;100;19795528;0,09991276264190674;42,7;24,52
+
+ Big Test (2 Threads each with 100 requests) with MAIP: 19795528 DATA: 18896095 Tree:86,425 DepthMax:27,825
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+2;200;19795528;0,07541811466217041;86,425;27,825
+
+ Big Test (4 Threads each with 100 requests) with MAIP: 19795528 DATA: 18896095 Tree:118,995 DepthMax:38,2525
+Thread;nbReq;nbMaip;cpureq;Tree;DepthMax
+4;400;19795528;0,07989609241485596;118,995;38,2525
+
+50 clients x 2; 1000 requests; 300ms; TypeDeep; 19795K Maip; 18896 K Data (30% CPU) = 10000 user Little
+sampler_label;aggregate_report_count;average;aggregate_report_median;aggregate_report_90%_line;aggregate_report_min;aggregate_report_max;aggregate_report_error%;aggregate_report_rate;aggregate_report_bandwidth
+TypeDeep7 depth;50000;26;5;19;2;6772;0,0;146,07667272397936;0,0
+TypeDeep7 tree;50000;41;13;52;1;7638;0,0;139,85857500895094;0,0
+TOTAL;100000;34;6;41;1;7638;0,0;279,7171500179019;0,0
