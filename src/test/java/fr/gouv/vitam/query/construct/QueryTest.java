@@ -1,6 +1,10 @@
 package fr.gouv.vitam.query.construct;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -15,11 +19,12 @@ import fr.gouv.vitam.query.parser.ParserTokens.PROJECTION;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
 
+@SuppressWarnings("javadoc")
 public class QueryTest {
 
     @Test
     public void testAddLimitFilter() {
-        Query query = new Query();
+        final Query query = new Query();
         assertNull(query.filter);
         query.setLimitFilter(0, 0);
         assertFalse(query.filter.has(REQUESTFILTER.limit.exactToken()));
@@ -40,7 +45,7 @@ public class QueryTest {
 
     @Test
     public void testAddHintFilter() {
-        Query query = new Query();
+        final Query query = new Query();
         assertNull(query.filter);
         query.addHintFilter(FILTERARGS.cache.exactToken());
         assertTrue(query.filter.has(REQUESTFILTER.hint.exactToken()));
@@ -54,7 +59,7 @@ public class QueryTest {
 
     @Test
     public void testAddOrderByAscFilter() {
-        Query query = new Query();
+        final Query query = new Query();
         assertNull(query.filter);
         query.addOrderByAscFilter("var1", "var2");
         assertEquals(2, query.filter.get(REQUESTFILTER.orderby.exactToken()).size());
@@ -70,7 +75,7 @@ public class QueryTest {
 
     @Test
     public void testAddUsedProjection() {
-        Query query = new Query();
+        final Query query = new Query();
         assertNull(query.projection);
         query.addUsedProjection("var1", "var2");
         assertEquals(2, query.projection.get(PROJECTION.fields.exactToken()).size());
@@ -87,7 +92,7 @@ public class QueryTest {
 
     @Test
     public void testAddUsageProjection() {
-        Query query = new Query();
+        final Query query = new Query();
         assertNull(query.projection);
         query.setUsageProjection("usage");
         assertTrue(query.projection.has(PROJECTION.usage.exactToken()));
@@ -97,11 +102,12 @@ public class QueryTest {
 
     @Test
     public void testAddRequests() {
-        Query query = new Query();
+        final Query query = new Query();
         assertNull(query.requests);
         try {
-            query.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA")).setRelativeDepthLimit(5));
-            query.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
+            query.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA"))
+                    .setRelativeDepthLimit(5));
+            query.addRequests(new PathRequest("path1", "path2"), new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
             query.addRequests(new PathRequest("path3"));
             assertEquals(4, query.getRequests().size());
             query.setLimitFilter(10, 10);
@@ -109,11 +115,11 @@ public class QueryTest {
             query.addOrderByAscFilter("var1").addOrderByDescFilter("var2");
             query.addUsedProjection("var3").addUnusedProjection("var4");
             query.setUsageProjection("usageId");
-            ObjectNode node = query.getFinalQuery();
+            final ObjectNode node = query.getFinalQuery();
             assertEquals(3, node.size());
             query.resetRequests();
             assertEquals(0, query.getRequests().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

@@ -1,12 +1,9 @@
 /*
  * Copyright 2013 The Netty Project
- *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,23 +14,23 @@
  * Copyright (c) 2004-2011 QOS.ch
  * All rights reserved.
  *
- * Permission is hereby granted, free  of charge, to any person obtaining
- * a  copy  of this  software  and  associated  documentation files  (the
- * "Software"), to  deal in  the Software without  restriction, including
- * without limitation  the rights to  use, copy, modify,  merge, publish,
- * distribute,  sublicense, and/or sell  copies of  the Software,  and to
- * permit persons to whom the Software  is furnished to do so, subject to
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * The  above  copyright  notice  and  this permission  notice  shall  be
+ * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+ * THE SOFTWARE IS PROVIDED "AS  IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
@@ -53,20 +50,20 @@ import java.util.Map;
  * <p/>
  * For example,
  * <p/>
+ *
  * <pre>
  * MessageFormatter.format(&quot;Hi {}.&quot;, &quot;there&quot;)
  * </pre>
  * <p/>
  * will return the string "Hi there.".
  * <p/>
- * The {} pair is called the <em>formatting anchor</em>. It serves to designate
- * the location where arguments need to be substituted within the message
- * pattern.
+ * The {} pair is called the <em>formatting anchor</em>. It serves to designate the location where arguments need to be
+ * substituted within the message pattern.
  * <p/>
- * In case your message contains the '{' or the '}' character, you do not have
- * to do anything special unless the '}' character immediately follows '{'. For
- * example,
+ * In case your message contains the '{' or the '}' character, you do not have to do anything special unless the '}' character
+ * immediately follows '{'. For example,
  * <p/>
+ *
  * <pre>
  * MessageFormatter.format(&quot;Set {1,2,3} is not equal to {}.&quot;, &quot;1,2&quot;);
  * </pre>
@@ -74,12 +71,11 @@ import java.util.Map;
  * will return the string "Set {1,2,3} is not equal to 1,2.".
  * <p/>
  * <p/>
- * If for whatever reason you need to place the string "{}" in the message
- * without its <em>formatting anchor</em> meaning, then you need to escape the
- * '{' character with '\', that is the backslash character. Only the '{'
- * character should be escaped. There is no need to escape the '}' character.
- * For example,
+ * If for whatever reason you need to place the string "{}" in the message without its <em>formatting anchor</em> meaning, then
+ * you need to escape the '{' character with '\', that is the backslash character. Only the '{' character should be escaped. There
+ * is no need to escape the '}' character. For example,
  * <p/>
+ *
  * <pre>
  * MessageFormatter.format(&quot;Set \\{} is not equal to {}.&quot;, &quot;1,2&quot;);
  * </pre>
@@ -87,9 +83,9 @@ import java.util.Map;
  * will return the string "Set {} is not equal to 1,2.".
  * <p/>
  * <p/>
- * The escaping behavior just described can be overridden by escaping the escape
- * character '\'. Calling
+ * The escaping behavior just described can be overridden by escaping the escape character '\'. Calling
  * <p/>
+ *
  * <pre>
  * MessageFormatter.format(&quot;File name is C:\\\\{}.&quot;, &quot;file.zip&quot;);
  * </pre>
@@ -97,20 +93,17 @@ import java.util.Map;
  * will return the string "File name is C:\file.zip".
  * <p/>
  * <p/>
- * The formatting conventions are different than those of {@link MessageFormat}
- * which ships with the Java platform. This is justified by the fact that
- * SLF4J's implementation is 10 times faster than that of {@link MessageFormat}.
- * This local performance difference is both measurable and significant in the
- * larger context of the complete logging processing chain.
+ * The formatting conventions are different than those of {@link MessageFormat} which ships with the Java platform. This is
+ * justified by the fact that SLF4J's implementation is 10 times faster than that of {@link MessageFormat}. This local performance
+ * difference is both measurable and significant in the larger context of the complete logging processing chain.
  * <p/>
  * <p/>
- * See also {@link #format(String, Object)},
- * {@link #format(String, Object, Object)} and
- * {@link #arrayFormat(String, Object[])} methods for more details.
+ * See also {@link #format(String, Object)}, {@link #format(String, Object, Object)} and {@link #arrayFormat(String, Object[])}
+ * methods for more details.
  */
 final class MessageFormatter {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MessageFormatter.class);
-    
+
     static final char DELIM_START = '{';
     static final char DELIM_STOP = '}';
     static final String DELIM_STR = "{}";
@@ -122,6 +115,7 @@ final class MessageFormatter {
      * <p/>
      * For example,
      * <p/>
+     *
      * <pre>
      * MessageFormatter.format(&quot;Hi {}.&quot;, &quot;there&quot;);
      * </pre>
@@ -129,12 +123,14 @@ final class MessageFormatter {
      * will return the string "Hi there.".
      * <p/>
      *
-     * @param messagePattern The message pattern which will be parsed and formatted
-     * @param arg            The argument to be substituted in place of the formatting anchor
+     * @param messagePattern
+     *            The message pattern which will be parsed and formatted
+     * @param arg
+     *            The argument to be substituted in place of the formatting anchor
      * @return The formatted message
      */
-    static FormattingTuple format(String messagePattern, Object arg) {
-        return arrayFormat(messagePattern, new Object[]{arg});
+    static FormattingTuple format(final String messagePattern, final Object arg) {
+        return arrayFormat(messagePattern, new Object[] { arg });
     }
 
     /**
@@ -143,25 +139,28 @@ final class MessageFormatter {
      * <p/>
      * For example,
      * <p/>
+     *
      * <pre>
      * MessageFormatter.format(&quot;Hi {}. My name is {}.&quot;, &quot;Alice&quot;, &quot;Bob&quot;);
      * </pre>
      * <p/>
      * will return the string "Hi Alice. My name is Bob.".
      *
-     * @param messagePattern The message pattern which will be parsed and formatted
-     * @param argA           The argument to be substituted in place of the first formatting
-     *                       anchor
-     * @param argB           The argument to be substituted in place of the second formatting
-     *                       anchor
+     * @param messagePattern
+     *            The message pattern which will be parsed and formatted
+     * @param argA
+     *            The argument to be substituted in place of the first formatting
+     *            anchor
+     * @param argB
+     *            The argument to be substituted in place of the second formatting
+     *            anchor
      * @return The formatted message
      */
-    static FormattingTuple format(final String messagePattern,
-                                  Object argA, Object argB) {
-        return arrayFormat(messagePattern, new Object[]{argA, argB});
+    static FormattingTuple format(final String messagePattern, final Object argA, final Object argB) {
+        return arrayFormat(messagePattern, new Object[] { argA, argB });
     }
 
-    static Throwable getThrowableCandidate(Object[] argArray) {
+    static Throwable getThrowableCandidate(final Object[] argArray) {
         if (argArray == null || argArray.length == 0) {
             return null;
         }
@@ -174,19 +173,20 @@ final class MessageFormatter {
     }
 
     /**
-     * Same principle as the {@link #format(String, Object)} and
-     * {@link #format(String, Object, Object)} methods except that any number of
+     * Same principle as the {@link #format(String, Object)} and {@link #format(String, Object, Object)} methods except that any
+     * number of
      * arguments can be passed in an array.
      *
-     * @param messagePattern The message pattern which will be parsed and formatted
-     * @param argArray       An array of arguments to be substituted in place of formatting
-     *                       anchors
+     * @param messagePattern
+     *            The message pattern which will be parsed and formatted
+     * @param argArray
+     *            An array of arguments to be substituted in place of formatting
+     *            anchors
      * @return The formatted message
      */
-    static FormattingTuple arrayFormat(final String messagePattern,
-                                       final Object[] argArray) {
+    static FormattingTuple arrayFormat(final String messagePattern, final Object[] argArray) {
 
-        Throwable throwableCandidate = getThrowableCandidate(argArray);
+        final Throwable throwableCandidate = getThrowableCandidate(argArray);
 
         if (messagePattern == null) {
             return new FormattingTuple(null, argArray, throwableCandidate);
@@ -198,7 +198,7 @@ final class MessageFormatter {
 
         int i = 0;
         int j;
-        StringBuffer sbuf = new StringBuffer(messagePattern.length() + 50);
+        final StringBuffer sbuf = new StringBuffer(messagePattern.length() + 50);
 
         int l;
         for (l = 0; l < argArray.length; l++) {
@@ -208,13 +208,11 @@ final class MessageFormatter {
             if (j == -1) {
                 // no more variables
                 if (i == 0) { // this is a simple string
-                    return new FormattingTuple(messagePattern, argArray,
-                            throwableCandidate);
+                    return new FormattingTuple(messagePattern, argArray, throwableCandidate);
                 } else { // add the tail string which contains no variables and return
                     // the result.
                     sbuf.append(messagePattern.substring(i, messagePattern.length()));
-                    return new FormattingTuple(sbuf.toString(), argArray,
-                            throwableCandidate);
+                    return new FormattingTuple(sbuf.toString(), argArray, throwableCandidate);
                 }
             } else {
                 if (isEscapedDelimeter(messagePattern, j)) {
@@ -248,8 +246,7 @@ final class MessageFormatter {
         }
     }
 
-    static boolean isEscapedDelimeter(String messagePattern,
-                                      int delimeterStartIndex) {
+    static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
 
         if (delimeterStartIndex == 0) {
             return false;
@@ -257,14 +254,12 @@ final class MessageFormatter {
         return messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;
     }
 
-    static boolean isDoubleEscaped(String messagePattern,
-                                   int delimeterStartIndex) {
+    static boolean isDoubleEscaped(final String messagePattern, final int delimeterStartIndex) {
         return delimeterStartIndex >= 2 && messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;
     }
 
     // special treatment of array values was suggested by 'lizongbo'
-    private static void deeplyAppendParameter(StringBuffer sbuf, Object o,
-                                              Map<Object[], Void> seenMap) {
+    private static void deeplyAppendParameter(final StringBuffer sbuf, final Object o, final Map<Object[], Void> seenMap) {
         if (o == null) {
             sbuf.append("null");
             return;
@@ -296,19 +291,17 @@ final class MessageFormatter {
         }
     }
 
-    private static void safeObjectAppend(StringBuffer sbuf, Object o) {
+    private static void safeObjectAppend(final StringBuffer sbuf, final Object o) {
         try {
-            String oAsString = o.toString();
+            final String oAsString = o.toString();
             sbuf.append(oAsString);
-        } catch (Throwable t) {
-            LOGGER.error("SLF4J: Failed toString() invocation on an object of type ["
-                            + o.getClass().getName() + ']', t);
+        } catch (final Throwable t) {
+            LOGGER.error("SLF4J: Failed toString() invocation on an object of type [" + o.getClass().getName() + ']', t);
             sbuf.append("[FAILED toString()]");
         }
     }
 
-    private static void objectArrayAppend(StringBuffer sbuf, Object[] a,
-                                          Map<Object[], Void> seenMap) {
+    private static void objectArrayAppend(final StringBuffer sbuf, final Object[] a, final Map<Object[], Void> seenMap) {
         sbuf.append('[');
         if (!seenMap.containsKey(a)) {
             seenMap.put(a, null);
@@ -327,7 +320,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void booleanArrayAppend(StringBuffer sbuf, boolean[] a) {
+    private static void booleanArrayAppend(final StringBuffer sbuf, final boolean[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -339,7 +332,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void byteArrayAppend(StringBuffer sbuf, byte[] a) {
+    private static void byteArrayAppend(final StringBuffer sbuf, final byte[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -351,7 +344,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void charArrayAppend(StringBuffer sbuf, char[] a) {
+    private static void charArrayAppend(final StringBuffer sbuf, final char[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -363,7 +356,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void shortArrayAppend(StringBuffer sbuf, short[] a) {
+    private static void shortArrayAppend(final StringBuffer sbuf, final short[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -375,7 +368,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void intArrayAppend(StringBuffer sbuf, int[] a) {
+    private static void intArrayAppend(final StringBuffer sbuf, final int[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -387,7 +380,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void longArrayAppend(StringBuffer sbuf, long[] a) {
+    private static void longArrayAppend(final StringBuffer sbuf, final long[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -399,7 +392,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void floatArrayAppend(StringBuffer sbuf, float[] a) {
+    private static void floatArrayAppend(final StringBuffer sbuf, final float[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {
@@ -411,7 +404,7 @@ final class MessageFormatter {
         sbuf.append(']');
     }
 
-    private static void doubleArrayAppend(StringBuffer sbuf, double[] a) {
+    private static void doubleArrayAppend(final StringBuffer sbuf, final double[] a) {
         sbuf.append('[');
         final int len = a.length;
         for (int i = 0; i < len; i++) {

@@ -1,6 +1,9 @@
 package fr.gouv.vitam.query.construct;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -14,11 +17,12 @@ import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.ACTIONFILTER;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
+@SuppressWarnings("javadoc")
 public class InsertTest {
 
     @Test
     public void testSetMult() {
-        Insert insert = new Insert();
+        final Insert insert = new Insert();
         assertTrue(insert.getFilter().size() == 0);
         insert.setMult(true);
         assertTrue(insert.getFilter().size() == 1);
@@ -31,7 +35,7 @@ public class InsertTest {
 
     @Test
     public void testAddData() {
-        Insert insert = new Insert();
+        final Insert insert = new Insert();
         assertNull(insert.data);
         insert.addData(JsonHandler.createObjectNode().put("var1", 1));
         insert.addData(JsonHandler.createObjectNode().put("var2", "val"));
@@ -42,16 +46,18 @@ public class InsertTest {
 
     @Test
     public void testAddRequests() {
-        Insert insert = new Insert();
+        final Insert insert = new Insert();
         assertNull(insert.requests);
         try {
-            insert.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA")).setRelativeDepthLimit(5));
-            insert.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
+            insert.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA"))
+                    .setRelativeDepthLimit(5));
+            insert.addRequests(new PathRequest("path1", "path2"),
+                    new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
             insert.addRequests(new PathRequest("path3"));
             assertEquals(4, insert.requests.size());
             insert.resetRequests();
             assertEquals(0, insert.requests.size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -59,16 +65,16 @@ public class InsertTest {
 
     @Test
     public void testGetFinalInsert() {
-        Insert insert = new Insert();
+        final Insert insert = new Insert();
         assertNull(insert.requests);
         try {
             insert.addRequests(new PathRequest("path3"));
             assertEquals(1, insert.requests.size());
             insert.setMult(true);
             insert.addData(JsonHandler.createObjectNode().put("var1", 1));
-            ObjectNode node = insert.getFinalInsert();
+            final ObjectNode node = insert.getFinalInsert();
             assertEquals(3, node.size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

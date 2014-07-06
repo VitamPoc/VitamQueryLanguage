@@ -1,12 +1,9 @@
 /*
  * Copyright 2012 The Netty Project
- *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,23 +14,23 @@
  * Copyright (c) 2004-2011 QOS.ch
  * All rights reserved.
  *
- * Permission is hereby granted, free  of charge, to any person obtaining
- * a  copy  of this  software  and  associated  documentation files  (the
- * "Software"), to  deal in  the Software without  restriction, including
- * without limitation  the rights to  use, copy, modify,  merge, publish,
- * distribute,  sublicense, and/or sell  copies of  the Software,  and to
- * permit persons to whom the Software  is furnished to do so, subject to
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * The  above  copyright  notice  and  this permission  notice  shall  be
+ * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+ * THE SOFTWARE IS PROVIDED "AS  IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
@@ -53,7 +50,7 @@ public class JdkLogger extends AbstractVitamLogger {
 
     final transient Logger logger;
 
-    JdkLogger(Logger logger) {
+    JdkLogger(final Logger logger) {
         super(logger.getName());
         this.logger = logger;
     }
@@ -72,10 +69,10 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message object at level FINEST.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void trace(String msg) {
+    public void trace(final String msg) {
         if (logger.isLoggable(Level.FINEST)) {
             log(SELF, Level.FINEST, msg, null);
         }
@@ -86,19 +83,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for level FINEST.
+     * This form avoids superfluous object creation when the logger is disabled for level FINEST.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void trace(String format, Object arg) {
+    public void trace(final String format, final Object arg) {
         if (logger.isLoggable(Level.FINEST)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             log(SELF, Level.FINEST, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -108,21 +104,20 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the FINEST level.
+     * This form avoids superfluous object creation when the logger is disabled for the FINEST level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void trace(String format, Object argA, Object argB) {
+    public void trace(final String format, final Object argA, final Object argB) {
         if (logger.isLoggable(Level.FINEST)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             log(SELF, Level.FINEST, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -132,19 +127,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the FINEST level.
+     * This form avoids superfluous object creation when the logger is disabled for the FINEST level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void trace(String format, Object... argArray) {
+    public void trace(final String format, final Object... argArray) {
         if (logger.isLoggable(Level.FINEST)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             log(SELF, Level.FINEST, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -153,12 +147,12 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log an exception (throwable) at level FINEST with an accompanying message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void trace(String msg, Throwable t) {
+    public void trace(final String msg, final Throwable t) {
         if (logger.isLoggable(Level.FINEST)) {
             log(SELF, Level.FINEST, msg, t);
         }
@@ -178,10 +172,10 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message object at level FINE.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void debug(String msg) {
+    public void debug(final String msg) {
         if (logger.isLoggable(Level.FINE)) {
             log(SELF, Level.FINE, msg, null);
         }
@@ -191,19 +185,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message at level FINE according to the specified format and argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for level FINE.
+     * This form avoids superfluous object creation when the logger is disabled for level FINE.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void debug(String format, Object arg) {
+    public void debug(final String format, final Object arg) {
         if (logger.isLoggable(Level.FINE)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             log(SELF, Level.FINE, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -213,21 +206,20 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the FINE level.
+     * This form avoids superfluous object creation when the logger is disabled for the FINE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void debug(String format, Object argA, Object argB) {
+    public void debug(final String format, final Object argA, final Object argB) {
         if (logger.isLoggable(Level.FINE)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             log(SELF, Level.FINE, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -237,19 +229,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the FINE level.
+     * This form avoids superfluous object creation when the logger is disabled for the FINE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void debug(String format, Object... argArray) {
+    public void debug(final String format, final Object... argArray) {
         if (logger.isLoggable(Level.FINE)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             log(SELF, Level.FINE, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -258,12 +249,12 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log an exception (throwable) at level FINE with an accompanying message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void debug(String msg, Throwable t) {
+    public void debug(final String msg, final Throwable t) {
         if (logger.isLoggable(Level.FINE)) {
             log(SELF, Level.FINE, msg, t);
         }
@@ -283,10 +274,10 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message object at the INFO level.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void info(String msg) {
+    public void info(final String msg) {
         if (logger.isLoggable(Level.INFO)) {
             log(SELF, Level.INFO, msg, null);
         }
@@ -296,19 +287,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message at level INFO according to the specified format and argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the INFO level.
+     * This form avoids superfluous object creation when the logger is disabled for the INFO level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void info(String format, Object arg) {
+    public void info(final String format, final Object arg) {
         if (logger.isLoggable(Level.INFO)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             log(SELF, Level.INFO, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -318,21 +308,20 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the INFO level.
+     * This form avoids superfluous object creation when the logger is disabled for the INFO level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void info(String format, Object argA, Object argB) {
+    public void info(final String format, final Object argA, final Object argB) {
         if (logger.isLoggable(Level.INFO)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             log(SELF, Level.INFO, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -342,19 +331,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the INFO level.
+     * This form avoids superfluous object creation when the logger is disabled for the INFO level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void info(String format, Object... argArray) {
+    public void info(final String format, final Object... argArray) {
         if (logger.isLoggable(Level.INFO)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             log(SELF, Level.INFO, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -364,12 +352,12 @@ public class JdkLogger extends AbstractVitamLogger {
      * message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void info(String msg, Throwable t) {
+    public void info(final String msg, final Throwable t) {
         if (logger.isLoggable(Level.INFO)) {
             log(SELF, Level.INFO, msg, t);
         }
@@ -390,10 +378,10 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message object at the WARNING level.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void warn(String msg) {
+    public void warn(final String msg) {
         if (logger.isLoggable(Level.WARNING)) {
             log(SELF, Level.WARNING, msg, null);
         }
@@ -404,19 +392,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the WARNING level.
+     * This form avoids superfluous object creation when the logger is disabled for the WARNING level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void warn(String format, Object arg) {
+    public void warn(final String format, final Object arg) {
         if (logger.isLoggable(Level.WARNING)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             log(SELF, Level.WARNING, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -426,21 +413,20 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the WARNING level.
+     * This form avoids superfluous object creation when the logger is disabled for the WARNING level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void warn(String format, Object argA, Object argB) {
+    public void warn(final String format, final Object argA, final Object argB) {
         if (logger.isLoggable(Level.WARNING)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             log(SELF, Level.WARNING, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -450,19 +436,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the WARNING level.
+     * This form avoids superfluous object creation when the logger is disabled for the WARNING level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void warn(String format, Object... argArray) {
+    public void warn(final String format, final Object... argArray) {
         if (logger.isLoggable(Level.WARNING)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             log(SELF, Level.WARNING, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -472,12 +457,12 @@ public class JdkLogger extends AbstractVitamLogger {
      * message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void warn(String msg, Throwable t) {
+    public void warn(final String msg, final Throwable t) {
         if (logger.isLoggable(Level.WARNING)) {
             log(SELF, Level.WARNING, msg, t);
         }
@@ -497,10 +482,10 @@ public class JdkLogger extends AbstractVitamLogger {
      * Log a message object at the SEVERE level.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void error(String msg) {
+    public void error(final String msg) {
         if (logger.isLoggable(Level.SEVERE)) {
             log(SELF, Level.SEVERE, msg, null);
         }
@@ -511,19 +496,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the SEVERE level.
+     * This form avoids superfluous object creation when the logger is disabled for the SEVERE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void error(String format, Object arg) {
+    public void error(final String format, final Object arg) {
         if (logger.isLoggable(Level.SEVERE)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             log(SELF, Level.SEVERE, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -533,21 +517,20 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the SEVERE level.
+     * This form avoids superfluous object creation when the logger is disabled for the SEVERE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void error(String format, Object argA, Object argB) {
+    public void error(final String format, final Object argA, final Object argB) {
         if (logger.isLoggable(Level.SEVERE)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             log(SELF, Level.SEVERE, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -557,19 +540,18 @@ public class JdkLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the SEVERE level.
+     * This form avoids superfluous object creation when the logger is disabled for the SEVERE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arguments
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void error(String format, Object... arguments) {
+    public void error(final String format, final Object... arguments) {
         if (logger.isLoggable(Level.SEVERE)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
             log(SELF, Level.SEVERE, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -579,12 +561,12 @@ public class JdkLogger extends AbstractVitamLogger {
      * message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void error(String msg, Throwable t) {
+    public void error(final String msg, final Throwable t) {
         if (logger.isLoggable(Level.SEVERE)) {
             log(SELF, Level.SEVERE, msg, t);
         }
@@ -597,9 +579,9 @@ public class JdkLogger extends AbstractVitamLogger {
      *
      * See bug report #13 for more details.
      */
-    private void log(String callerFQCN, Level level, String msg, Throwable t) {
+    private void log(final String callerFQCN, final Level level, final String msg, final Throwable t) {
         // millis and thread are filled by the constructor
-        LogRecord record = new LogRecord(level, msg);
+        final LogRecord record = new LogRecord(level, msg);
         record.setLoggerName(name());
         record.setThrown(t);
         fillCallerData(callerFQCN, record);
@@ -613,10 +595,10 @@ public class JdkLogger extends AbstractVitamLogger {
      * Fill in caller data if possible.
      *
      * @param record
-     *          The record to update
+     *            The record to update
      */
-    private static void fillCallerData(String callerFQCN, LogRecord record) {
-        StackTraceElement[] steArray = new Throwable().getStackTrace();
+    private static void fillCallerData(final String callerFQCN, final LogRecord record) {
+        final StackTraceElement[] steArray = new Throwable().getStackTrace();
 
         int selfIndex = -1;
         for (int i = 0; i < steArray.length; i++) {
@@ -637,7 +619,7 @@ public class JdkLogger extends AbstractVitamLogger {
         }
 
         if (found != -1) {
-            StackTraceElement ste = steArray[found];
+            final StackTraceElement ste = steArray[found];
             // setting the class name has the side effect of setting
             // the needToInferCaller variable to false.
             record.setSourceClassName(ste.getClassName());

@@ -1,12 +1,9 @@
 /*
  * Copyright 2012 The Netty Project
- *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,23 +14,23 @@
  * Copyright (c) 2004-2011 QOS.ch
  * All rights reserved.
  *
- * Permission is hereby granted, free  of charge, to any person obtaining
- * a  copy  of this  software  and  associated  documentation files  (the
- * "Software"), to  deal in  the Software without  restriction, including
- * without limitation  the rights to  use, copy, modify,  merge, publish,
- * distribute,  sublicense, and/or sell  copies of  the Software,  and to
- * permit persons to whom the Software  is furnished to do so, subject to
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * The  above  copyright  notice  and  this permission  notice  shall  be
+ * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+ * THE SOFTWARE IS PROVIDED "AS  IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
@@ -62,7 +59,7 @@ class Log4JLogger extends AbstractVitamLogger {
     // The trace level was introduced in log4j 1.2.12.
     final boolean traceCapable;
 
-    Log4JLogger(Logger logger) {
+    Log4JLogger(final Logger logger) {
         super(logger.getName());
         this.logger = logger;
         traceCapable = isTraceCapable();
@@ -72,7 +69,7 @@ class Log4JLogger extends AbstractVitamLogger {
         try {
             logger.isTraceEnabled();
             return true;
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             return false;
         }
     }
@@ -95,10 +92,10 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log a message object at level TRACE.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void trace(String msg) {
+    public void trace(final String msg) {
         logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, msg, null);
     }
 
@@ -107,21 +104,19 @@ class Log4JLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for level TRACE.
+     * This form avoids superfluous object creation when the logger is disabled for level TRACE.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void trace(String format, Object arg) {
+    public void trace(final String format, final Object arg) {
         if (isTraceEnabled()) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
-            logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, ft
-                    .getMessage(), ft.getThrowable());
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
+            logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, ft.getMessage(), ft.getThrowable());
         }
     }
 
@@ -130,23 +125,21 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the TRACE level.
+     * This form avoids superfluous object creation when the logger is disabled for the TRACE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void trace(String format, Object argA, Object argB) {
+    public void trace(final String format, final Object argA, final Object argB) {
         if (isTraceEnabled()) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
-            logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, ft
-                    .getMessage(), ft.getThrowable());
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, ft.getMessage(), ft.getThrowable());
         }
     }
 
@@ -155,21 +148,19 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the TRACE level.
+     * This form avoids superfluous object creation when the logger is disabled for the TRACE level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arguments
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void trace(String format, Object... arguments) {
+    public void trace(final String format, final Object... arguments) {
         if (isTraceEnabled()) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
-            logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, ft
-                    .getMessage(), ft.getThrowable());
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
+            logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, ft.getMessage(), ft.getThrowable());
         }
     }
 
@@ -177,12 +168,12 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log an exception (throwable) at level TRACE with an accompanying message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void trace(String msg, Throwable t) {
+    public void trace(final String msg, final Throwable t) {
         logger.log(FQCN, traceCapable ? Level.TRACE : Level.DEBUG, msg, t);
     }
 
@@ -200,10 +191,10 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log a message object at level DEBUG.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void debug(String msg) {
+    public void debug(final String msg) {
         logger.log(FQCN, Level.DEBUG, msg, null);
     }
 
@@ -212,19 +203,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for level DEBUG.
+     * This form avoids superfluous object creation when the logger is disabled for level DEBUG.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void debug(String format, Object arg) {
+    public void debug(final String format, final Object arg) {
         if (logger.isDebugEnabled()) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             logger.log(FQCN, Level.DEBUG, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -234,21 +224,20 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the DEBUG level.
+     * This form avoids superfluous object creation when the logger is disabled for the DEBUG level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void debug(String format, Object argA, Object argB) {
+    public void debug(final String format, final Object argA, final Object argB) {
         if (logger.isDebugEnabled()) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             logger.log(FQCN, Level.DEBUG, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -258,18 +247,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the DEBUG level.
+     * This form avoids superfluous object creation when the logger is disabled for the DEBUG level.
      * </p>
      *
      * @param format
-     *          the format string
-     * @param arguments an array of arguments
+     *            the format string
+     * @param arguments
+     *            an array of arguments
      */
     @Override
-    public void debug(String format, Object... arguments) {
+    public void debug(final String format, final Object... arguments) {
         if (logger.isDebugEnabled()) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
             logger.log(FQCN, Level.DEBUG, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -278,12 +267,12 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log an exception (throwable) at level DEBUG with an accompanying message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void debug(String msg, Throwable t) {
+    public void debug(final String msg, final Throwable t) {
         logger.log(FQCN, Level.DEBUG, msg, t);
     }
 
@@ -301,10 +290,10 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log a message object at the INFO level.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void info(String msg) {
+    public void info(final String msg) {
         logger.log(FQCN, Level.INFO, msg, null);
     }
 
@@ -312,19 +301,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log a message at level INFO according to the specified format and argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the INFO level.
+     * This form avoids superfluous object creation when the logger is disabled for the INFO level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void info(String format, Object arg) {
+    public void info(final String format, final Object arg) {
         if (logger.isInfoEnabled()) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             logger.log(FQCN, Level.INFO, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -334,21 +322,20 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the INFO level.
+     * This form avoids superfluous object creation when the logger is disabled for the INFO level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void info(String format, Object argA, Object argB) {
+    public void info(final String format, final Object argA, final Object argB) {
         if (logger.isInfoEnabled()) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             logger.log(FQCN, Level.INFO, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -358,19 +345,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the INFO level.
+     * This form avoids superfluous object creation when the logger is disabled for the INFO level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void info(String format, Object... argArray) {
+    public void info(final String format, final Object... argArray) {
         if (logger.isInfoEnabled()) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             logger.log(FQCN, Level.INFO, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -380,12 +366,12 @@ class Log4JLogger extends AbstractVitamLogger {
      * message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void info(String msg, Throwable t) {
+    public void info(final String msg, final Throwable t) {
         logger.log(FQCN, Level.INFO, msg, t);
     }
 
@@ -403,10 +389,10 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log a message object at the WARN level.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void warn(String msg) {
+    public void warn(final String msg) {
         logger.log(FQCN, Level.WARN, msg, null);
     }
 
@@ -415,19 +401,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the WARN level.
+     * This form avoids superfluous object creation when the logger is disabled for the WARN level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void warn(String format, Object arg) {
+    public void warn(final String format, final Object arg) {
         if (logger.isEnabledFor(Level.WARN)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             logger.log(FQCN, Level.WARN, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -437,21 +422,20 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the WARN level.
+     * This form avoids superfluous object creation when the logger is disabled for the WARN level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void warn(String format, Object argA, Object argB) {
+    public void warn(final String format, final Object argA, final Object argB) {
         if (logger.isEnabledFor(Level.WARN)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             logger.log(FQCN, Level.WARN, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -461,19 +445,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the WARN level.
+     * This form avoids superfluous object creation when the logger is disabled for the WARN level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void warn(String format, Object... argArray) {
+    public void warn(final String format, final Object... argArray) {
         if (logger.isEnabledFor(Level.WARN)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             logger.log(FQCN, Level.WARN, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -483,12 +466,12 @@ class Log4JLogger extends AbstractVitamLogger {
      * message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void warn(String msg, Throwable t) {
+    public void warn(final String msg, final Throwable t) {
         logger.log(FQCN, Level.WARN, msg, t);
     }
 
@@ -506,10 +489,10 @@ class Log4JLogger extends AbstractVitamLogger {
      * Log a message object at the ERROR level.
      *
      * @param msg
-     *          - the message object to be logged
+     *            - the message object to be logged
      */
     @Override
-    public void error(String msg) {
+    public void error(final String msg) {
         logger.log(FQCN, Level.ERROR, msg, null);
     }
 
@@ -518,19 +501,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * argument.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the ERROR level.
+     * This form avoids superfluous object creation when the logger is disabled for the ERROR level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param arg
-     *          the argument
+     *            the argument
      */
     @Override
-    public void error(String format, Object arg) {
+    public void error(final String format, final Object arg) {
         if (logger.isEnabledFor(Level.ERROR)) {
-            FormattingTuple ft = MessageFormatter.format(format, arg);
+            final FormattingTuple ft = MessageFormatter.format(format, arg);
             logger.log(FQCN, Level.ERROR, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -540,21 +522,20 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the ERROR level.
+     * This form avoids superfluous object creation when the logger is disabled for the ERROR level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argA
-     *          the first argument
+     *            the first argument
      * @param argB
-     *          the second argument
+     *            the second argument
      */
     @Override
-    public void error(String format, Object argA, Object argB) {
+    public void error(final String format, final Object argA, final Object argB) {
         if (logger.isEnabledFor(Level.ERROR)) {
-            FormattingTuple ft = MessageFormatter.format(format, argA, argB);
+            final FormattingTuple ft = MessageFormatter.format(format, argA, argB);
             logger.log(FQCN, Level.ERROR, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -564,19 +545,18 @@ class Log4JLogger extends AbstractVitamLogger {
      * arguments.
      *
      * <p>
-     * This form avoids superfluous object creation when the logger is disabled
-     * for the ERROR level.
+     * This form avoids superfluous object creation when the logger is disabled for the ERROR level.
      * </p>
      *
      * @param format
-     *          the format string
+     *            the format string
      * @param argArray
-     *          an array of arguments
+     *            an array of arguments
      */
     @Override
-    public void error(String format, Object... argArray) {
+    public void error(final String format, final Object... argArray) {
         if (logger.isEnabledFor(Level.ERROR)) {
-            FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, argArray);
             logger.log(FQCN, Level.ERROR, ft.getMessage(), ft.getThrowable());
         }
     }
@@ -586,12 +566,12 @@ class Log4JLogger extends AbstractVitamLogger {
      * message.
      *
      * @param msg
-     *          the message accompanying the exception
+     *            the message accompanying the exception
      * @param t
-     *          the exception (throwable) to log
+     *            the exception (throwable) to log
      */
     @Override
-    public void error(String msg, Throwable t) {
+    public void error(final String msg, final Throwable t) {
         logger.log(FQCN, Level.ERROR, msg, t);
     }
 }

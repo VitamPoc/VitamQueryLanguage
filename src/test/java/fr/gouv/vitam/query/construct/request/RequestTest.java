@@ -1,29 +1,23 @@
 package fr.gouv.vitam.query.construct.request;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.query.construct.request.BooleanRequest;
-import fr.gouv.vitam.query.construct.request.CompareRequest;
-import fr.gouv.vitam.query.construct.request.ExistsRequest;
-import fr.gouv.vitam.query.construct.request.InRequest;
-import fr.gouv.vitam.query.construct.request.MatchRequest;
-import fr.gouv.vitam.query.construct.request.MltRequest;
-import fr.gouv.vitam.query.construct.request.PathRequest;
-import fr.gouv.vitam.query.construct.request.RangeRequest;
-import fr.gouv.vitam.query.construct.request.Request;
-import fr.gouv.vitam.query.construct.request.SearchRequest;
-import fr.gouv.vitam.query.construct.request.TermRequest;
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
 
+@SuppressWarnings("javadoc")
 public class RequestTest {
-    
+
     @Test
     public void testRequestBoolean() {
         Request arg1, arg2, argIncomplete;
@@ -31,25 +25,25 @@ public class RequestTest {
             arg1 = new ExistsRequest(REQUEST.exists, "var");
             arg2 = new ExistsRequest(REQUEST.isNull, "var");
             argIncomplete = new BooleanRequest(REQUEST.and);
-        } catch (InvalidCreateOperationException e1) {
+        } catch (final InvalidCreateOperationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
             return;
         }
         REQUEST booleanRequest = REQUEST.and;
         try {
-            BooleanRequest request = new BooleanRequest(booleanRequest);
+            final BooleanRequest request = new BooleanRequest(booleanRequest);
             assertFalse(request.isReady());
             request.addToBooleanRequest(arg1).addToBooleanRequest(arg2).addToBooleanRequest(arg1, arg2);
             assertTrue(request.isReady());
             assertEquals(4, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         booleanRequest = REQUEST.or;
         try {
-            BooleanRequest request = new BooleanRequest(booleanRequest);
+            final BooleanRequest request = new BooleanRequest(booleanRequest);
             assertFalse(request.isReady());
             request.addToBooleanRequest(arg1);
             assertTrue(request.isReady());
@@ -57,13 +51,13 @@ public class RequestTest {
             request.addToBooleanRequest(arg1, arg2);
             assertTrue(request.isReady());
             assertEquals(4, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         booleanRequest = REQUEST.nor;
         try {
-            BooleanRequest request = new BooleanRequest(booleanRequest);
+            final BooleanRequest request = new BooleanRequest(booleanRequest);
             assertFalse(request.isReady());
             request.addToBooleanRequest(arg1);
             assertTrue(request.isReady());
@@ -71,13 +65,13 @@ public class RequestTest {
             request.addToBooleanRequest(arg1, arg2);
             assertTrue(request.isReady());
             assertEquals(4, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         booleanRequest = REQUEST.not;
         try {
-            BooleanRequest request = new BooleanRequest(booleanRequest);
+            final BooleanRequest request = new BooleanRequest(booleanRequest);
             assertFalse(request.isReady());
             request.addToBooleanRequest(arg1);
             assertTrue(request.isReady());
@@ -85,7 +79,7 @@ public class RequestTest {
             request.addToBooleanRequest(arg1, arg2);
             assertTrue(request.isReady());
             assertEquals(4, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -99,21 +93,21 @@ public class RequestTest {
             request.addToBooleanRequest(arg1);
             assertTrue(request.isReady());
             assertEquals(1, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         try {
             request.addToBooleanRequest(argIncomplete);
             fail("Should have raized an exception due to incomplete argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertEquals(1, request.getCurrentObject().size());
         }
         // last
         try {
             request = new BooleanRequest(REQUEST.eq);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -127,14 +121,14 @@ public class RequestTest {
             assertEquals(3, request.getCurrentObject().size());
             request.addPath("id4", "id5").addPath("id6");
             assertEquals(6, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         try {
             request = new PathRequest("");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -149,7 +143,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new ExistsRequest(REQUEST.isNull, "var");
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -157,13 +151,13 @@ public class RequestTest {
         try {
             request = new ExistsRequest(REQUEST.and, "var");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new ExistsRequest(REQUEST.exists, "");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -186,7 +180,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new CompareRequest(REQUEST.size, "var", 1);
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -194,13 +188,13 @@ public class RequestTest {
         try {
             request = new CompareRequest(REQUEST.and, "var", 1);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new CompareRequest(REQUEST.lt, "", 1);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -221,7 +215,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new CompareRequest(REQUEST.ne, "var", 1.0);
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -229,13 +223,13 @@ public class RequestTest {
         try {
             request = new CompareRequest(REQUEST.size, "var", 1.0);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new CompareRequest(REQUEST.lt, "", 1.0);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -256,7 +250,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new CompareRequest(REQUEST.ne, "var", "val");
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -264,13 +258,13 @@ public class RequestTest {
         try {
             request = new CompareRequest(REQUEST.size, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new CompareRequest(REQUEST.lt, "", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -283,7 +277,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new SearchRequest(REQUEST.search, "var", "val");
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -291,16 +285,17 @@ public class RequestTest {
         try {
             request = new SearchRequest(REQUEST.size, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new SearchRequest(REQUEST.search, "", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
+
     @Test
     public void testRequestMatch() {
         MatchRequest request = null;
@@ -321,7 +316,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject().has(REQUESTARGS.max_expansions.exactToken()));
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -329,16 +324,17 @@ public class RequestTest {
         try {
             request = new MatchRequest(REQUEST.size, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new MatchRequest(REQUEST.match, "", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
+
     @Test
     public void testRequestIn() {
         InRequest request = null;
@@ -359,7 +355,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new InRequest(REQUEST.nin, "var", "val");
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -367,34 +363,35 @@ public class RequestTest {
         try {
             request = new InRequest(REQUEST.size, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new InRequest(REQUEST.in, "", true);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new InRequest(REQUEST.in, "", 1);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new InRequest(REQUEST.in, "", 1.0);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new InRequest(REQUEST.in, "", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
+
     @Test
     public void testRequestMlt() {
         MltRequest request = null;
@@ -403,7 +400,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new MltRequest(REQUEST.flt, "var", "val");
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -411,13 +408,13 @@ public class RequestTest {
         try {
             request = new MltRequest(REQUEST.size, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new MltRequest(REQUEST.mlt, "", "val");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -438,7 +435,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new CompareRequest(REQUEST.ne, "var", true);
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -446,13 +443,13 @@ public class RequestTest {
         try {
             request = new CompareRequest(REQUEST.size, "var", true);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new CompareRequest(REQUEST.lt, "", true);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -509,16 +506,16 @@ public class RequestTest {
             request.addInValue(1).addInValue(1.0);
             assertTrue(request.isReady());
             assertEquals(7, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         // last
         try {
             @SuppressWarnings("unused")
-            InRequest request = new InRequest(REQUEST.and, "var", "val1", "val2");
+            final InRequest request = new InRequest(REQUEST.and, "var", "val1", "val2");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
@@ -531,30 +528,30 @@ public class RequestTest {
             request.addMltVariable("var1", "var2").addMltVariable("var3");
             assertTrue(request.isReady());
             assertEquals(3, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         // last
         try {
             @SuppressWarnings("unused")
-            MltRequest request = new MltRequest(REQUEST.and, "var", "val1", "val2");
+            final MltRequest request = new MltRequest(REQUEST.and, "var", "val1", "val2");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             @SuppressWarnings("unused")
-            MltRequest request = new MltRequest(REQUEST.mlt, "", "val1", "val2");
+            final MltRequest request = new MltRequest(REQUEST.mlt, "", "val1", "val2");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
 
     @Test
     public void testRequestTerm() {
-        Map<String, String> map = new HashMap<String, String>();
+        final Map<String, String> map = new HashMap<String, String>();
         map.put("var1", "val1");
         map.put("var2", "val2");
         TermRequest request = null;
@@ -570,14 +567,14 @@ public class RequestTest {
             request.addTermRequest("var3", "val2");
             assertTrue(request.isReady());
             assertEquals(3, request.getCurrentObject().size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         try {
             request = new TermRequest("", "val1");
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -598,7 +595,7 @@ public class RequestTest {
             assertTrue(request.isReady());
             request = new RangeRequest("var", REQUEST.gte, "1", REQUEST.lte, "2");
             assertTrue(request.isReady());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -606,31 +603,31 @@ public class RequestTest {
         try {
             request = new RangeRequest("var", REQUEST.not, 1, REQUEST.lt, 2);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new RangeRequest("var", REQUEST.lt, 1, REQUEST.lt, 2);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new RangeRequest("var", REQUEST.lt, 1, REQUEST.gt, 2);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new RangeRequest("var", REQUEST.gt, 1, REQUEST.not, 2);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             request = new RangeRequest("", REQUEST.gt, 1, REQUEST.lt, 2);
             fail("Should have raized an exception due to incorrect argument");
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
@@ -662,7 +659,7 @@ public class RequestTest {
             request.setRelativeDepthLimit(1);
             assertFalse(request.getCurrentRequest().has(REQUESTARGS.depth.exactToken()));
             assertTrue(request.getCurrentRequest().has(REQUESTARGS.relativedepth.exactToken()));
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

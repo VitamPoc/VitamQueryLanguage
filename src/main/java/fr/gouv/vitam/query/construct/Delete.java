@@ -1,17 +1,17 @@
 /**
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All Vitam Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * Vitam is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with Vitam . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -33,8 +33,9 @@ import fr.gouv.vitam.query.parser.ParserTokens.GLOBAL;
 public class Delete {
     protected ArrayNode requests;
     protected ObjectNode filter;
+
     /**
-     * 
+     *
      * @return this Delete
      */
     public final Delete resetFilter() {
@@ -43,8 +44,9 @@ public class Delete {
         }
         return this;
     }
+
     /**
-     * 
+     *
      * @return this Delete
      */
     public final Delete resetRequests() {
@@ -53,11 +55,13 @@ public class Delete {
         }
         return this;
     }
+
     /**
-     * @param mult True to act on multiple elements, False to act only on 1 element
+     * @param mult
+     *            True to act on multiple elements, False to act only on 1 element
      * @return this Delete
      */
-    public final Delete setMult(boolean mult) {
+    public final Delete setMult(final boolean mult) {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -66,29 +70,30 @@ public class Delete {
     }
 
     /**
-     * 
+     *
      * @param requests
      * @return this Delete
-     * @throws InvalidCreateOperationException 
+     * @throws InvalidCreateOperationException
      */
-    public final Delete addRequests(Request ... requests) throws InvalidCreateOperationException {
+    public final Delete addRequests(final Request... requests) throws InvalidCreateOperationException {
         if (this.requests == null) {
             this.requests = JsonHandler.createArrayNode();
         }
-        for (Request request : requests) {
-            if (! request.isReady()) {
-                throw new InvalidCreateOperationException("Request is not ready to be added: "+request.getCurrentRequest());
+        for (final Request request : requests) {
+            if (!request.isReady()) {
+                throw new InvalidCreateOperationException("Request is not ready to be added: " + request.getCurrentRequest());
             }
             this.requests.add(request.getCurrentRequest());
         }
         return this;
     }
+
     /**
-     * 
+     *
      * @return the Final Delete containing all 2 parts: requests array and filter
      */
     public final ObjectNode getFinalDelete() {
-        ObjectNode node = JsonHandler.createObjectNode();
+        final ObjectNode node = JsonHandler.createObjectNode();
         if (requests != null && requests.size() > 0) {
             node.set(GLOBAL.query.exactToken(), requests);
         }
@@ -97,6 +102,7 @@ public class Delete {
         }
         return node;
     }
+
     /**
      * @return the requests array
      */
@@ -106,6 +112,7 @@ public class Delete {
         }
         return requests;
     }
+
     /**
      * @return the filter
      */

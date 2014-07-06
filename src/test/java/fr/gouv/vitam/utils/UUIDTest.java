@@ -1,8 +1,9 @@
 package fr.gouv.vitam.utils;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -11,16 +12,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
+import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
+
+@SuppressWarnings("javadoc")
 public class UUIDTest {
-    private static final char VERSION           = 'd';
+    private static final char VERSION = 'd';
     private static int NB = 50000;
-    
+
     @Test
     public void testStructure() {
-        UUID id = new UUID();
-        String str = id.toHex();
+        final UUID id = new UUID();
+        final String str = id.toHex();
 
         assertEquals(str.charAt(10), VERSION);
         assertEquals(str.length(), 36);
@@ -29,21 +33,21 @@ public class UUIDTest {
     @Test
     public void testParsing() {
         for (int i = 0; i < NB; i++) {
-            UUID id1 = new UUID();
+            final UUID id1 = new UUID();
             UUID id2;
             try {
                 id2 = new UUID(id1.toHex());
                 assertEquals(id1, id2);
                 assertEquals(id1.hashCode(), id2.hashCode());
-        
-                UUID id3 = new UUID(id1.getBytes());
+
+                final UUID id3 = new UUID(id1.getBytes());
                 assertEquals(id1, id3);
                 assertEquals(id1.hashCode(), id3.hashCode());
-        
-                UUID id4 = new UUID(id1.toBase64());
+
+                final UUID id4 = new UUID(id1.toBase64());
                 assertEquals(id1, id4);
                 assertEquals(id1.hashCode(), id4.hashCode());
-            } catch (InvalidUuidOperationException e) {
+            } catch (final InvalidUuidOperationException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
             }
@@ -52,50 +56,50 @@ public class UUIDTest {
 
     @Test
     public void testNonSequentialValue() {
-        final int n = NB/2;
-        String[] ids = new String[n];
+        final int n = NB / 2;
+        final String[] ids = new String[n];
 
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
             ids[i] = new UUID().toBase64();
         }
-        long stop = System.currentTimeMillis();
+        final long stop = System.currentTimeMillis();
         for (int i = 1; i < n; i++) {
-            assertTrue(! ids[i-1].equals(ids[i]));
+            assertTrue(!ids[i - 1].equals(ids[i]));
         }
-        long start2 = System.currentTimeMillis();
+        final long start2 = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
             ids[i] = new UUID().toHex();
         }
-        long stop2 = System.currentTimeMillis();
+        final long stop2 = System.currentTimeMillis();
         for (int i = 1; i < n; i++) {
-            assertTrue(! ids[i-1].equals(ids[i]));
+            assertTrue(!ids[i - 1].equals(ids[i]));
         }
-        long start4 = System.currentTimeMillis();
+        final long start4 = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
             ids[i] = new UUID().toBase64();
         }
-        long stop4 = System.currentTimeMillis();
+        final long stop4 = System.currentTimeMillis();
         for (int i = 1; i < n; i++) {
-            assertTrue(! ids[i-1].equals(ids[i]));
+            assertTrue(!ids[i - 1].equals(ids[i]));
         }
-        long start5 = System.currentTimeMillis();
+        final long start5 = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
             ids[i] = new UUID().toHex();
         }
-        long stop5 = System.currentTimeMillis();
+        final long stop5 = System.currentTimeMillis();
         for (int i = 1; i < n; i++) {
-            assertTrue(! ids[i-1].equals(ids[i]));
+            assertTrue(!ids[i - 1].equals(ids[i]));
         }
-        System.out.println("B64: "+(stop-start)+ " vsHex: "+(stop2-start2)+ 
-                " vsB64: "+(stop4-start4)+" vxHex: "+(stop5-start5));
+        System.out.println("B64: " + (stop - start) + " vsHex: " + (stop2 - start2) + " vsB64: " + (stop4 - start4) + " vxHex: "
+                + (stop5 - start5));
     }
 
     @Test
     public void testGetBytesImmutability() {
-        UUID id = new UUID();
-        byte[] bytes = id.getBytes();
-        byte[] original = Arrays.copyOf(bytes, bytes.length);
+        final UUID id = new UUID();
+        final byte[] bytes = id.getBytes();
+        final byte[] original = Arrays.copyOf(bytes, bytes.length);
         bytes[0] = 0;
         bytes[1] = 0;
         bytes[2] = 0;
@@ -105,17 +109,17 @@ public class UUIDTest {
 
     @Test
     public void testConstructorImmutability() {
-        UUID id = new UUID();
-        byte[] bytes = id.getBytes();
-        byte[] original = Arrays.copyOf(bytes, bytes.length);
-        
+        final UUID id = new UUID();
+        final byte[] bytes = id.getBytes();
+        final byte[] original = Arrays.copyOf(bytes, bytes.length);
+
         try {
-            UUID id2 = new UUID(bytes);
+            final UUID id2 = new UUID(bytes);
             bytes[0] = 0;
             bytes[1] = 0;
 
             assertTrue(Arrays.equals(id2.getBytes(), original));
-        } catch (InvalidUuidOperationException e) {
+        } catch (final InvalidUuidOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -123,13 +127,13 @@ public class UUIDTest {
 
     @Test
     public void testVersionField() {
-        UUID generated = new UUID();
+        final UUID generated = new UUID();
         assertEquals(VERSION, generated.getVersion());
 
         try {
-            UUID parsed1 = new UUID("dc9c531160d0def10bcecc00014628614b89");
+            final UUID parsed1 = new UUID("dc9c531160d0def10bcecc00014628614b89");
             assertEquals(VERSION, parsed1.getVersion());
-        } catch (InvalidUuidOperationException e) {
+        } catch (final InvalidUuidOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -138,31 +142,31 @@ public class UUIDTest {
     @Test
     public void testHexBase64() {
         try {
-            UUID parsed1 = new UUID("dc9c531160d0def10bcecc00014628614b89");
-            UUID parsed2 = new UUID("3JxTEWDQ3vELzswAAUYoYUuJ");
+            final UUID parsed1 = new UUID("dc9c531160d0def10bcecc00014628614b89");
+            final UUID parsed2 = new UUID("3JxTEWDQ3vELzswAAUYoYUuJ");
             assertTrue(parsed1.equals(parsed2));
-            UUID generated = new UUID();
-            UUID parsed3 = new UUID(generated.getBytes());
-            UUID parsed4 = new UUID(generated.toBase64());
-            UUID parsed5 = new UUID(generated.toHex());
-            UUID parsed6 = new UUID(generated.toString());
+            final UUID generated = new UUID();
+            final UUID parsed3 = new UUID(generated.getBytes());
+            final UUID parsed4 = new UUID(generated.toBase64());
+            final UUID parsed5 = new UUID(generated.toHex());
+            final UUID parsed6 = new UUID(generated.toString());
             assertTrue(generated.equals(parsed3));
             assertTrue(generated.equals(parsed4));
             assertTrue(generated.equals(parsed5));
             assertTrue(generated.equals(parsed6));
-        } catch (InvalidUuidOperationException e) {
+        } catch (final InvalidUuidOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
     }
-    
+
     @Test
     public void testMultipleUuid() {
         try {
-            UUID id1 = new UUID();
-            UUID id2 = new UUID();
-            UUID id3 = new UUID();
-            String ids = UUID.assembleUuids(id1, id2, id3);
+            final UUID id1 = new UUID();
+            final UUID id2 = new UUID();
+            final UUID id3 = new UUID();
+            final String ids = UUID.assembleUuids(id1, id2, id3);
             assertTrue(UUID.isMultipleUUID(ids));
             assertFalse(UUID.isMultipleUUID(id1.toString()));
             assertEquals(id1, UUID.getFirst(ids));
@@ -171,63 +175,64 @@ public class UUIDTest {
             assertEquals(3, UUID.getUuidNb(ids));
             assertEquals(id1.toString(), UUID.getFirstAsString(ids));
             assertEquals(id3.toString(), UUID.getLastAsString(ids));
-        } catch (InvalidUuidOperationException e) {
+        } catch (final InvalidUuidOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testPIDField() throws Exception {
-        UUID id = new UUID();
+        final UUID id = new UUID();
 
         assertEquals(UUID.jvmProcessId(), id.getProcessId());
     }
 
     @Test
     public void testDateField() {
-        UUID id = new UUID();
+        final UUID id = new UUID();
         assertTrue(id.getTimestamp() > new Date().getTime() - 100);
         assertTrue(id.getTimestamp() < new Date().getTime() + 100);
     }
-    
+
     @Test
     public void testMultipleUUIDs() {
         try {
-            int nb = 50000;
-            UUID[] uuids = new UUID[nb];
-            StringBuilder builder = new StringBuilder();
-            StringBuilder builder2 = new StringBuilder();
-            for (int i = 0; i < nb; i ++) {
+            final int nb = 50000;
+            final UUID[] uuids = new UUID[nb];
+            final StringBuilder builder = new StringBuilder();
+            final StringBuilder builder2 = new StringBuilder();
+            for (int i = 0; i < nb; i++) {
                 uuids[i] = new UUID();
                 builder.append(uuids[i].toString());
                 builder2.append(uuids[i].toString());
                 builder2.append(' ');
             }
-            String ids = builder.toString();
-            String ids2 = builder2.toString();
-            assertEquals(24*nb, ids.length());
-            long start = System.currentTimeMillis();
-            UUID[] uuids2 = UUID.getUuids(ids);
-            long stop = System.currentTimeMillis();
+            final String ids = builder.toString();
+            final String ids2 = builder2.toString();
+            assertEquals(24 * nb, ids.length());
+            final long start = System.currentTimeMillis();
+            final UUID[] uuids2 = UUID.getUuids(ids);
+            final long stop = System.currentTimeMillis();
             assertEquals(nb, uuids2.length);
             assertEquals(nb, UUID.getUuidNb(ids));
-            for (int i = 0; i < nb; i ++) {
+            for (int i = 0; i < nb; i++) {
                 assertTrue(uuids[i].equals(uuids2[i]));
             }
             assertTrue(uuids[0].equals(UUID.getFirst(ids)));
-            assertTrue(uuids[nb-1].equals(UUID.getLast(ids)));
-    
-            assertEquals(25*nb, ids2.length());
-            long start2 = System.currentTimeMillis();
-            UUID[] uuids3 = UUID.getUuidsSharp(ids2);
-            long stop2 = System.currentTimeMillis();
+            assertTrue(uuids[nb - 1].equals(UUID.getLast(ids)));
+
+            assertEquals(25 * nb, ids2.length());
+            final long start2 = System.currentTimeMillis();
+            final UUID[] uuids3 = UUID.getUuidsSharp(ids2);
+            final long stop2 = System.currentTimeMillis();
             assertEquals(nb, uuids2.length);
-            for (int i = 0; i < nb; i ++) {
+            for (int i = 0; i < nb; i++) {
                 assertTrue(uuids[i].equals(uuids3[i]));
             }
             assertTrue(uuids[0].equals(UUID.getFirst(ids2)));
-            System.out.println("Create "+nb+" UUIDs from 1 String in "+(stop-start)+":"+(stop2-start2));
-        } catch (InvalidUuidOperationException e) {
+            System.out.println("Create " + nb + " UUIDs from 1 String in " + (stop - start) + ":" + (stop2 - start2));
+        } catch (final InvalidUuidOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -235,35 +240,38 @@ public class UUIDTest {
 
     @Test
     public void testForDuplicates() {
-        int n = NB;
-        Set<UUID> uuids = new HashSet<UUID>();
-        UUID[] uuidArray = new UUID[n];
+        final int n = NB;
+        final Set<UUID> uuids = new HashSet<UUID>();
+        final UUID[] uuidArray = new UUID[n];
 
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++)
+        final long start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
             uuidArray[i] = new UUID();
-        long stop = System.currentTimeMillis();
-        System.out.println("TimeSequential = "+(stop-start)+" so "+(n*1000/(stop-start))+" Uuids/s");
+        }
+        final long stop = System.currentTimeMillis();
+        System.out.println("TimeSequential = " + (stop - start) + " so " + (n * 1000 / (stop - start)) + " Uuids/s");
 
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             uuids.add(uuidArray[i]);
+        }
 
-        System.out.println("Create "+n+" and get: "+uuids.size());
+        System.out.println("Create " + n + " and get: " + uuids.size());
         assertEquals(n, uuids.size());
         checkConsecutive(uuidArray);
     }
-    private void checkConsecutive(UUID[] uuidArray) {
-        int n = uuidArray.length;
+
+    private void checkConsecutive(final UUID[] uuidArray) {
+        final int n = uuidArray.length;
         int i = 1;
         int largest = 0;
-        for (; i < n ; i++) {
-            if (uuidArray[i].getTimestamp() > uuidArray[i-1].getTimestamp()) {
-                int j = i+1;
-                long time = uuidArray[i].getTimestamp();
-                for (; j < n ; j++) {
+        for (; i < n; i++) {
+            if (uuidArray[i].getTimestamp() > uuidArray[i - 1].getTimestamp()) {
+                int j = i + 1;
+                final long time = uuidArray[i].getTimestamp();
+                for (; j < n; j++) {
                     if (uuidArray[j].getTimestamp() > time) {
-                        if (largest < j-i) {
-                            largest = j-i;
+                        if (largest < j - i) {
+                            largest = j - i;
                             i = j;
                             break;
                         }
@@ -271,15 +279,15 @@ public class UUIDTest {
                 }
             }
         }
-        System.out.println(largest+" different consecutive elements");
+        System.out.println(largest + " different consecutive elements");
     }
 
     private static class Generator extends Thread {
-        private UUID[] uuids;
+        private final UUID[] uuids;
         int base;
         int n;
 
-        public Generator(int n, UUID[] uuids, int base) {
+        public Generator(final int n, final UUID[] uuids, final int base) {
             this.n = n;
             this.uuids = uuids;
             this.base = base;
@@ -295,48 +303,52 @@ public class UUIDTest {
 
     @Test
     public void concurrentGeneration() throws Exception {
-        int numThreads = Runtime.getRuntime().availableProcessors()+1;
-        Thread[] threads = new Thread[numThreads];
-        int n = NB*2;
-        int step = n/numThreads;
-        UUID[] uuids = new UUID[step*numThreads];
+        final int numThreads = Runtime.getRuntime().availableProcessors() + 1;
+        final Thread[] threads = new Thread[numThreads];
+        final int n = NB * 2;
+        final int step = n / numThreads;
+        final UUID[] uuids = new UUID[step * numThreads];
 
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         for (int i = 0; i < numThreads; i++) {
-            threads[i] = new Generator(step, uuids, i*step);
+            threads[i] = new Generator(step, uuids, i * step);
             threads[i].start();
         }
 
-        for (int i = 0; i < numThreads; i++)
+        for (int i = 0; i < numThreads; i++) {
             threads[i].join();
-        long stop = System.currentTimeMillis();
+        }
+        final long stop = System.currentTimeMillis();
 
-        Set<UUID> uuidSet = new HashSet<UUID>();
+        final Set<UUID> uuidSet = new HashSet<UUID>();
 
-        for (int i = 0; i < uuids.length; i++)
+        for (int i = 0; i < uuids.length; i++) {
             uuidSet.add(uuids[i]);
+        }
 
         assertEquals(uuids.length, uuidSet.size());
         uuidSet.clear();
-        System.out.println("TimeConcurrent = "+(stop-start)+" so "+(uuids.length*1000/(stop-start))+" Uuids/s");
-        TreeSet<UUID> set = new TreeSet<>(new Comparator<UUID>() {
-            public int compare(UUID o1, UUID o2) {
-                long t1 = o1.getTimestamp();
-                long t2 = o2.getTimestamp();
+        System.out.println("TimeConcurrent = " + (stop - start) + " so " + (uuids.length * 1000 / (stop - start)) + " Uuids/s");
+        final TreeSet<UUID> set = new TreeSet<>(new Comparator<UUID>() {
+            @Override
+            public int compare(final UUID o1, final UUID o2) {
+                final long t1 = o1.getTimestamp();
+                final long t2 = o2.getTimestamp();
                 if (t1 < t2) {
                     return -1;
                 } else if (t1 > t2) {
                     return 1;
                 } else {
-                    int c1 = o1.getCounter();
-                    int c2 = o2.getCounter();
+                    final int c1 = o1.getCounter();
+                    final int c2 = o2.getCounter();
                     return (c1 < c2 ? -1 : (c1 > c2 ? 1 : 0));
                 }
             }
-            
+
         });
-        for (int i = 0; i < uuids.length; i++)
+        for (int i = 0; i < uuids.length; i++) {
             set.add(uuids[i]);
+        }
         checkConsecutive(set.toArray(new UUID[0]));
     }
 }

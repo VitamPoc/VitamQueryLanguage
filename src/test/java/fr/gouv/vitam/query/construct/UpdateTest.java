@@ -1,6 +1,9 @@
 package fr.gouv.vitam.query.construct;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -21,11 +24,12 @@ import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.ACTIONFILTER;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
+@SuppressWarnings("javadoc")
 public class UpdateTest {
 
     @Test
     public void testSetMult() {
-        Update update = new Update();
+        final Update update = new Update();
         assertTrue(update.getFilter().size() == 0);
         update.setMult(true);
         assertTrue(update.getFilter().size() == 1);
@@ -38,7 +42,7 @@ public class UpdateTest {
 
     @Test
     public void testAddActions() {
-        Update update = new Update();
+        final Update update = new Update();
         assertNull(update.actions);
         try {
             update.addActions(new AddAction("varname", 1).addAddAction(true));
@@ -52,7 +56,7 @@ public class UpdateTest {
             assertEquals(8, update.actions.size());
             update.resetAction();
             assertEquals(0, update.actions.size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -60,16 +64,18 @@ public class UpdateTest {
 
     @Test
     public void testAddRequests() {
-        Update update = new Update();
+        final Update update = new Update();
         assertNull(update.requests);
         try {
-            update.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA")).setRelativeDepthLimit(5));
-            update.addRequests(new PathRequest("path1", "path2"),new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
+            update.addRequests(new BooleanRequest(REQUEST.and).addToBooleanRequest(new ExistsRequest(REQUEST.exists, "varA"))
+                    .setRelativeDepthLimit(5));
+            update.addRequests(new PathRequest("path1", "path2"),
+                    new ExistsRequest(REQUEST.exists, "varB").setExactDepthLimit(10));
             update.addRequests(new PathRequest("path3"));
             assertEquals(4, update.requests.size());
             update.resetRequests();
             assertEquals(0, update.requests.size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -77,16 +83,16 @@ public class UpdateTest {
 
     @Test
     public void testGetFinalUpdate() {
-        Update update = new Update();
+        final Update update = new Update();
         assertNull(update.requests);
         try {
             update.addRequests(new PathRequest("path3"));
             assertEquals(1, update.requests.size());
             update.setMult(true);
             update.addActions(new IncAction("mavar"));
-            ObjectNode node = update.getFinalUpdate();
+            final ObjectNode node = update.getFinalUpdate();
             assertEquals(3, node.size());
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

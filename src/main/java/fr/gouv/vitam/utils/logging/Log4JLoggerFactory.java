@@ -1,12 +1,9 @@
 /*
  * Copyright 2012 The Netty Project
- *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -25,44 +22,48 @@ import org.apache.log4j.Logger;
  */
 public class Log4JLoggerFactory extends VitamLoggerFactory {
 
-    public Log4JLoggerFactory(VitamLogLevel level) {
+    /**
+     * @param level
+     */
+    public Log4JLoggerFactory(final VitamLogLevel level) {
         super(level);
         seLevelSpecific(currentLevel);
     }
 
     @Override
-    public VitamLogger newInstance(String name) {
+    public VitamLogger newInstance(final String name) {
         return new Log4JLogger(Logger.getLogger(name));
     }
 
     @Override
-    protected void seLevelSpecific(VitamLogLevel level) {
-        Logger logger = Logger.getRootLogger();
+    protected void seLevelSpecific(final VitamLogLevel level) {
+        final Logger logger = Logger.getRootLogger();
         switch (level) {
-        case TRACE:
-            logger.setLevel(Level.TRACE);
-            break;
-        case DEBUG:
-            logger.setLevel(Level.DEBUG);
-            break;
-        case INFO:
-            logger.setLevel(Level.INFO);
-            break;
-        case WARN:
-            logger.setLevel(Level.WARN);
-            break;
-        case ERROR:
-            logger.setLevel(Level.ERROR);
-            break;
-        default:
-            logger.setLevel(Level.WARN);
-            break;
+            case TRACE:
+                logger.setLevel(Level.TRACE);
+                break;
+            case DEBUG:
+                logger.setLevel(Level.DEBUG);
+                break;
+            case INFO:
+                logger.setLevel(Level.INFO);
+                break;
+            case WARN:
+                logger.setLevel(Level.WARN);
+                break;
+            case ERROR:
+                logger.setLevel(Level.ERROR);
+                break;
+            default:
+                logger.setLevel(Level.WARN);
+                break;
         }
     }
+
     @Override
     protected VitamLogLevel getLevelSpecific() {
-        Logger logger = Logger.getRootLogger();
-        Level level = logger.getLevel();
+        final Logger logger = Logger.getRootLogger();
+        final Level level = logger.getLevel();
         if (level == Level.TRACE || level == Level.ALL) {
             return VitamLogLevel.TRACE;
         } else if (level == Level.DEBUG) {

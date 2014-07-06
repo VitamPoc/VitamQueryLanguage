@@ -1,17 +1,17 @@
 /**
  * This file is part of VITAM Project.
- * 
+ *
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
  * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
- * 
+ *
  * All VITAM Project is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * VITAM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with VITAM . If not, see
  * <http://www.gnu.org/licenses/>.
  */
@@ -29,54 +29,56 @@ import ch.qos.logback.classic.Logger;
 
 /**
  * logger factory using SLF4J from LOGBACK
- * 
+ *
  * @author Frederic Bregier
- * 
+ *
  */
 public class LogbackLoggerFactory extends VitamLoggerFactory {
     static final String ROOT = Logger.ROOT_LOGGER_NAME;
+
     // Old versions: "root"; // LoggerContext.ROOT_NAME; //
 
     /**
-     * 
+     *
      * @param level
      */
-    public LogbackLoggerFactory(VitamLogLevel level) {
+    public LogbackLoggerFactory(final VitamLogLevel level) {
         super(level);
         seLevelSpecific(currentLevel);
     }
-    
-    protected void seLevelSpecific(VitamLogLevel level) {
-        Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
+
+    @Override
+    protected void seLevelSpecific(final VitamLogLevel level) {
+        final Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
         switch (level) {
-        case TRACE:
-            logger.setLevel(Level.TRACE);
-            break;
-        case DEBUG:
-            logger.setLevel(Level.DEBUG);
-            break;
-        case INFO:
-            logger.setLevel(Level.INFO);
-            break;
-        case WARN:
-            logger.setLevel(Level.WARN);
-            break;
-        case ERROR:
-            logger.setLevel(Level.ERROR);
-            break;
-        default:
-            logger.setLevel(Level.WARN);
-            break;
+            case TRACE:
+                logger.setLevel(Level.TRACE);
+                break;
+            case DEBUG:
+                logger.setLevel(Level.DEBUG);
+                break;
+            case INFO:
+                logger.setLevel(Level.INFO);
+                break;
+            case WARN:
+                logger.setLevel(Level.WARN);
+                break;
+            case ERROR:
+                logger.setLevel(Level.ERROR);
+                break;
+            default:
+                logger.setLevel(Level.WARN);
+                break;
         }
     }
 
     @Override
-    public VitamLogger newInstance(String name) {
+    public VitamLogger newInstance(final String name) {
         final Logger logger = (Logger) LoggerFactory.getLogger(name);
         return new LogbackLogger(logger);
     }
-    
-    LogbackLoggerFactory(boolean failIfNOP) {
+
+    LogbackLoggerFactory(final boolean failIfNOP) {
         super(null);
         assert failIfNOP; // Should be always called with true.
 
@@ -87,11 +89,11 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
         try {
             System.setErr(new PrintStream(new OutputStream() {
                 @Override
-                public void write(int b) {
+                public void write(final int b) {
                     buf.append((char) b);
                 }
             }, true, "US-ASCII"));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new Error(e);
         }
 
@@ -110,7 +112,7 @@ public class LogbackLoggerFactory extends VitamLoggerFactory {
 
     @Override
     protected VitamLogLevel getLevelSpecific() {
-        Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
+        final Logger logger = (Logger) LoggerFactory.getLogger(ROOT);
         if (logger.isTraceEnabled()) {
             return VitamLogLevel.TRACE;
         } else if (logger.isDebugEnabled()) {

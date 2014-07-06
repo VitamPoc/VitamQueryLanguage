@@ -1,22 +1,22 @@
 /**
-   This file is part of POC MongoDB ElasticSearch Project.
-
-   Copyright 2009, Frederic Bregier, and individual contributors by the @author
-   tags. See the COPYRIGHT.txt in the distribution for a full listing of
-   individual contributors.
-
-   All POC MongoDB ElasticSearch Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   POC MongoDB ElasticSearch is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with POC MongoDB ElasticSearch .  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of POC MongoDB ElasticSearch Project.
+ *
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
+ *
+ * All POC MongoDB ElasticSearch Project is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * POC MongoDB ElasticSearch is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.gouv.vitam.utils;
 
@@ -40,9 +40,18 @@ public final class GlobalDatas {
      * Should we use filter to select from graph parents, or within query
      */
     public static boolean useFilter = true;
+    /**
+     * Default behavior of ElasticSearch connection (False tends to minimize the number of concurrent connections)
+     */
     public static boolean useNewNode = false;
+    /**
+     * Default Index name for ElasticSearch
+     */
     public static final String INDEXNAME = "vitamidx";
-    public static String localNetworkAddress = "192.168.56.102";
+    /**
+     * Default local address to be used by the client (null means no specific address)
+     */
+    public static String localNetworkAddress = null;
     /**
      * limit before using ES in 1 level only
      */
@@ -59,6 +68,12 @@ public final class GlobalDatas {
      * should be 20 but let a great margin
      */
     public static final int MAXDEPTH = 100;
+    /**
+     * In Debug mode : shall we print the request
+     */
     public static final boolean PRINT_REQUEST = false;
+    /**
+     * Shall new entries insertion in the ElasticSearch index be in blocking mode
+     */
     public static final boolean BLOCKING = true;
 }

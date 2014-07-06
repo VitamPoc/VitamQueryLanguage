@@ -1,6 +1,7 @@
 package fr.gouv.vitam.query.construct;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 
@@ -14,6 +15,7 @@ import fr.gouv.vitam.query.construct.action.SetAction;
 import fr.gouv.vitam.query.construct.action.UnsetAction;
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 
+@SuppressWarnings("javadoc")
 public class ActionHelperTest {
 
     @Test
@@ -39,7 +41,7 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentObject().size() == 11);
             ((AddAction) action).addAddAction("val1", "val2", "val3");
             assertTrue(action.getCurrentObject().size() == 14);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -56,7 +58,7 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
             assertTrue(action.getCurrentObject().path("var1").asInt() == 5);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -85,7 +87,7 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentObject().size() == 11);
             ((PopAction) action).addPopAction("val1", "val2", "val3");
             assertTrue(action.getCurrentObject().size() == 14);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -102,7 +104,7 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
             assertTrue(action.getCurrentObject().path("var1").asInt() == 2);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -131,7 +133,7 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentObject().size() == 11);
             ((PushAction) action).addPushAction("val1", "val2", "val3");
             assertTrue(action.getCurrentObject().size() == 14);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -140,9 +142,9 @@ public class ActionHelperTest {
     @Test
     public void testRename() {
         try {
-            Action action = ActionHelper.rename("var1", "var2");
+            final Action action = ActionHelper.rename("var1", "var2");
             assertTrue(action.getCurrentAction().size() == 1);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -154,7 +156,7 @@ public class ActionHelperTest {
             Action action = ActionHelper.set("var1", "val1");
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
-            HashMap<String, Integer> map = new HashMap<>();
+            final HashMap<String, Integer> map = new HashMap<>();
             map.put("a", 1);
             map.put("b", 2);
             map.put("c", 3);
@@ -172,7 +174,7 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentObject().size() == 1);
             ((SetAction) action).addSetAction("var2", false);
             assertTrue(action.getCurrentObject().size() == 2);
-            ((SetAction) action).addSetAction("var3",  5);
+            ((SetAction) action).addSetAction("var3", 5);
             assertTrue(action.getCurrentObject().size() == 3);
             ((SetAction) action).addSetAction("var4", 5.0);
             assertTrue(action.getCurrentObject().size() == 4);
@@ -180,13 +182,13 @@ public class ActionHelperTest {
             assertTrue(action.getCurrentObject().size() == 5);
             ((SetAction) action).addSetAction("var2", false);
             assertTrue(action.getCurrentObject().size() == 5);
-            ((SetAction) action).addSetAction("var3",  5);
+            ((SetAction) action).addSetAction("var3", 5);
             assertTrue(action.getCurrentObject().size() == 5);
             ((SetAction) action).addSetAction("var4", 5.0);
             assertTrue(action.getCurrentObject().size() == 5);
             ((SetAction) action).addSetAction("var5", "val3");
             assertTrue(action.getCurrentObject().size() == 5);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -195,12 +197,12 @@ public class ActionHelperTest {
     @Test
     public void testUnset() {
         try {
-            Action action = ActionHelper.unset("var1");
+            final Action action = ActionHelper.unset("var1");
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
             ((UnsetAction) action).addUnSetAction("var5", "var3");
             assertTrue(action.getCurrentObject().size() == 3);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

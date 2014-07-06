@@ -1,12 +1,9 @@
 /*
  * Copyright 2012 The Netty Project
- *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -15,13 +12,21 @@
  */
 package fr.gouv.vitam.utils.logging;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
-
+@SuppressWarnings("javadoc")
 public class VitamLoggerFactoryTest {
     private static final Exception e = new Exception();
     private VitamLoggerFactory oldLoggerFactory;
@@ -30,7 +35,7 @@ public class VitamLoggerFactoryTest {
     @Before
     public void init() {
         oldLoggerFactory = VitamLoggerFactory.getDefaultFactory();
-        VitamLoggerFactory mockFactory = createMock(VitamLoggerFactory.class);
+        final VitamLoggerFactory mockFactory = createMock(VitamLoggerFactory.class);
         mock = createStrictMock(VitamLogger.class);
         expect(mockFactory.newInstance("mock")).andReturn(mock).anyTimes();
         replay(mockFactory);
@@ -52,10 +57,10 @@ public class VitamLoggerFactoryTest {
     public void shouldGetInstance() {
         VitamLoggerFactory.setDefaultFactory(oldLoggerFactory);
 
-        String helloWorld = "Hello, world!";
+        final String helloWorld = "Hello, world!";
 
-        VitamLogger one = VitamLoggerFactory.getInstance("helloWorld");
-        VitamLogger two = VitamLoggerFactory.getInstance(helloWorld.getClass());
+        final VitamLogger one = VitamLoggerFactory.getInstance("helloWorld");
+        final VitamLogger two = VitamLoggerFactory.getInstance(helloWorld.getClass());
 
         assertNotNull(one);
         assertNotNull(two);
@@ -67,7 +72,7 @@ public class VitamLoggerFactoryTest {
         expect(mock.isTraceEnabled()).andReturn(true);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         assertTrue(logger.isTraceEnabled());
         verify(mock);
     }
@@ -77,7 +82,7 @@ public class VitamLoggerFactoryTest {
         expect(mock.isDebugEnabled()).andReturn(true);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         assertTrue(logger.isDebugEnabled());
         verify(mock);
     }
@@ -87,7 +92,7 @@ public class VitamLoggerFactoryTest {
         expect(mock.isInfoEnabled()).andReturn(true);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         assertTrue(logger.isInfoEnabled());
         verify(mock);
     }
@@ -97,7 +102,7 @@ public class VitamLoggerFactoryTest {
         expect(mock.isWarnEnabled()).andReturn(true);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         assertTrue(logger.isWarnEnabled());
         verify(mock);
     }
@@ -107,7 +112,7 @@ public class VitamLoggerFactoryTest {
         expect(mock.isErrorEnabled()).andReturn(true);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         assertTrue(logger.isErrorEnabled());
         verify(mock);
     }
@@ -117,7 +122,7 @@ public class VitamLoggerFactoryTest {
         mock.trace("a");
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.trace("a");
         verify(mock);
     }
@@ -127,7 +132,7 @@ public class VitamLoggerFactoryTest {
         mock.trace("a", e);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.trace("a", e);
         verify(mock);
     }
@@ -137,7 +142,7 @@ public class VitamLoggerFactoryTest {
         mock.debug("a");
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.debug("a");
         verify(mock);
     }
@@ -147,7 +152,7 @@ public class VitamLoggerFactoryTest {
         mock.debug("a", e);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.debug("a", e);
         verify(mock);
     }
@@ -157,7 +162,7 @@ public class VitamLoggerFactoryTest {
         mock.info("a");
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.info("a");
         verify(mock);
     }
@@ -167,7 +172,7 @@ public class VitamLoggerFactoryTest {
         mock.info("a", e);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.info("a", e);
         verify(mock);
     }
@@ -177,7 +182,7 @@ public class VitamLoggerFactoryTest {
         mock.warn("a");
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.warn("a");
         verify(mock);
     }
@@ -187,7 +192,7 @@ public class VitamLoggerFactoryTest {
         mock.warn("a", e);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.warn("a", e);
         verify(mock);
     }
@@ -197,7 +202,7 @@ public class VitamLoggerFactoryTest {
         mock.error("a");
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.error("a");
         verify(mock);
     }
@@ -207,7 +212,7 @@ public class VitamLoggerFactoryTest {
         mock.error("a", e);
         replay(mock);
 
-        VitamLogger logger = VitamLoggerFactory.getInstance("mock");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("mock");
         logger.error("a", e);
         verify(mock);
     }
