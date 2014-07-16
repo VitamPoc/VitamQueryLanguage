@@ -164,7 +164,7 @@ public class MongoDbAccess {
          */
         DAip2Dua(VitamCollections.Cdaip, LinkType.AsymLink1, "_dua", VitamCollections.Cdua),
         /**
-         * Daip to Dua N-N link but asymmetric where only Daip reference its Dua(s) (so only "_dua" link)
+         * Paip to Dua N-N link but asymmetric where only Paip reference its Dua(s) (so only "_duas" link)
          */
         PAip2Dua(VitamCollections.Cpaip, LinkType.AsymLinkN, "_duas", VitamCollections.Cdua);
 
@@ -243,7 +243,13 @@ public class MongoDbAccess {
         LOGGER.info("ES on cluster name: " + esname + ":" + unicast);
         es = new ElasticSearchAccess(esname, unicast, GlobalDatas.localNetworkAddress);
     }
-
+    /**
+     * 
+     * @return the ES Cluster Name
+     */
+    public String getEsClusterName() {
+        return es.getClusterName();
+    }
     /**
      * Drop all data and index from MongoDB and ElasticSearch
      *
@@ -461,17 +467,36 @@ public class MongoDbAccess {
      * @param type
      * @param currentNodes
      *            current parent nodes
-     * @param subdepth
-     *            (ignored)
+     * @param subdepth the relative depth
      * @param condition
      * @param filterCond
-     * @return the ResultCached associated with this request. Note that the exact depth is not checked, so it must be checked
+     * @param useStart True if currentNodes are final ids subsets (not parents)
+     * @return the ResultCached associated with this request. 
+     *         Note that the exact depth is not checked, so it must be checked
      *         after (using checkAncestor method)
      */
     public final ResultCached getSubDepth(final String indexName, final String type, final Collection<String> currentNodes,
-            final int subdepth, final QueryBuilder condition, final FilterBuilder filterCond) {
-        return es.getSubDepth(indexName, type, currentNodes.toArray(new String[0]), subdepth, condition, filterCond);
+            final int subdepth, final QueryBuilder condition, final FilterBuilder filterCond, final boolean useStart) {
+        if (useStart) {
+            return es.getSubDepthStart(indexName, type, currentNodes.toArray(new String[0]), subdepth, condition, filterCond);
+        } else {
+            return es.getSubDepth(indexName, type, currentNodes.toArray(new String[0]), subdepth, condition, filterCond);
+        }
     }
+
+   /**
+    *
+    * @param indexName
+    * @param type
+    * @param subset subset of valid nodes
+    * @param condition
+    * @param filterCond
+    * @return the ResultCached associated with this request
+    */
+   public final ResultCached getNegativeSubDepth(final String indexName, final String type, final Collection<String> subset,
+           final QueryBuilder condition, final FilterBuilder filterCond) {
+       return es.getNegativeSubDepth(indexName, type, subset.toArray(new String[0]), condition, filterCond);
+   }
 
     /**
      * Add indexes to ES model
@@ -689,6 +714,7 @@ public class MongoDbAccess {
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
+     * @return a {@link DBObject} for update
      */
     private final static DBObject addAsymmetricLinkUpdate(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
         final String refChild = (String) obj2.get(VitamType.ID);
@@ -707,11 +733,10 @@ public class MongoDbAccess {
      * @param obj1
      * @param obj1ToObj2
      * @param obj2
-     * @param toUpdate
      * @return true if the link is updated
      */
     protected final static boolean addAsymmetricLinksetNoSave(final VitamType obj1, final String obj1ToObj2,
-            final VitamType obj2, final boolean toUpdate) {
+            final VitamType obj2) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
         final String oid2 = (String) obj2.get(VitamType.ID);

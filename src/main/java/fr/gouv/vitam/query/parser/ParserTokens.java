@@ -203,7 +203,7 @@ public class ParserTokens {
          */
         match_phrase_prefix,
         /**
-         * To not be used externally but in replacement of match_phrase_prefix if parameter not analyzed
+         * Not to be used externally but in replacement of match_phrase_prefix if parameter not analyzed
          */
         prefix,
         /**
@@ -233,11 +233,17 @@ public class ParserTokens {
         regex,
         /**
          * Selects where field named 'name' contains exactly this term (lowercase only, no blank).
-         * Useful in simple value field to find one specific item, or for multiple values field (blank separated string list) to
-         * find one item containing this term.
+         * Useful in simple value field to find one specific item, or for multiple tests at once (AND implicit).
          * $term : { name : term, name : term }
          */
         term,
+        /**
+         * Selects where field named 'name' contains exactly this term (lowercase only, no blank) with optional wildcard
+         * character (* and ?).
+         * Useful in simple value field to find one specific item.
+         * $wildcard : { name : term }
+         */
+        wildcard,
         /**
          * Selects a node by its exact path (succession of ids)
          * $path : [ id1, id2, ... ]
@@ -341,11 +347,11 @@ public class ParserTokens {
          */
         max_expansions,
         /**
-         * Used in Set Depth part of each query
+         * Used in Set Depth (exact) part of each query
          */
         depth,
         /**
-         * Used in Set Depth of each query
+         * Used in Set Depth (relative) part of each query
          */
         relativedepth;
 
@@ -446,7 +452,30 @@ public class ParserTokens {
      *
      * Update model
      *
+     * <pre>
+     * {@code
+     
+Pour mettre à jour (update) :
+multiple update : { $multi : true/false } pour autoriser une mise à jour de plusieurs noeuds ou pas (si la requête présente plusieurs résultats mais $multi = false => erreur )
+action : 
+  { $set : { clef : valeur, clef : valeur, ... } } / { $unset : { clef : "", ... } } positionne ou ajoute (si elle n'existait pas) une valeur pour une clef ou efface la clef
+  { $inc : { clef : valeur, clef : valeur, ... } } incrémente la valeur 
+  { $rename : { clef : nouvelleclef, ... } } renomme une clef
+  { $push : { clef : valeur, ... } : ajoute une valeur à une clef de liste (si la liste maliste est [ a, b, c], $push : { maliste : b } donnera maliste = [ a, b, c, b])
+    { $push : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois ($push : { maliste : { $each : [ b, d, e, a] } } donnera  maliste = [ a, b, c, b, d, e, a] )
+  { $add : { clef : valeur, ... } : ajoute une valeur à une clef de liste mais si celle-ci n'y est pas déjà (si la liste maliste est [ a, b, c], $add : { maliste : b } ne changera pas la liste, tandis que $add : { maliste : d } donnera maliste = [ a, b, c, d] )
+    Si valeur est multiple (une liste) et que chacune des valeurs doit être intégrées : $add : { maliste : { $each : [ b, d, e, a] } } donnera maliste = [ a, b, c, d, e]
+  { $pop : { clef : 1 ou -1 } } retire le dernier (1) ou le premier (-1) élément de la liste
+  { $pull : { clef : valeur } } retire l'élément valeur de la liste
+    { $pull : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois 
+  { $sort : { clef : 1 ou -1 } } pour trier une liste selon un ordre ascendant (1) ou descendant (-1)
+3 parties : critères de sélection (expression depuis root) + filtres (multi) + action
+retourne : la requête + des info générales (nb de résultats) + les n premiers résultats (noeuds mis à jour) selon le format souhaité 
+     
+     * }
+     * </pre>
      */
+    @SuppressWarnings("javadoc")
     public static enum UPDATE {
         /**
          * $set : { name : value, name : value, ... }

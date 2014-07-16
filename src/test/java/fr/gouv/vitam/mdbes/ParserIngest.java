@@ -43,6 +43,191 @@ import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
+ * <pre>
+ * {@code
+les champs __XXX ne seront pas stockes dans le resultat arborescent
+
+Valeurs fixes: valeur
+=====================
+    valeurSimple = "chaine" | nombre
+        ou "chaine" = une chaine de caractere fixe
+        ou nombre = un nombre fixe
+        
+    valeur = valeurSimple | listeValeurs
+        ou listeValeurs = [ valeurSimple, ... ]
+
+L'expression des champs: champs
+===============================
+    champ = "nomDuChamp" : valeur | typeSimple | typeComplexe
+        => associe a un nom de champ (chaine) une valeur ou un type simple ou un type complexe
+    
+    champs = champ | champ, champs
+        La notation "champ, champ, ..." signifie serie de champs (exemple : { champ1 : val1, champ2 : val2, champ3 : val3 } )
+
+L'expression des occurences d'un niveau de MetaAip (variabilisation) : occurence
+================================================================================
+    occurence_unique = "__occur" : nombre (> 0)
+        => signifie qu'il y aura 'nombre' fils pour un noeud pere donne et le compteur vaudra entre 0 et nombre.
+
+    occurence_partage = "__occur" : nombre (>0) , "__idcpt" : "nomDuCompteur"
+        => signifie qu'il y aura 'nombre' fils pour un noeud pere donne MAIS le compteur sera global (unique et partage par son nom dans le champ __idcpt) et variera de 0 a l'infini (par lots de 'nombre')
+
+    occurence_bound = "__occur" : valeur, "__high" : valeur, "__idcpt" : "nomDuCompteur"
+        => variera entre low (valeur) et high (inclus)
+
+    Options complémentaires:
+    "__distrib" : base => indique le compteur utilisé par la répartition avec pour valeur de base (low) = base
+    "__notempty" : 1 => indique que si un objet créé est vide, il ne sera pas conservé (vide si pas de fils ou si getObject = null)
+    
+    Dans tous les cas, le compteur produit devient le compteur de reference pour les MetaAip crees ensuite pour ce niveau (et uniquement celui-la).
+
+    occurence = occurence_unique | occurence_partage
+
+Types simples: typeSimple
+=========================
+    { "__type" : "chaine", "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" } : une chaine de caracteres
+        => une chaine aleatoire sera produite
+
+    { "__type" : "date", "__save" : "nomValeur" } : une date
+        => une date aleatoire sera produite
+
+    { "__type" : "nombre", "__save" : "nomValeur" } : un format numerique (avec ou sans virgule)
+        => un nombre aleatoire sera produite
+    
+    { "__type" : "save", "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" } : une chaine de caracteres
+        => une chaine est produite par la concatenation des prefix
+
+Types complexes: typeComplexe
+=============================
+    { "__type" : "interval", "__low" : valeur, "__high" : valeur, "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" }
+        => prend une valeur aléatoire entre low et high (inclus)
+
+    { "__type" : "liste", "__liste" : listeValeurs, "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" }
+        => de maniere aleatoire, un element de la liste sera attribue au champ
+
+    { "__type" : "listeorder", "__listeorder" : listeValeurs, "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" }
+        => le premier objet du pere commun aura pour valeur la valeur de rang 1, le deuxieme la valeur de rang 2, etc. 
+        Si le nombre de fils du pere depasse le nombre de valeurs dans la liste, la derniere valeur est re-utilisee.
+        Exemple : { champ : { "__type" : "listeorder", "__listeorder" : [ "A", "B" ] } } avec 5 fils de ce type (occurence._occur = 3)
+        => premier fils : { champ : "A" }
+        => deuxieme fils : { champ : "B" }
+        => troisieme fils : { champ : "B" }
+
+    { "__type" : "serie", "__serie" : { "__prefix" : chaine, "__idcpt" : "nomDuCompteur", "__modulo" : nombre}, "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" }
+        => une chaine aleatoire sera produite du type : "prefixe"+Valeur" ou Valeur sera
+        __idcpt est precise : la valeur courante du compteur specifie est utilisee
+        __idcpt non precise : la valeur courante du compteur de reference est utilisee
+        __modulo est precise : la valeur est calcule par nombre = (nombre % modulo)+1
+        __modulo n'est pas precise : la valeur est non modifiee
+        Exemple : { champ : { "__type" : "serie", "__serie" : { "__prefix" : "Pref_", "__idcpt" : "moncpt", "__modulo" : 3 } } } avec __occur = 4 et moncpt = 10 au depart
+        => premier fils : moncpt = 11 => (11 mod 3) +1 = 3 => { champ : "Pref_3" }
+        => deuxieme fils : moncpt = 12 => (12 mod 3) +1 = 1 => { champ : "Pref_1" }
+        => troisieme fils : moncpt = 13 => (13 mod 3) +1 = 2 => { champ : "Pref_2" }
+        => quatrieme fils : moncpt = 14 => (14 mod 3) +1 = 3 => { champ : "Pref_3" }
+
+    { "__type" : "subfield" , "__subfield" : { champs } }
+        => un champ compose sera cree (potentiellement complexe)
+        Exemple : { "champ1" : { "__type" : "subfield" , "__subfield" : { "champ2" : "valeur" } } }
+        => champ1.champ2 = "valeur" => { champ1 : { champ2 : "valeur" } }
+
+    { "__type" : "select", "__select" : [ {"__field" : "name", "__value": ["nomValeur"]}, ... ] }
+    
+Mots Clefs de structures: domaine
+=================================
+    domain = { "Domain" : "chaine1", "__model": "chaine2", daip, extraStaticField }
+        => definie que ce modele chaine2 appartient a la racine Domaine ayant pour nom "chaine1"
+        => definie la sous-structure metaaip (unique) a utiliser
+        => pas de champ
+    
+    daip = "DAip" : [ { occurence }, { champs }, sous-structure ]
+        => definie un niveau de MetaAip avec ses champs et sa sous-structure (unique)
+        
+    paip = { "PAip" : { champs } }
+        => definie un DataObject avec ses champs mais il n'aura pas de sous-structure (pour le POC)
+        => ses champs devront avoir deux categories : ceux propres au modele, et ceux communs et fixes (exemple : format, empreinte, ...)
+    
+    sous-structure = { daip } | paip
+
+    
+Exemple de definition d'un modele: 
+==================================
+{ "Domain" : "domainName", "__model" : "modelName",
+    "DAip" : [
+        { "__occur" : 100}, 
+        { "champ1" : "chaine", "champ2" : { "__type" : "liste", "__liste" : [ "val1", "val2" ] } },
+        { "DAip" : [
+            { "__occur" : 1000, "__idcpt" : "moncpt" },
+            { "champ3" : { "__type" : "serie", "__serie" : { "__prefix" : "Pref_", "__idcpt" : "moncpt" } } },
+            { "DAip" : [
+                { "__occur" : 10 },
+                { "champ4" : { "__type" : "listeorder", "__listeorder" : [ "val3", "val4" ] },
+                  "champ5" : { "__type" : "serie", "__serie" : { "__prefix" : "do_" } } },
+                { "PAip" : { "champ6" : "chaine" } }
+                ]
+            } ]
+        } ]
+}
+
+=>
+{ Domain : "chaine",
+    DAip : [ 
+        { champ1 : "valeur", champ2 : "val2",
+        DAip : [
+            { champ3 : "Pref_1", 
+            DAip : [
+                { champ4 : "val3", champ5 : "do_1", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_2", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_3", PAip : { champ6 : "val6" } },
+                ...
+                { champ4 : "val4", champ5 : "do_10", PAip : { champ6 : "val6" } },
+            ] },
+            { champ3 : "Pref_2", 
+            DAip : [
+                { champ4 : "val3", champ5 : "do_1", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_2", PAip : { champ6 : "val6" } },
+                ...
+                { champ4 : "val4", champ5 : "do_10", PAip : { champ6 : "val6" } },
+            ] },
+            ...
+            { champ3 : "Pref_1000", 
+            DAip : [
+                { champ4 : "val3", champ5 : "do_1", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_2", PAip : { champ6 : "val6" } },
+                ...
+                { champ4 : "val4", champ5 : "do_10", PAip : { champ6 : "val6" } },
+            ] }
+        ] },
+        { champ1 : "valeur", champ2 : "val1",
+        DAip : [
+            { champ3 : "Pref_1001", 
+            DAip : [
+                { champ4 : "val3", champ5 : "do_1", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_2", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_3", PAip : { champ6 : "val6" } },
+                ...
+                { champ4 : "val4", champ5 : "do_10", PAip : { champ6 : "val6" } },
+            ] },
+            { champ3 : "Pref_1002", 
+            DAip : [
+                { champ4 : "val3", champ5 : "do_1", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_2", PAip : { champ6 : "val6" } },
+                ...
+                { champ4 : "val4", champ5 : "do_10", PAip : { champ6 : "val6" } },
+            ] },
+            ...
+            { champ3 : "Pref_2000", 
+            DAip : [
+                { champ4 : "val3", champ5 : "do_1", PAip : { champ6 : "val6" } },
+                { champ4 : "val4", champ5 : "do_2", PAip : { champ6 : "val6" } },
+                ...
+                { champ4 : "val4", champ5 : "do_10", PAip : { champ6 : "val6" } },
+            ] }
+        ] },
+        ...
+    ]
+}
+
+}</pre>
  * @author "Frederic Bregier"
  *
  */
@@ -51,7 +236,6 @@ public class ParserIngest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserIngest.class);
 
     protected BufferedOutputStream bufferedOutputStream = null;
-    private static final Map<String, DAip> DAIP_BELOW_MINLEVEL = new HashMap<String, DAip>();
     private static final String CPTLEVEL = "__cptlevel__";
     private static final String REFID = "_refid";
 
@@ -588,7 +772,7 @@ public class ParserIngest {
         System.out.println("End of MAIPs");
         if (listmetaaips != null && !listmetaaips.isEmpty()) {
             if (MainIngestFile.minleveltofile > 1) {
-                domobj.addMetaAip(dbvitam, listmetaaips);
+                domobj.addDAip(dbvitam, listmetaaips);
             } else {
                 // XXX NO SAVE OF MAIP!
                 domobj.addDAipNoSave(dbvitam, bufferedOutputStream, listmetaaips);
@@ -620,7 +804,7 @@ public class ParserIngest {
      * @param lstop
      * @param cpt
      * @param fields
-     * @return
+     * @return the list of immediate sons
      * @throws InvalidExecOperationException
      * @throws InstantiationException
      * @throws IllegalAccessException
@@ -630,6 +814,7 @@ public class ParserIngest {
             final long lstop, final AtomicLong cpt, final List<TypeField> fields) throws InvalidExecOperationException,
             InstantiationException, IllegalAccessException {
         final ArrayList<DAip> listmetaaips = new ArrayList<DAip>();
+        final boolean fromDatabase = level < MainIngestFile.minleveltofile;
         for (long rank = cpt.get(); rank <= lstop; rank = cpt.incrementAndGet()) {
             DAip maip = new DAip();
             maip.put(DAip.DAIPDEPTHS, subdepth22);
@@ -653,16 +838,12 @@ public class ParserIngest {
             }
             maip.getAfterLoad();
             DAip metaaip2 = null;
-            if (level < MainIngestFile.minleveltofile) {
+            if (fromDatabase) {
                 metaaip2 = (DAip) dbvitam.fineOne(VitamCollections.Cdaip, REFID, maip.getString(REFID));
-                if (metaaip2 != null) {
-                    // already existing so take this one
-                    DAIP_BELOW_MINLEVEL.put(metaaip2.getString(REFID), metaaip2);
-                }
             }
-            metaaip2 = DAIP_BELOW_MINLEVEL.get(maip.getString(REFID));
             boolean metaCreated = true;
             if (metaaip2 != null) {
+                System.out.print('x');
                 // merge Depth
                 final Map<String, Integer> old = metaaip2.getDomDepth();
                 // Map<String, Integer> toUpdateSon = new HashMap<String, Integer>();
@@ -684,17 +865,14 @@ public class ParserIngest {
                 maip = metaaip2;
                 // System.out.println("Not created: "+metaaip2.toString());
                 metaCreated = false;
+                // Last level
                 if (level >= daips.size()) {
                     // update directly
                     if (father == null) {
                         listmetaaips.add(metaaip2);
                     }
                     metaaip2.addEsIndex(dbvitam, esIndex, model);
-                    if (level < MainIngestFile.minleveltofile) {
-                        metaaip2.save(dbvitam);
-                    } else {
-                        metaaip2.saveToFile(dbvitam, bufferedOutputStream, level);
-                    }
+                    metaaip2.save(dbvitam);
                     continue;
                 }
             }
@@ -762,22 +940,26 @@ public class ParserIngest {
                 }
             }
             if (father != null) {
+                long nb = father.nb;
                 father.addDAipWithNoSave(maip);
+                if (level == MainIngestFile.minleveltofile) {
+                    System.out.print("Add Daip: "+nb+":"+father.nb);
+                }
             }
-            // XXX NO SAVE OF MAIP!
-            if (level < MainIngestFile.minleveltofile) {
-                DAIP_BELOW_MINLEVEL.put(maip.getString(REFID), maip);
+            if (fromDatabase) {
+                long nb = maip.nb;
+                maip.save(dbvitam);
+                if (metaCreated) {
+                    maip.forceSave(dbvitam.daips);
+                }
+                System.out.println(maip);
             }
             // System.out.println("M: "+maip.toString());
             maip.addEsIndex(dbvitam, esIndex, model);
             if (metaCreated && father == null) {
                 listmetaaips.add(maip);
-            } else if (father != null) {
-                if (level < MainIngestFile.minleveltofile) {
-                    maip.save(dbvitam);
-                } else {
-                    maip.saveToFile(dbvitam, bufferedOutputStream, level);
-                }
+            } else if (father != null && ! fromDatabase) {
+                maip.saveToFile(dbvitam, bufferedOutputStream, level);
             }
         }
         return listmetaaips;

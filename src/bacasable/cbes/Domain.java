@@ -18,21 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cbes;
 
-import static fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections.Cdomain;
+import static fr.gouv.vitam.cbes.CouchbaseAccess.VitamCollections.Cdomain;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bson.BSONObject;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-
-import fr.gouv.vitam.mdbes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamCollections;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamLinks;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
@@ -44,8 +39,6 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  */
 public class Domain extends VitamType {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Domain.class);
-
-    private static final long serialVersionUID = 8152306914666919955L;
 
     /**
      * Number of Immediate child (DAip)
@@ -70,7 +63,9 @@ public class Domain extends VitamType {
      * @param dbvitam
      * @param maips
      */
-    public void addDAip(final MongoDbAccess dbvitam, final List<DAip> maips) {
+    public void addDAip(final CouchbaseAccess dbvitam, final List<DAip> maips) {
+        // XXX FIXME cannot update
+        /*
         DBObject update = null;
         final List<String> ids = new ArrayList<String>();
         for (final DAip maip : maips) {
@@ -100,6 +95,7 @@ public class Domain extends VitamType {
             nb += ids.size();
         }
         ids.clear();
+        */
     }
 
     /**
@@ -109,10 +105,10 @@ public class Domain extends VitamType {
      * @param outputStream
      * @param maips
      */
-    public void addDAipNoSave(final MongoDbAccess dbvitam, final OutputStream outputStream, final List<DAip> maips) {
+    public void addDAipNoSave(final CouchbaseAccess dbvitam, final OutputStream outputStream, final List<DAip> maips) {
         for (final DAip maip : maips) {
-            MongoDbAccess.addAsymmetricLinksetNoSave(this, VitamLinks.Domain2DAip.field1to2, maip);
-            if (MongoDbAccess.addAsymmetricLinksetNoSave(maip, VitamLinks.Domain2DAip.field2to1, this)) {
+            CouchbaseAccess.addAsymmetricLinksetNoSave(this, VitamLinks.Domain2DAip.field1to2, maip);
+            if (CouchbaseAccess.addAsymmetricLinksetNoSave(maip, VitamLinks.Domain2DAip.field2to1, this)) {
                 nb++;
             }
             maip.saveToFile(dbvitam, outputStream, 1);
@@ -125,16 +121,21 @@ public class Domain extends VitamType {
      * @param dbvitam
      * @param maip
      */
-    public void addDAip(final MongoDbAccess dbvitam, final DAip maip) {
+    public void addDAip(final CouchbaseAccess dbvitam, final DAip maip) {
+        // XXX FIXME Cannot update
+        /*
         final DBObject update = dbvitam.addLink(this, VitamLinks.Domain2DAip, maip);
         if (update != null) {
             maip.update(dbvitam.daips, update);
         }
+        */
     }
 
     @Override
-    protected boolean updated(final MongoDbAccess dbvitam) {
-        final Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, getId()));
+    protected boolean updated(final CouchbaseAccess dbvitam) {
+        final Domain vt = (Domain) dbvitam.findOne(Cdomain, getId());
+        // XXX FIXME Cannot update
+        /*
         BasicDBObject update = null;
         LOGGER.warn("Previous Domain exists ? " + (vt != null));
         if (vt != null) {
@@ -166,11 +167,12 @@ public class Domain extends VitamType {
             append(NBCHILD, nb);
             nb = 0;
         }
+        */
         return false;
     }
 
     @Override
-    public void save(final MongoDbAccess dbvitam) {
+    public void save(final CouchbaseAccess dbvitam) {
         putBeforeSave();
         if (updated(dbvitam)) {
             return;
@@ -203,9 +205,9 @@ public class Domain extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, get(ID)));
-        this.putAll((BSONObject) vt);
+    public void load(final CouchbaseAccess dbvitam) {
+        final Domain vt = (Domain) dbvitam.findOne(Cdomain, getId());
+        this.putAll(vt);
     }
 
     /**
@@ -215,13 +217,14 @@ public class Domain extends VitamType {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public static Domain findOne(final MongoDbAccess dbvitam, final String id) throws InstantiationException,
+    public static Domain findOne(final CouchbaseAccess dbvitam, final String id) throws InstantiationException,
             IllegalAccessException {
         return (Domain) dbvitam.findOne(Cdomain, id);
     }
 
-    protected static void addIndexes(final MongoDbAccess dbvitam) {
-        dbvitam.domains.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.Domain2DAip.field1to2, 1));
+    protected static void addIndexes(final CouchbaseAccess dbvitam) {
+        CouchbaseAccess.executeCommand(dbvitam.saips.collection, 
+                "CREATE INDEX "+VitamLinks.Domain2DAip.field1to2+"_IDX ON "+VitamCollections.Cdomain.name+"("+VitamLinks.Domain2DAip.field1to2+")");
         // dbvitam.domaines.collection.createIndex(new BasicDBObject("_depth", 1));
     }
 }

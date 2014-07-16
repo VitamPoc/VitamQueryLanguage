@@ -61,11 +61,11 @@ public class MdQueryParser extends AbstractQueryParser {
     @Override
     protected void checkRootTypeRequest(final TypeRequest tr, final JsonNode command, final int prevDepth)
             throws InvalidParseOperationException {
-        if (tr.depth > 1 || lastDepth - prevDepth > 1) {
+        if (tr.relativedepth > 1 || lastDepth - prevDepth > 1) {
             // MongoDB not allowed
             LOGGER.debug("ES only: {}", command);
             throw new InvalidParseOperationException("Command not allowed with MongoDB while Depth step: "
-                    + (lastDepth - prevDepth) + ":" + lastDepth + ":" + prevDepth + ":" + tr.depth + " " + tr);
+                    + (lastDepth - prevDepth) + ":" + lastDepth + ":" + prevDepth + ":" + tr.relativedepth + " " + tr);
         }
     }
 
@@ -255,6 +255,28 @@ public class MdQueryParser extends AbstractQueryParser {
         }
         tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
         tr0.requestModel[MONGODB].setAll((ObjectNode) command);
+    }
+
+    /**
+     * $wildcard : { name : regex }
+     *
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    @Override
+    protected void analyzeWildcard(final String refCommand, final JsonNode command, final TypeRequest tr0, final REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
+        }
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        String value = entry.getValue().asText();
+        value = value.replace('?', '.').replace("*", ".*");
+        tr0.requestModel[MONGODB].putObject(entry.getKey()).put(REQUEST.regex.exactToken(), value);
     }
 
     /**

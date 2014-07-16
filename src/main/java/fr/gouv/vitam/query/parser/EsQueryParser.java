@@ -392,11 +392,52 @@ public class EsQueryParser extends AbstractQueryParser {
             final JsonNode node = requestItem.getValue();
             final String val = node.asText();
             if (!multiple) {
-                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+                if (isAttributeNotAnalyzed(key)) {
+                    tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val);
+                    // XXX FIXME tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+                } else {
+                    tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+                }
                 return;
             }
-            arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+            if (isAttributeNotAnalyzed(key)) {
+                arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val);
+                // XXX FIXME arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+            } else {
+                arrayES.addObject().putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+            }
         }
+    }
+
+    /**
+     * $wildcard : { name : term }
+     *
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    @Override
+    protected void analyzeWildcard(final String refCommand, final JsonNode command, final TypeRequest tr0, final REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
+        }
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        wildcardEs(entry, tr0);
+    }
+
+    /**
+     * @param entry
+     * @param tr0
+     */
+    protected final void wildcardEs(final Entry<String, JsonNode> entry, final TypeRequest tr0) {
+        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
+        final String key = entry.getKey();
+        final JsonNode node = entry.getValue();
+        final String val = node.asText();
+        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.wildcard.name()).put(key, val);
+        // XXX FIXME tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.wildcard.name()).put(key, val.toLowerCase());
     }
 
     /**

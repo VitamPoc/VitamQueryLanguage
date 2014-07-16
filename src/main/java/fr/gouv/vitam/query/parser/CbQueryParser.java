@@ -58,11 +58,11 @@ public class CbQueryParser extends AbstractQueryParser {
     @Override
     protected void checkRootTypeRequest(final TypeRequest tr, final JsonNode command, final int prevDepth)
             throws InvalidParseOperationException {
-        if (tr.depth > 1 || lastDepth - prevDepth > 1) {
+        if (tr.relativedepth > 1 || lastDepth - prevDepth > 1) {
             // CouchBase not allowed
             LOGGER.debug("ES only: {}", command);
             throw new InvalidParseOperationException("Command not allowed with CouchBase while Depth step: "
-                    + (lastDepth - prevDepth) + ":" + lastDepth + ":" + prevDepth + ":" + tr.depth + " " + tr);
+                    + (lastDepth - prevDepth) + ":" + lastDepth + ":" + prevDepth + ":" + tr.relativedepth + " " + tr);
         }
     }
 
@@ -317,6 +317,26 @@ public class CbQueryParser extends AbstractQueryParser {
             }
         }
         tr0.requestCb = val;
+    }
+
+    /**
+     * $wildcard : { name : term }
+     *
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    @Override
+    protected void analyzeWildcard(final String refCommand, final JsonNode command, final TypeRequest tr0, final REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
+        }
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        final String val = entry.getValue().asText().replace(".*", "%").replace('.', '_').replace('?', '_').replace("^", "");
+        tr0.requestCb = " " + entry.getKey() + " LIKE \"" + val + "\"";
     }
 
     /**

@@ -41,7 +41,7 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  *
  */
 @SuppressWarnings("javadoc")
-public class ErazeData {
+public class MainErazeData {
     private static VitamLogger LOGGER = null;
 
     private static MongoClient mongoClient = null;
@@ -88,7 +88,7 @@ public class ErazeData {
         final String log4j = args[0];
         PropertyConfigurator.configure(log4j);
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
-        LOGGER = VitamLoggerFactory.getInstance(ErazeData.class);
+        LOGGER = VitamLoggerFactory.getInstance(MainErazeData.class);
         if (args.length > 1) {
             eraze = args[1].equals("eraze");
         }

@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -138,7 +139,51 @@ public final class UUID {
         uuid[16] = (byte) (time >> 8);
         uuid[17] = (byte) (time);
     }
+    /**
+     * Create a UUID immediately compatible with a standard UUID implementation
+     * @param on128bits
+     */
+    public UUID(boolean on128bits) {
+        this();
+        if (on128bits) {
+            uuid[5] = (byte) VERSION_DEC;
+            uuid[11] = 0;
+        }
+    }
+    /**
+     * Create a UUID immediately compatible with a standard UUID implementation
+     * @param mostSigBits
+     * @param leastSigBits
+     */
+    public UUID(long mostSigBits, long leastSigBits) {
+        uuid = new byte[KEYSIZE];
+        uuid[0] = (byte) (mostSigBits >> 56);
+        uuid[1] = (byte) (mostSigBits >> 48);
+        uuid[2] = (byte) (mostSigBits >> 40);
+        uuid[3] = (byte) (mostSigBits >> 32);
+        uuid[4] = (byte) (mostSigBits >> 24);
+        uuid[5] = (byte) VERSION_DEC;
+        uuid[6] = (byte) (mostSigBits >> 16);
+        uuid[7] = (byte) (mostSigBits >> 8);
+        uuid[8] = (byte) (mostSigBits);
 
+        uuid[9] = (byte) (leastSigBits >> 56);
+        uuid[10] = (byte) (leastSigBits >> 48);
+        uuid[11] = 0;
+        uuid[12] = (byte) (leastSigBits >> 40);
+        uuid[13] = (byte) (leastSigBits >> 32);
+        uuid[14] = (byte) (leastSigBits >> 24);
+        uuid[15] = (byte) (leastSigBits >> 16);
+        uuid[16] = (byte) (leastSigBits >> 8);
+        uuid[17] = (byte) (leastSigBits);
+    }
+    /**
+     * Create a UUID immediately compatible with a standard UUID implementation
+     * @param uuid
+     */
+    public UUID(java.util.UUID uuid) {
+        this(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
+    }
     /**
      * Constructor that takes a byte array as this UUID's content
      *
@@ -277,6 +322,45 @@ public final class UUID {
      */
     public static String getFirstAsString(final String idsource) {
         return idsource.trim().substring(0, KEYB64SIZE);
+    }
+
+    /**
+     * 
+     * @param idsource
+     * @param idIn
+     * @return True if idIn is in idsource
+     */
+    public static boolean isInPath(final String idsource, String idIn) {
+        final String id = idsource.trim();
+        final int nb = id.length() / KEYB64SIZE;
+        int beginIndex = 0;
+        int endIndex = KEYB64SIZE;
+        for (int i = 0; i < nb; i++) {
+            if (idIn.equals(id.substring(beginIndex, endIndex))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 
+     * @param idsource
+     * @param idsIn
+     * @return True if any of id in idsIn is in idsource
+     */
+    public static boolean isInPath(final String idsource, Set<String> idsIn) {
+        final String id = idsource.trim();
+        final int nb = id.length() / KEYB64SIZE;
+        final int beginIndex = 0;
+        final int endIndex = KEYB64SIZE;
+        final String searched = id.substring(beginIndex, endIndex);
+        for (int i = 0; i < nb; i++) {
+            if (idsIn.contains(searched)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -433,7 +517,45 @@ public final class UUID {
 
         return x;
     }
-
+    /**
+     * 
+     * @return the least significant bits (as in standard UUID implementation)
+     */
+    public long getLeastSignificantBits() {
+        long least;
+        least = ((long) uuid[9] & 0xFF) << 56;
+        least |= ((long) uuid[10] & 0xFF) << 48;
+        least |= ((long) uuid[12] & 0xFF) << 40;
+        least |= ((long) uuid[13] & 0xFF) << 32;
+        least |= ((long) uuid[14] & 0xFF) << 24;
+        least |= ((long) uuid[15] & 0xFF) << 16;
+        least |= ((long) uuid[16] & 0xFF) << 8;
+        least |= ((long) uuid[17] & 0xFF);
+        return least;
+    }
+    /**
+     * 
+     * @return the most significant bits (as in standard UUID implementation)
+     */
+    public long getMostSignificantBits() {
+        long most;
+        most = ((long) uuid[0] & 0xFF) << 56;
+        most |= ((long) uuid[1] & 0xFF) << 48;
+        most |= ((long) uuid[2] & 0xFF) << 40;
+        most |= ((long) uuid[3] & 0xFF) << 32;
+        most |= ((long) uuid[4] & 0xFF) << 24;
+        most |= ((long) uuid[6] & 0xFF) << 16;
+        most |= ((long) uuid[7] & 0xFF) << 8;
+        most |= ((long) uuid[8] & 0xFF);
+        return most;
+    }
+    /**
+     * 
+     * @return a UUID compatible with Java.Util package implementation
+     */
+    public java.util.UUID getJavaUuid() {
+        return new java.util.UUID(getMostSignificantBits(), getLeastSignificantBits());
+    }
     @Override
     public boolean equals(final Object o) {
         if (o == null || !(o instanceof UUID)) {

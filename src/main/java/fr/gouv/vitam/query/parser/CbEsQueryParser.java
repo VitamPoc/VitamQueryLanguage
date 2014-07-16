@@ -248,6 +248,27 @@ public class CbEsQueryParser extends EsQueryParser {
     }
 
     /**
+     * $wildcard : { name : term }
+     *
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    @Override
+    protected void analyzeWildcard(final String refCommand, final JsonNode command, final TypeRequest tr0, final REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
+        }
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        wildcardEs(entry, tr0);
+        final String val = entry.getValue().asText().replace(".*", "%").replace('.', '_').replace('?', '_').replace("^", "");
+        tr0.requestCb = " " + entry.getKey() + " LIKE \"" + val + "\"";
+    }
+    
+    /**
      * $eq : { name : value }
      *
      * @param refCommand

@@ -580,6 +580,25 @@ public class RequestTest {
     }
 
     @Test
+    public void testRequestWildcard() {
+        WildcardRequest request = null;
+        try {
+            request = new WildcardRequest("var", "val");
+            assertTrue(request.isReady());
+            assertEquals(1, request.getCurrentObject().size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        try {
+            request = new WildcardRequest("", "val1");
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+    @Test
     public void testRequestRange() {
         RangeRequest request = null;
         try {
@@ -657,6 +676,9 @@ public class RequestTest {
             assertFalse(request.getCurrentRequest().has(REQUESTARGS.depth.exactToken()));
             assertTrue(request.getCurrentRequest().has(REQUESTARGS.relativedepth.exactToken()));
             request.setRelativeDepthLimit(1);
+            assertFalse(request.getCurrentRequest().has(REQUESTARGS.depth.exactToken()));
+            assertTrue(request.getCurrentRequest().has(REQUESTARGS.relativedepth.exactToken()));
+            request.setRelativeDepthLimit(-1);
             assertFalse(request.getCurrentRequest().has(REQUESTARGS.depth.exactToken()));
             assertTrue(request.getCurrentRequest().has(REQUESTARGS.relativedepth.exactToken()));
         } catch (final InvalidCreateOperationException e) {

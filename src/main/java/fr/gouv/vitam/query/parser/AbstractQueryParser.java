@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.mdbes.VitamType;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.FILTERARGS;
@@ -43,6 +44,11 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  *
  */
 public abstract class AbstractQueryParser {
+    /**
+     * Front part for ES attribute not parsed
+     */
+    public static final String _NA = "_na_";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractQueryParser.class);
 
     /**
@@ -60,7 +66,8 @@ public abstract class AbstractQueryParser {
      */
     @SuppressWarnings("javadoc")
     public static enum ES_KEYWORDS {
-        range, like_text, simple_query_string, query, fields, regexp, term, field, bool, must_not, should, must, missing, existence, null_value, script, max_expansions
+        range, like_text, simple_query_string, query, fields, regexp, term, wildcard, 
+        field, bool, must_not, should, must, missing, existence, null_value, script, max_expansions
     }
 
     protected boolean usingMongoDb = false;
@@ -98,13 +105,14 @@ public abstract class AbstractQueryParser {
     }
 
     /**
-     * To be implemented correctly, according to specific attribute not analyzed (as "id")
+     * To be implemented correctly, according to specific attribute not analyzed (as "id" or attributes
+     * starting with "_na_")
      *
      * @param attributeName
      * @return True if this attribute is not analyzed by ElasticSearch, else False
      */
     public boolean isAttributeNotAnalyzed(final String attributeName) {
-        return false;
+        return (attributeName.startsWith(_NA) || VitamType.ID.equals(attributeName));
     }
 
     /**
@@ -286,7 +294,7 @@ public abstract class AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
         sources.add(command.toString());
-        int depth = 1; // default is immediate next level
+        int relativedepth = 1; // default is immediate next level
         int exactdepth = 0; // default is to not specify any exact depth (implicit)
         boolean isDepth = false;
         // first verify if depth is set
@@ -300,9 +308,9 @@ public abstract class AbstractQueryParser {
         } else if (command.has(REQUESTARGS.relativedepth.exactToken())) {
             final JsonNode jdepth = ((ObjectNode) command).remove(REQUESTARGS.relativedepth.exactToken());
             if (jdepth != null) {
-                depth = jdepth.asInt();
-                if (depth == 0) {
-                    depth = GlobalDatas.MAXDEPTH;
+                relativedepth = jdepth.asInt();
+                if (relativedepth == 0) {
+                    relativedepth = GlobalDatas.MAXDEPTH;
                 }
                 isDepth = true;
             }
@@ -319,16 +327,16 @@ public abstract class AbstractQueryParser {
             LOGGER.debug("Depth step: {}:{}", lastDepth, lastDepth - prevDepth);
         } else {
             tr = analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
-            tr.depth = depth;
+            tr.relativedepth = relativedepth;
             tr.exactdepth = exactdepth;
             tr.isDepth = isDepth;
             final int prevDepth = lastDepth;
             if (exactdepth > 0) {
                 lastDepth = exactdepth;
-            } else if (depth > 0) {
-                lastDepth += depth;
+            } else if (relativedepth != 0) {
+                lastDepth += relativedepth;
             }
-            LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth - prevDepth, depth, exactdepth, isDepth);
+            LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth - prevDepth, relativedepth, exactdepth, isDepth);
             checkRootTypeRequest(tr, command, prevDepth);
         }
         getRequests().add(tr);
@@ -336,7 +344,11 @@ public abstract class AbstractQueryParser {
 
     protected void checkRootTypeRequest(final TypeRequest tr, final JsonNode command, final int prevDepth)
             throws InvalidParseOperationException {
-        if (tr.isOnlyES || tr.depth > 1 || lastDepth - prevDepth > 1) {
+        if (lastDepth < 0 || (lastDepth <= 1 && tr.relativedepth < 0)) {
+            throw new InvalidParseOperationException("Depth operation is not correct since final level might be negative: "+
+                    lastDepth+" or up to 1 but using negative relative depth: "+tr.relativedepth);
+        }
+        if (tr.isOnlyES || tr.relativedepth > 1 || lastDepth - prevDepth > 1) {
             // MongoDB not allowed
             tr.isOnlyES = true;
             LOGGER.debug("ES only: {}", command);
@@ -430,6 +442,10 @@ public abstract class AbstractQueryParser {
             }
             case term: {
                 analyzeTerm(refCommand, command, tr0, req);
+                break;
+            }
+            case wildcard: {
+                analyzeWildcard(refCommand, command, tr0, req);
                 break;
             }
             case eq:
@@ -577,6 +593,17 @@ public abstract class AbstractQueryParser {
      * @throws InvalidParseOperationException
      */
     protected abstract void analyzeTerm(String refCommand, JsonNode command, TypeRequest tr0, REQUEST req)
+            throws InvalidParseOperationException;
+
+    /**
+     * $wildcard : { name : term }
+     *
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @throws InvalidParseOperationException
+     */
+    protected abstract void analyzeWildcard(String refCommand, JsonNode command, TypeRequest tr0, REQUEST req)
             throws InvalidParseOperationException;
 
     /**

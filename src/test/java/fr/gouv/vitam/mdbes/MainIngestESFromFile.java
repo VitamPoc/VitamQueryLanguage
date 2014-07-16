@@ -36,6 +36,8 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
 import com.mongodb.util.JSON;
 
+import fr.gouv.vitam.utils.GlobalDatas;
+
 /**
  * Load ingest file into ElasticSearch
  *
@@ -48,7 +50,6 @@ public class MainIngestESFromFile {
 
     private static MongoClient mongoClient = null;
 
-    public static String ingest;
     public static String model;
     public static String host = "localhost";
     public static String esbase = "vitam";
@@ -64,6 +65,8 @@ public class MainIngestESFromFile {
         }
         final String log4j = args[0];
         PropertyConfigurator.configure(log4j);
+        final String networkHost = "192.168.56.102";
+        GlobalDatas.localNetworkAddress = networkHost;
         // connect to the local database server
         if (args.length > 1) {
             host = args[1];
@@ -77,9 +80,6 @@ public class MainIngestESFromFile {
         if (args.length > 4) {
             model = args[4];
         }
-        if (args.length > 5) {
-            ingest = args[5];
-        }
         MongoDbAccess dbvitam = null;
         try {
             final MongoClientOptions options = new MongoClientOptions.Builder().connectionsPerHost(4).build();
@@ -89,8 +89,10 @@ public class MainIngestESFromFile {
             dbvitam.updateEsIndex(model);
             MainIngestESFromFile.loadt = new AtomicLong(0);
             MainIngestFile.cptMaip.set(0);
-
-            runOnce(dbvitam);
+            for (int i = 5; i < args.length; i++) {
+                System.out.println("Load "+args[i]);
+                runOnce(dbvitam, args[i]);
+            }
 
         } catch (final Exception e) {
             System.err.println("ERROR: " + e.getMessage());
@@ -133,17 +135,17 @@ public class MainIngestESFromFile {
 
     }
 
-    private static final void runOnce(final MongoDbAccess dbvitam) throws InterruptedException, InstantiationException,
+    private static final void runOnce(final MongoDbAccess dbvitam, final String file) throws InterruptedException, InstantiationException,
     IllegalAccessException, IOException {
         System.out.println("Load starting... ");
 
         final long date11 = System.currentTimeMillis();
 
-        final FileInputStream fstream = new FileInputStream(ingest);
+        final HashMap<String, String> esIndex = new HashMap<>();
+        final FileInputStream fstream = new FileInputStream(file);
         final DataInputStream in = new DataInputStream(fstream);
         final BufferedReader br = new BufferedReader(new InputStreamReader(in));
         String strLine;
-        final HashMap<String, String> esIndex = new HashMap<>();
         // Read File Line By Line
         while ((strLine = br.readLine()) != null) {
             final BSONObject bson = (BSONObject) JSON.parse(strLine);
@@ -151,7 +153,9 @@ public class MainIngestESFromFile {
             MainIngestFile.cptMaip.addAndGet(nbEs);
         }
         // Close the input stream
+        br.close();
         in.close();
+        fstream.close();
         if (!esIndex.isEmpty()) {
             MainIngestFile.cptMaip.addAndGet(esIndex.size());
             System.out.println("Last bulk ES");

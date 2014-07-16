@@ -17,6 +17,8 @@ import static fr.gouv.vitam.query.construct.RequestHelper.regex;
 import static fr.gouv.vitam.query.construct.RequestHelper.search;
 import static fr.gouv.vitam.query.construct.RequestHelper.size;
 import static fr.gouv.vitam.query.construct.RequestHelper.term;
+import static fr.gouv.vitam.query.construct.RequestHelper.wildcard;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -55,7 +57,7 @@ public class CbEsQueryParserTest {
             + "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $relativedepth : 1},"
             + "{ $and : [ {$search : { 'mavar13' : 'ceci est une phrase' } }, {$regex : { 'mavar14' : '^start?aa.*' } } ] },"
             + "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] },"
-            + "{ $and : [ { $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, { $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] },"
+            + "{ $and : [ { $wildcard : { 'mavar16' : 'mot?Majuscule*' } }, { $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] },"
             + "{ $regex : { 'mavar14' : '^start?aa.*' } }"
             + "], "
             + "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } },"
@@ -91,7 +93,7 @@ public class CbEsQueryParserTest {
             query.addRequests(and()
                     .addToBooleanRequest(search("mavar13", "ceci est une phrase"), regex("mavar14", "^start?aa.*")));
             query.addRequests(and().addToBooleanRequest(term("mavar14", "motMajuscule").addTermRequest("mavar15", "simplemot")));
-            query.addRequests(and().addToBooleanRequest(term("mavar16", "motMajuscule").addTermRequest("mavar17", "simplemot"),
+            query.addRequests(and().addToBooleanRequest(wildcard("mavar16", "mot?Majuscule*"),
                     or().addToBooleanRequest(eq("mavar19", "abcd"), match("mavar18", "quelques mots"))));
             query.addRequests(regex("mavar14", "^start?aa.*"));
 

@@ -37,7 +37,7 @@ public final class GlobalDatas {
      */
     public static final Set<String> ROOTS = new HashSet<>();
     /**
-     * Should we use filter to select from graph parents, or within query
+     * Should we use filter to select from graph parents, or within query (filtering seems better)
      */
     public static boolean useFilter = true;
     /**
@@ -53,7 +53,7 @@ public final class GlobalDatas {
      */
     public static String localNetworkAddress = null;
     /**
-     * limit before using ES in 1 level only
+     * limit before using ES in 1 level only (set to -1 means use ES at all time)
      */
     public static long limitES = 10001;
     /**
@@ -63,7 +63,11 @@ public final class GlobalDatas {
     /**
      * limit before flushing ES with Bulk
      */
-    public static final long LIMIT_ES_NEW_INDEX = 99999;
+    public static final int LIMIT_ES_NEW_INDEX = 10000;
+    /**
+     * limit before flushing MongoDB with Bulk
+     */
+    public static final int LIMIT_MDB_NEW_INDEX = 10000;
     /**
      * should be 20 but let a great margin
      */
@@ -75,5 +79,9 @@ public final class GlobalDatas {
     /**
      * Shall new entries insertion in the ElasticSearch index be in blocking mode
      */
-    public static final boolean BLOCKING = true;
+    public static final boolean BLOCKING = false;
+    /**
+     * Shall we save ResultCache
+     */
+    public static final boolean SAVERESULT = false;
 }

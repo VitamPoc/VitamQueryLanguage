@@ -204,6 +204,17 @@ public class RequestHelperTest {
     }
 
     @Test
+    public void testWildcardRequestStringString() {
+        try {
+            Request request = RequestHelper.wildcard("var", "value");
+            assertTrue(request.isReady());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
     public void testFltRequest() {
         try {
             Request request = RequestHelper.flt("value", "var");

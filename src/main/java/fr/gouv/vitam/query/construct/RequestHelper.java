@@ -29,6 +29,7 @@ import fr.gouv.vitam.query.construct.request.PathRequest;
 import fr.gouv.vitam.query.construct.request.RangeRequest;
 import fr.gouv.vitam.query.construct.request.SearchRequest;
 import fr.gouv.vitam.query.construct.request.TermRequest;
+import fr.gouv.vitam.query.construct.request.WildcardRequest;
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
@@ -571,6 +572,17 @@ public final class RequestHelper {
      */
     public static final TermRequest term(final Map<String, String> variableNameValue) throws InvalidCreateOperationException {
         return new TermRequest(variableNameValue);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a WildcardRequest
+     * @throws InvalidCreateOperationException
+     */
+    public static final WildcardRequest wildcard(final String variableName, final String value) throws InvalidCreateOperationException {
+        return new WildcardRequest(variableName, value);
     }
 
     /**

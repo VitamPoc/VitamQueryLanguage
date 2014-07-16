@@ -37,7 +37,7 @@ public class TypeRequest {
     /**
      * Relative depth
      */
-    public int depth = 1;
+    public int relativedepth = 1;
     /**
      * Exact depth
      */
@@ -66,7 +66,7 @@ public class TypeRequest {
      * Filter model: shall be used only to filter on "parent" relation and some others
      */
     public ObjectNode[] filterModel;
-
+    
     /**
      *
      * @param nbModel
@@ -82,7 +82,7 @@ public class TypeRequest {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append(" Type: " + type + ":" + refId);
-        builder.append(" Depth: " + isDepth + ":" + depth + ":" + exactdepth);
+        builder.append(" Depth: " + isDepth + ":" + relativedepth + ":" + exactdepth);
         builder.append(" isOnlyES: " + isOnlyES);
         for (final ObjectNode o : filterModel) {
             builder.append("\n\tfilter: " + o);

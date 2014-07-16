@@ -37,4 +37,12 @@ public class BenchContext {
      * Distribution counter
      */
     public AtomicLong distrib = null;
+    /**
+     * ES Index to be used 
+     */
+    public String indexName;
+    /**
+     * Type used in ES
+     */
+    public String typeName;
 }

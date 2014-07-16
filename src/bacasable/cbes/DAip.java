@@ -18,9 +18,9 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cbes;
 
-import static fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections.Cdaip;
+import static fr.gouv.vitam.cbes.CouchbaseAccess.VitamCollections.Cdaip;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,14 +30,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.bson.BSONObject;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.QueryResult;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-
-import fr.gouv.vitam.mdbes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamCollections;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamLinks;
 import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
@@ -50,8 +47,6 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  */
 public class DAip extends VitamType {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DAip.class);
-
-    private static final long serialVersionUID = -2179544540441187504L;
 
     /**
      * DAIPDEPTHS : { UUID1 : depth2, UUID2 : depth2 }
@@ -83,25 +78,28 @@ public class DAip extends VitamType {
      *
      * @param update
      */
-    public void update(final DBObject update) {
-        Cdaip.getCollection().update(new BasicDBObject(ID, getId()), update);
+    public void update(final JsonObject update) {
+        // XXX FIXME cannot update
+        //Cdaip.getCollection().update(new BasicDBObject(ID, getId()), update);
     }
 
     @Override
-    protected boolean updated(final MongoDbAccess dbvitam) {
-        final DAip vt = (DAip) dbvitam.daips.collection.findOne(new BasicDBObject(ID, get(ID)));
+    protected boolean updated(final CouchbaseAccess dbvitam) {
+        final DAip vt = (DAip) dbvitam.findOne(Cdaip, getId());
+        // XXX FIXME cannot update
+        /*
         BasicDBObject update = null;
         if (vt != null) {
             LOGGER.debug("UpdateLinks: {}\n\t{}", this, vt);
             final List<DBObject> list = new ArrayList<>();
             final List<DBObject> listset = new ArrayList<>();
-            /*
-             * Only parent link, not child link
-             * BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.DAip2DAip, true);
-             * if (upd != null) {
-             * list.add(upd);
-             * }
-             */
+            //
+             // Only parent link, not child link
+             // BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.DAip2DAip, true);
+             // if (upd != null) {
+             // list.add(upd);
+             // }
+            //
             BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.DAip2DAip, false);
             if (upd != null) {
                 list.add(upd);
@@ -193,6 +191,7 @@ public class DAip extends VitamType {
             append(NBCHILD, nb);
             nb = 0;
         }
+        */
         return false;
     }
 
@@ -203,7 +202,7 @@ public class DAip extends VitamType {
      * @param outputStream
      * @param level
      */
-    public void saveToFile(final MongoDbAccess dbvitam, final OutputStream outputStream, final int level) {
+    public void saveToFile(final CouchbaseAccess dbvitam, final OutputStream outputStream, final int level) {
         putBeforeSave();
         dbvitam.updateLinksToFile(this, VitamLinks.DAip2DAip, false);
         dbvitam.updateLinksToFile(this, VitamLinks.Domain2DAip, false);
@@ -213,7 +212,7 @@ public class DAip extends VitamType {
                 nb += temp;
             }
         }
-        append(NBCHILD, nb);
+        put(NBCHILD, nb);
         String toprint = toStringDirect() + "\n";
         try {
             outputStream.write(toprint.getBytes());
@@ -225,7 +224,7 @@ public class DAip extends VitamType {
     }
 
     @Override
-    public void save(final MongoDbAccess dbvitam) {
+    public void save(final CouchbaseAccess dbvitam) {
         putBeforeSave();
         if (updated(dbvitam)) {
             LOGGER.debug("Updated: {}", this);
@@ -285,7 +284,9 @@ public class DAip extends VitamType {
      * @param dbvitam
      * @param daips
      */
-    public void addDAip(final MongoDbAccess dbvitam, final List<DAip> daips) {
+    public void addDAip(final CouchbaseAccess dbvitam, final List<DAip> daips) {
+        // XXX FIXME cannot update
+        /*
         DBObject update = null;
         final List<String> ids = new ArrayList<>();
         for (final DAip daip : daips) {
@@ -305,6 +306,7 @@ public class DAip extends VitamType {
             nb += ids.size();
         }
         ids.clear();
+        */
     }
 
     /**
@@ -313,7 +315,7 @@ public class DAip extends VitamType {
      * @param maipChild
      */
     public void addDAipWithNoSave(final DAip maipChild) {
-        if (MongoDbAccess.addAsymmetricLinksetNoSave(maipChild, VitamLinks.DAip2DAip.field2to1, this)) {
+        if (CouchbaseAccess.addAsymmetricLinksetNoSave(maipChild, VitamLinks.DAip2DAip.field2to1, this)) {
             nb += 1;
         }
     }
@@ -323,15 +325,13 @@ public class DAip extends VitamType {
      * @param dbvitam
      * @return the list of UUID of children (database access)
      */
-    public List<String> getChildrenDAipDBRefFromParent(final MongoDbAccess dbvitam) {
-        final DBCursor cid = dbvitam.daips.collection.find(
-                new BasicDBObject(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, this.get(ID)), new BasicDBObject(ID, 1));
+    public List<String> getChildrenDAipDBRefFromParent(final CouchbaseAccess dbvitam) {
+        final Iterator<QueryResult> cid = dbvitam.find(dbvitam.daips, VitamLinks.DAip2DAip.field2to1 + "=" +this.getId(), ID);
         final List<String> ids = new ArrayList<>();
         while (cid.hasNext()) {
-            final String mid = (String) cid.next().get(ID);
+            final String mid = (String) cid.next().value().get(ID);
             ids.add(mid);
         }
-        cid.close();
         return ids;
     }
 
@@ -369,7 +369,7 @@ public class DAip extends VitamType {
      * @param dbvitam
      * @param dua
      */
-    public void addDuaRef(final MongoDbAccess dbvitam, final DuaRef dua) {
+    public void addDuaRef(final CouchbaseAccess dbvitam, final DuaRef dua) {
         dbvitam.addLink(this, VitamLinks.DAip2Dua, dua);
     }
 
@@ -391,11 +391,14 @@ public class DAip extends VitamType {
      * @param dbvitam
      * @param data
      */
-    public void addPAip(final MongoDbAccess dbvitam, final PAip data) {
+    public void addPAip(final CouchbaseAccess dbvitam, final PAip data) {
+        // XXX FIXME cannot update
+        /*
         final DBObject update = dbvitam.addLink(this, VitamLinks.DAip2PAip, data);
         if (update != null) {
             data.update(dbvitam.paips, update);
         }
+        */
     }
 
     /**
@@ -443,7 +446,7 @@ public class DAip extends VitamType {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public List<String> getPathesToParent(final MongoDbAccess dbvitam, final String path) throws InstantiationException,
+    public List<String> getPathesToParent(final CouchbaseAccess dbvitam, final String path) throws InstantiationException,
     IllegalAccessException {
         final List<String> pathes = new ArrayList<>();
         if (isImmediateParent(path)) {
@@ -473,7 +476,7 @@ public class DAip extends VitamType {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    private static void getSubPathesToParent(final MongoDbAccess dbvitam, final String target, final DAip current,
+    private static void getSubPathesToParent(final CouchbaseAccess dbvitam, final String target, final DAip current,
             final List<String> pathResults, final List<String> subpathesCurrent) throws InstantiationException,
             IllegalAccessException {
         final List<String> immediateParents = current.getFathersDAipDBRef(false);
@@ -531,21 +534,22 @@ public class DAip extends VitamType {
      * @param model
      * @return the number of DAip inserted in ES
      */
-    public int addEsIndex(final MongoDbAccess dbvitam, final Map<String, String> indexes, final String model) {
-        BasicDBObject maip = (BasicDBObject) copy();
-        if (!maip.containsField(NBCHILD)) {
-            maip.append(NBCHILD, nb);
+    public int addEsIndex(final CouchbaseAccess dbvitam, final Map<String, String> indexes, final String model) {
+        JsonObject maip = JsonObject.empty();
+        maip.toMap().putAll(this.json.toMap());
+        if (!containsField(NBCHILD)) {
+            maip.put(NBCHILD, nb);
         }
         final int nb = ElasticSearchAccess.addEsIndex(dbvitam, model, indexes, maip);
-        maip.clear();
+        maip.toMap().clear();
         maip = null;
         return nb;
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final DAip vt = (DAip) dbvitam.daips.collection.findOne(new BasicDBObject(ID, get(ID)));
-        this.putAll((BSONObject) vt);
+    public void load(final CouchbaseAccess dbvitam) {
+        final DAip vt = (DAip) dbvitam.findOne(Cdaip, getId());
+        this.putAll(vt);
     }
 
     /**
@@ -555,21 +559,27 @@ public class DAip extends VitamType {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public static DAip findOne(final MongoDbAccess dbvitam, final String refid) throws InstantiationException,
+    public static DAip findOne(final CouchbaseAccess dbvitam, final String refid) throws InstantiationException,
             IllegalAccessException {
         return (DAip) dbvitam.findOne(Cdaip, refid);
     }
 
-    protected static void addIndexes(final MongoDbAccess dbvitam) {
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.Domain2DAip.field2to1, 1));
+    protected static void addIndexes(final CouchbaseAccess dbvitam) {
+        CouchbaseAccess.executeCommand(dbvitam.daips.collection, 
+                "CREATE INDEX "+VitamLinks.DAip2DAip.field2to1+"_IDX ON "+VitamCollections.Cdaip.name+"("+VitamLinks.DAip2DAip.field2to1+")");
+        CouchbaseAccess.executeCommand(dbvitam.daips.collection, 
+                "CREATE INDEX "+VitamLinks.Domain2DAip.field2to1+"_IDX ON "+VitamCollections.Cdaip.name+"("+VitamLinks.Domain2DAip.field2to1+")");
+        CouchbaseAccess.executeCommand(dbvitam.daips.collection, 
+                "CREATE INDEX "+DAip.DAIPDEPTHS+"_IDX ON "+VitamCollections.Cdaip.name+"("+DAip.DAIPDEPTHS+")");
+
         // if not set, MAIP and Tree are worst
         // dbvitam.metaaips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2DAip.field1to2, 1));
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, 1));
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field1to2, 1));
-        dbvitam.daips.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2Dua.field1to2, 1));
+        CouchbaseAccess.executeCommand(dbvitam.daips.collection, 
+                "CREATE INDEX "+VitamLinks.DAip2PAip.field1to2+"_IDX ON "+VitamCollections.Cdaip.name+"("+VitamLinks.DAip2PAip.field1to2+")");
+        CouchbaseAccess.executeCommand(dbvitam.daips.collection, 
+                "CREATE INDEX "+VitamLinks.DAip2Dua.field1to2+"_IDX ON "+VitamCollections.Cdaip.name+"("+VitamLinks.DAip2Dua.field1to2+")");
 
         // does not improve anything
-        dbvitam.daips.collection.createIndex(new BasicDBObject(DAIPDEPTHS, 1));
         // Depth requests are Worst if set
         // dbvitam.metaaips.collection.createIndex(indexDomDepth);
         // dbvitam.metaaips.collection.createIndex(indexDom);

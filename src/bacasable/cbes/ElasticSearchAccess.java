@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cbes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bson.BSONObject;
-import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -38,10 +36,8 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.index.query.BoolFilterBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
-import org.elasticsearch.index.query.IdsFilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermsFilterBuilder;
@@ -51,15 +47,16 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
-import com.mongodb.BasicDBObject;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
 
-import fr.gouv.vitam.mdbes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamLinks;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
- * ElasticSearch model with MongoDB main database
+ * ElasticSearch model with Couchbase main database
  *
  * @author "Frederic Bregier"
  *
@@ -79,7 +76,6 @@ public class ElasticSearchAccess {
     static Node node;
     Node localNode;
     Client client;
-    String clusterName;
 
     /**
      * Create an ElasticSearch access
@@ -93,20 +89,13 @@ public class ElasticSearchAccess {
      */
     public ElasticSearchAccess(final String clusterName, final String unicast, final String networkAddress) {
         Settings settings = null;
-        this.clusterName = clusterName;
         if (networkAddress != null) {
             settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
                     .put("discovery.zen.ping.multicast.enabled", false).put("discovery.zen.ping.unicast.hosts", unicast)
-                    .put("http.enabled", false)
-                    .put("index.merge.async", true)
-                    .put("network.host", networkAddress)
-                    .build();
+                    .put("network.host", networkAddress).build();
         } else {
             settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
-                    .put("discovery.zen.ping.multicast.enabled", false).put("discovery.zen.ping.unicast.hosts", unicast)
-                    .put("http.enabled", false)
-                    .put("index.merge.async", true)
-                    .build();
+                    .put("discovery.zen.ping.multicast.enabled", false).put("discovery.zen.ping.unicast.hosts", unicast).build();
         }
         if (GlobalDatas.useNewNode) {
             localNode = NodeBuilder.nodeBuilder().clusterName(clusterName).client(true).settings(settings).node();
@@ -119,13 +108,6 @@ public class ElasticSearchAccess {
             localNode = node;
         }
         client = localNode.client();
-    }
-    /**
-     * 
-     * @return the Cluster Name
-     */
-    public String getClusterName() {
-        return clusterName;
     }
 
     /**
@@ -180,32 +162,37 @@ public class ElasticSearchAccess {
                 // Will keep DAIPDEPTHS and NBCHILD as value to get (_id is implicit)
                 // Change since DAIPDEPTHS not useful as source
                 // " : { _source : { includes : [\""+DAip.DAIPDEPTHS+".*\", \""+DAip.NBCHILD+"\"] },"+
-                " : { _source : { includes : [\"" 
-                + DAip.NBCHILD + "\"] },"
+                " : { _source : { includes : [\""
+                + DAip.NBCHILD
+                + "\"] },"
                 +
                 // DAIPDEPTHS will not be parsed and analyzed since it cannot be requested efficiently { UUID1 : depth2, UUID2 :
                 // depth2 }
                 "properties : { "
-                + DAip.DAIPDEPTHS + " : { type : \"object\", enabled : false }, "
+                + DAip.DAIPDEPTHS
+                + " : { type : \"object\", enabled : false }, "
                 +
                 // DAIPPARENTS will be included but not tokenized [ UUID1, UUID2 ]
-                DAip.DAIPPARENTS + " : { type : \"string\", index : \"not_analyzed\" }, "
+                DAip.DAIPPARENTS
+                + " : { type : \"string\", index : \"not_analyzed\" }, "
                 +
                 // NBCHILD as the number of immediate child
-                DAip.NBCHILD + " : { type : \"long\" },"
+                DAip.NBCHILD
+                + " : { type : \"long\" },"
                 +
                 // Immediate parents will be included but not tokenized [ UUID1, UUID2 ]
-                VitamLinks.DAip2DAip.field2to1 + " : { type : \"string\", index : \"not_analyzed\" }, "
+                VitamLinks.DAip2DAip.field2to1
+                + " : { type : \"string\", index : \"not_analyzed\" }, "
                 +
                 // "_id : { type : \"object\", enabled : false }, " +
-                // This item does not exist and therefore should not be analyzed neither exist
-                VitamLinks.DAip2DAip.field1to2 + " : { type : \"object\", enabled : false }, "
+                // All following items will neither be integrated neither analyzed
+                VitamLinks.DAip2DAip.field1to2
+                + " : { type : \"object\", enabled : false }, "
                 +
                 // VitamLinks.DAip2DAip.field2to1+" : { type : \"object\", enabled : false }, " +
-                VitamLinks.Domain2DAip.field2to1 + " : { type : \"string\", index : \"not_analyzed\" }, " + 
-                VitamLinks.DAip2Dua.field1to2 + " : { type : \"string\", index : \"not_analyzed\" }, " + 
-                VitamLinks.DAip2PAip.field1to2 + " : { type : \"string\", index : \"not_analyzed\" } " +
-                " } } }";
+                VitamLinks.Domain2DAip.field2to1 + " : { type : \"object\", enabled : false }, " + VitamLinks.DAip2Dua.field1to2
+                + " : { type : \"object\", enabled : false }, " + VitamLinks.DAip2PAip.field1to2
+                + " : { type : \"object\", enabled : false } " + " } } }";
         LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
         try {
             // if (! client.admin().indices().prepareTypesExists(type).execute().actionGet().isExists()) {
@@ -236,16 +223,6 @@ public class ElasticSearchAccess {
         return true;
     }
 
-    private final ListenableActionFuture<BulkResponse> addEntryIndexesInternal(final String indexName, final String type, final Map<String, String> mapIdJson) {
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        bulkRequest.setRefresh(false);
-        // either use client#prepare, or use Requests# to directly build index/delete requests
-        for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey()).setSource(val.getValue()));
-        }
-
-        return bulkRequest.execute(); // new thread
-    }
     /**
      * Add a set of entries in the ElasticSearch index
      *
@@ -255,8 +232,16 @@ public class ElasticSearchAccess {
      * @return True if ok
      */
     public final boolean addEntryIndexes(final String indexName, final String type, final Map<String, String> mapIdJson) {
-        addEntryIndexesInternal(indexName, type, mapIdJson);
-        return true;
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+        // either use client#prepare, or use Requests# to directly build index/delete requests
+        for (final Entry<String, String> val : mapIdJson.entrySet()) {
+            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey()).setSource(val.getValue()));
+        }
+
+        bulkRequest.execute(); // new thread
+        return true; // !bulkResponse.hasFailures();
+        // Should process failures by iterating through each bulk response item
     }
 
     /**
@@ -268,7 +253,14 @@ public class ElasticSearchAccess {
      * @return True if ok
      */
     public final boolean addEntryIndexesBlocking(final String indexName, final String type, final Map<String, String> mapIdJson) {
-        final BulkResponse bulkResponse = addEntryIndexesInternal(indexName, type, mapIdJson).actionGet();
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+        // either use client#prepare, or use Requests# to directly build index/delete requests
+        for (final Entry<String, String> val : mapIdJson.entrySet()) {
+            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey()).setSource(val.getValue()));
+        }
+
+        final BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
         return !bulkResponse.hasFailures();
         // Should process failures by iterating through each bulk response item
     }
@@ -280,27 +272,28 @@ public class ElasticSearchAccess {
      * @param dbvitam
      * @param model
      * @param indexes
-     * @param bson
+     * @param json
      * @return the number of DAip incorporated (0 if none)
      */
-    public static final int addEsIndex(final MongoDbAccess dbvitam, final String model, final Map<String, String> indexes,
-            final BSONObject bson) {
-        BasicDBObject maip = new BasicDBObject();
-        maip.putAll(bson);
-        maip.removeField(VitamLinks.DAip2DAip.field1to2);
-        // Keep it maip.removeField(VitamLinks.DAip2DAip.field2to1);
-        //maip.removeField(VitamLinks.Domain2DAip.field2to1);
-        //maip.removeField(VitamLinks.DAip2Dua.field1to2);
-        //maip.removeField(VitamLinks.DAip2PAip.field1to2);
+    public static final int addEsIndex(final CouchbaseAccess dbvitam, final String model, final Map<String, String> indexes,
+            final JsonObject json) {
+        JsonObject maip = JsonObject.empty();
+        Map<String, Object> mapinternal = maip.toMap();
+        mapinternal.putAll(json.toMap());
+        mapinternal.remove(VitamLinks.DAip2DAip.field1to2);
+        // Keep it map.remove(VitamLinks.DAip2DAip.field2to1);
+        mapinternal.remove(VitamLinks.Domain2DAip.field2to1);
+        mapinternal.remove(VitamLinks.DAip2Dua.field1to2);
+        mapinternal.remove(VitamLinks.DAip2PAip.field1to2);
         final String id = maip.getString(VitamType.ID);
-        maip.removeField(VitamType.ID);
+        mapinternal.remove(VitamType.ID);
         // maip.removeField(ParserIngest.REFID);
         // DOMDEPTH already ok but duplicate it
         @SuppressWarnings("unchecked")
         final HashMap<String, Integer> map = (HashMap<String, Integer>) maip.get(DAip.DAIPDEPTHS);
         final List<String> list = new ArrayList<>();
         list.addAll(map.keySet());
-        maip.append(DAip.DAIPPARENTS, list);
+        maip.put(DAip.DAIPPARENTS, JsonArray.empty().toList().addAll(list));
         // System.err.println(maip);
         // System.err.println(this);
         indexes.put(id, maip.toString());
@@ -312,7 +305,7 @@ public class ElasticSearchAccess {
             indexes.clear();
             System.out.print(".");
         }
-        maip.clear();
+        mapinternal.clear();
         maip = null;
         return nb;
     }
@@ -360,9 +353,7 @@ public class ElasticSearchAccess {
              */
             QueryBuilder domdepths = null;
             if (subdepth == 1) {
-                domdepths = QueryBuilders.boolQuery()
-                        .should(QueryBuilders.termsQuery(VitamLinks.DAip2DAip.field2to1, currentNodes))
-                        .should(QueryBuilders.termsQuery(VitamLinks.Domain2DAip.field2to1, currentNodes));
+                domdepths = QueryBuilders.termsQuery(VitamLinks.DAip2DAip.field2to1, currentNodes);
             } else {
                 domdepths = QueryBuilders.termsQuery(DAip.DAIPPARENTS, currentNodes);
             }
@@ -405,20 +396,11 @@ public class ElasticSearchAccess {
          * filter where domdepths (currentNodes as (grand)parents, depth<=subdepth)
          */
         FilterBuilder domdepths = null;
-        FilterBuilder filter = null;
+        TermsFilterBuilder filter = null;
         if (subdepth == 1) {
-            filter = FilterBuilders.boolFilter()
-                    .should(FilterBuilders.termsFilter(VitamLinks.DAip2DAip.field2to1, currentNodes))
-                    .should(FilterBuilders.termsFilter(VitamLinks.Domain2DAip.field2to1, currentNodes));
-            if (GlobalDatas.PRINT_REQUEST) {
-                LOGGER.warn("Filter: terms {} or {} = {}", VitamLinks.DAip2DAip.field2to1, 
-                        VitamLinks.Domain2DAip.field2to1, currentNodes);
-            }
+            filter = FilterBuilders.termsFilter(VitamLinks.DAip2DAip.field2to1, currentNodes);
         } else {
             filter = FilterBuilders.termsFilter(DAip.DAIPPARENTS, currentNodes);
-            if (GlobalDatas.PRINT_REQUEST) {
-                LOGGER.warn("ESReq: terms {} = {}", DAip.DAIPPARENTS, currentNodes);
-            }
         }
         if (filterCond != null) {
             domdepths = FilterBuilders.boolFilter().must(filter).must(filterCond);
@@ -468,63 +450,6 @@ public class ElasticSearchAccess {
          */
         return domdepths;
     }
-
-    /**
-    *
-    * @param indexName
-    * @param type
-    * @param currentNodes
-    *            current parent nodes
-    * @param subdepth
-    * @param condition
-    * @param filterCond
-    * @return the ResultCached associated with this request. 
-    *         Note that the exact depth is not checked, so it must be checked
-    *         after (using checkAncestor method)
-    */
-   public final ResultCached getSubDepthStart(final String indexName, final String type, final String[] currentNodes,
-           final int subdepth, final QueryBuilder condition, final FilterBuilder filterCond) {
-       QueryBuilder query = null;
-       FilterBuilder filter = null;
-       if (GlobalDatas.useFilter) {
-           filter = getSubDepthFilterStart(filterCond, currentNodes, subdepth);
-           query = condition;
-       } else {
-           /*
-            * filter where domdepths (currentNodes as list of ids)
-            */
-           QueryBuilder domdepths = QueryBuilders.idsQuery(currentNodes);
-           /*
-            * Condition query
-            */
-           query = QueryBuilders.boolQuery().must(domdepths).must(condition);
-           filter = filterCond;
-       }
-       return search(indexName, type, query, filter);
-   }
-
-   /**
-    * Build the filter and facet filter for subdepth and currentNodes
-    *
-    * @param filterCond
-    * @param currentNodes
-    * @param key
-    * @param subdepth
-    * @return the associated filter
-    */
-   private final FilterBuilder getSubDepthFilterStart(final FilterBuilder filterCond, final String[] currentNodes, final int subdepth) {
-       /*
-        * filter where domdepths (currentNodes as list of ids)
-        */
-       FilterBuilder domdepths = null;
-       IdsFilterBuilder filter = FilterBuilders.idsFilter(currentNodes);
-       if (filterCond != null) {
-           domdepths = FilterBuilders.boolFilter().must(filter).must(filterCond);
-       } else {
-           domdepths = filter;
-       }
-       return domdepths;
-   }
 
     /**
     *
@@ -618,9 +543,6 @@ public class ElasticSearchAccess {
                     LOGGER.error("Not found " + DAip.NBCHILD);
                 } else if (val instanceof Integer) {
                     nb += (Integer) val;
-                    if (GlobalDatas.PRINT_REQUEST) {
-                        LOGGER.warn("Result: {} : {}", id, val);
-                    }
                 } else {
                     LOGGER.error("Not Integer: " + val.getClass().getName());
                 }
@@ -628,9 +550,6 @@ public class ElasticSearchAccess {
             resultRequest.currentDaip.add(id);
         }
         resultRequest.nbSubNodes = nb;
-        if (GlobalDatas.PRINT_REQUEST) {
-            LOGGER.warn("FinalEsResult: {} : {}", resultRequest.currentDaip, resultRequest.nbSubNodes);
-        }
         return resultRequest;
     }
 

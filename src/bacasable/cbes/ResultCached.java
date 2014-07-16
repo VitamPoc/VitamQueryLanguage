@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cbes;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,15 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.bson.BSONObject;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamCollections;
 import fr.gouv.vitam.utils.UUID;
-import fr.gouv.vitam.utils.logging.VitamLogger;
-import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * Result (potentially cached) object
@@ -45,9 +41,6 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  *
  */
 public class ResultCached extends VitamType {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResultCached.class);
-    private static final long serialVersionUID = 5962911495483495562L;
-
     /**
      * Current SAip in the result
      */
@@ -123,9 +116,21 @@ public class ResultCached extends VitamType {
             currentDaip.clear();
             currentDaip.addAll(list);
         }
-        minLevel = this.getInt(MINLEVEL, 0);
-        maxLevel = this.getInt(MAXLEVEL, 0);
-        nbSubNodes = this.getLong(NBSUBNODES, -1);
+        if (this.containsField(MINLEVEL)) {
+            minLevel = this.getInt(MINLEVEL);
+        } else {
+            minLevel = 0;
+        }
+        if (this.containsField(MAXLEVEL)) {
+            maxLevel = this.getInt(MAXLEVEL);
+        } else {
+            maxLevel = 0;
+        }
+        if (this.containsField(NBSUBNODES)) {
+            nbSubNodes = this.getLong(NBSUBNODES);
+        } else {
+            nbSubNodes = -1;
+        }
     }
 
     @Override
@@ -141,8 +146,8 @@ public class ResultCached extends VitamType {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected boolean updated(final MongoDbAccess dbvitam) {
-        final ResultCached vt = (ResultCached) dbvitam.requests.collection.findOne(new BasicDBObject(ID, get(ID)));
+    protected boolean updated(final CouchbaseAccess dbvitam) {
+        final ResultCached vt = (ResultCached) dbvitam.findOne(VitamCollections.Crequests, getId());
         if (vt != null) {
             final List<DBObject> list = new ArrayList<DBObject>();
             final List<String> slist = (List<String>) vt.get(CURRENTDAIP);
@@ -162,23 +167,17 @@ public class ResultCached extends VitamType {
                 upd.append(MAXLEVEL, maxLevel);
                 upd.append(NBSUBNODES, nbSubNodes);
                 final BasicDBObject update = new BasicDBObject("$addToSet", upd);
-                dbvitam.requests.collection.update(new BasicDBObject(ID, this.get(ID)), update);
+                // XXX FIXME cannot make an update
+                //dbvitam.requests.collection.update(new BasicDBObject(ID, this.get(ID)), update);
             }
-        } else if (containsField(ID)) {
-            // not in DB but got already an ID => Save it
-            if (GlobalDatas.SAVERESULT) {
-                this.forceSave(dbvitam.requests);
-            }
-            return true;
         }
-        return ! GlobalDatas.SAVERESULT;
+        return false;
     }
 
     @Override
-    public void save(final MongoDbAccess dbvitam) {
+    public void save(final CouchbaseAccess dbvitam) {
         putBeforeSave();
         if (updated(dbvitam)) {
-            loaded = true;
             return;
         }
         updateOrSave(dbvitam.requests);
@@ -186,9 +185,9 @@ public class ResultCached extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final ResultCached vt = (ResultCached) dbvitam.requests.collection.findOne(new BasicDBObject(ID, get(ID)));
-        this.putAll((BSONObject) vt);
+    public void load(final CouchbaseAccess dbvitam) {
+        final ResultCached vt = (ResultCached) dbvitam.findOne(VitamCollections.Crequests, getId());
+        this.putAll(vt);
         loaded = true;
     }
 
@@ -199,10 +198,6 @@ public class ResultCached extends VitamType {
     public void updateMinMax() {
         minLevel = 0;
         maxLevel = 0;
-        if (currentDaip.isEmpty()) {
-            return;
-        }
-        minLevel = Integer.MAX_VALUE;
         for (final String id : currentDaip) {
             final int level = UUID.getUuidNb(id);
             if (minLevel > level) {
@@ -211,9 +206,6 @@ public class ResultCached extends VitamType {
             if (maxLevel == 0 || maxLevel < level) {
                 maxLevel = level;
             }
-        }
-        if (GlobalDatas.PRINT_REQUEST) {
-            LOGGER.warn("min: "+minLevel+" max: "+maxLevel);
         }
     }
 
@@ -224,16 +216,12 @@ public class ResultCached extends VitamType {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public void updateLoadMinMax(final MongoDbAccess dbvitam) throws InstantiationException, IllegalAccessException {
+    public void updateLoadMinMax(final CouchbaseAccess dbvitam) throws InstantiationException, IllegalAccessException {
         minLevel = 0;
         maxLevel = 0;
-        if (currentDaip.isEmpty()) {
-            return;
-        }
-        minLevel = Integer.MAX_VALUE;
         for (final String id : currentDaip) {
             int level = UUID.getUuidNb(id);
-            if (level == 1) {
+            if (UUID.getUuidNb(id) == 1) {
                 final DAip daip = DAip.findOne(dbvitam, id);
                 if (daip == null) {
                     continue;
@@ -242,9 +230,9 @@ public class ResultCached extends VitamType {
                 if (domdepth == null || domdepth.isEmpty()) {
                     level = 1;
                 } else {
-                    level = 0;
+                    level = Integer.MAX_VALUE;
                     for (final int lev : domdepth.values()) {
-                        if (level < lev) {
+                        if (level > lev) {
                             level = lev;
                         }
                     }
@@ -257,9 +245,6 @@ public class ResultCached extends VitamType {
             if (maxLevel == 0 || maxLevel < level) {
                 maxLevel = level;
             }
-            if (GlobalDatas.PRINT_REQUEST) {
-                LOGGER.warn("min: "+minLevel+" max: "+maxLevel);
-            }
         }
     }
 
@@ -271,7 +256,7 @@ public class ResultCached extends VitamType {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public boolean checkAncestor(final MongoDbAccess mdAccess, final ResultCached next) throws InstantiationException,
+    public boolean checkAncestor(final CouchbaseAccess mdAccess, final ResultCached next) throws InstantiationException,
             IllegalAccessException {
         if (mdAccess == null) {
             return true;
@@ -317,7 +302,7 @@ public class ResultCached extends VitamType {
         return !next.currentDaip.isEmpty();
     }
 
-    protected static void addIndexes(final MongoDbAccess mongoDbAccess) {
+    protected static void addIndexes(final CouchbaseAccess mongoDbAccess) {
         // dbvitam.requests.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
     }
 }

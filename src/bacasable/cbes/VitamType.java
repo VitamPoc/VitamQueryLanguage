@@ -18,31 +18,31 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cbes;
 
-import org.bson.BSONObject;
+import java.util.Collection;
+import java.util.Map;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-import com.mongodb.util.JSON;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
 
-import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollection;
+import fr.gouv.vitam.cbes.CouchbaseAccess.VitamCollection;
+import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
+import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
- * The default Vitam Type object to be stored in the database (MongoDb/ElasticSearch mode)
+ * The default Vitam Type object to be stored in the database (Couchbase/ElasticSearch mode)
  *
  * @author "Frederic Bregier"
  *
  */
-public abstract class VitamType extends BasicDBObject {
-    private static final long serialVersionUID = 8051576404383272453L;
-
+public abstract class VitamType {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamType.class);
 
     /**
@@ -50,21 +50,29 @@ public abstract class VitamType extends BasicDBObject {
      */
     public static final String ID = "_id";
 
+    protected JsonObject json = JsonObject.empty();
+
     /**
-     * Empty constructor
+     * 
      */
     public VitamType() {
     }
-
+    /**
+     * Clear all attributes
+     */
+    public void clear() {
+        json.toMap().clear();
+    }
     /**
      * This (Domain) is a root
      *
      * @throws InvalidUuidOperationException
      */
     public final void setRoot() throws InvalidUuidOperationException {
-        String id = (String) this.get(ID);
+        String id = (String) json.get(ID);
         if (id == null) {
             id = new UUID().toString();
+            setId(id);
         }
         GlobalDatas.ROOTS.add(id);
     }
@@ -73,7 +81,7 @@ public abstract class VitamType extends BasicDBObject {
      * Create a new ID
      */
     public final void setNewId() {
-        append(ID, new UUID().toString());
+        json.put(ID, new UUID().toString());
     }
 
     /**
@@ -82,7 +90,7 @@ public abstract class VitamType extends BasicDBObject {
      * @param id
      */
     public final void setId(final String id) {
-        append(ID, id);
+        json.put(ID, id);
     }
 
     /**
@@ -90,17 +98,32 @@ public abstract class VitamType extends BasicDBObject {
      * @return the ID
      */
     public String getId() {
-        return this.getString(ID);
+        return json.getString(ID);
     }
 
+    /**
+     * Update value from argument
+     * @param value
+     */
+    public final void set(final JsonObject value) {
+        json.toMap().putAll(value.toMap());
+    }
     /**
      * Load from a JSON String
      *
      * @param json
+     * @throws InvalidParseOperationException 
      */
-    public final void load(final String json) {
-        this.putAll((BSONObject) JSON.parse(json));
-        getAfterLoad();
+    public final void load(final String json) throws InvalidParseOperationException {
+        Map<String, Object> map;
+        try {
+            map = JsonHandler.getMapFromString(json);
+            this.json.toMap().putAll(map);
+            getAfterLoad();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new InvalidParseOperationException(e);
+        }
     }
 
     /**
@@ -122,7 +145,7 @@ public abstract class VitamType extends BasicDBObject {
      *
      * @param dbvitam
      */
-    public abstract void save(MongoDbAccess dbvitam);
+    public abstract void save(CouchbaseAccess dbvitam);
 
     /**
      * try to update the object if necessary (difference from the current value in the database)
@@ -130,14 +153,14 @@ public abstract class VitamType extends BasicDBObject {
      * @param dbvitam
      * @return True if the object does not need any extra save operation
      */
-    protected abstract boolean updated(MongoDbAccess dbvitam);
+    protected abstract boolean updated(CouchbaseAccess dbvitam);
 
     /**
      * load the object from the database, ignoring any previous data, except ID
      *
      * @param dbvitam
      */
-    public abstract void load(MongoDbAccess dbvitam);
+    public abstract void load(CouchbaseAccess dbvitam);
 
     /**
      * Save the document if new, update it (keeping non set fields, replacing set fields)
@@ -145,15 +168,12 @@ public abstract class VitamType extends BasicDBObject {
      * @param collection
      */
     protected final void updateOrSave(final VitamCollection collection) {
-        final String id = (String) this.get(ID);
+        final String id = (String) json.get(ID);
         if (id == null) {
             setNewId();
-            collection.collection.save(this);
-        } else {
-            final BasicDBObject upd = new BasicDBObject(this);
-            upd.removeField(ID);
-            collection.collection.update(new BasicDBObject(ID, id), new BasicDBObject("$set", upd));
         }
+        JsonDocument doc = JsonDocument.create(getId(), json);
+        collection.collection.insert(doc).toBlockingObservable().first();
     }
     
     /**
@@ -161,11 +181,12 @@ public abstract class VitamType extends BasicDBObject {
      * @param collection
      */
     protected final void forceSave(final VitamCollection collection) {
-        final String id = (String) this.get(ID);
+        final String id = (String) json.get(ID);
         if (id == null) {
             setNewId();
         }
-        collection.collection.save(this);
+        JsonDocument doc = JsonDocument.create(getId(), json);
+        collection.collection.insert(doc).toBlockingObservable().first();
     }
     /**
      * Delete the current object
@@ -173,7 +194,7 @@ public abstract class VitamType extends BasicDBObject {
      * @param collection
      */
     public final void delete(final VitamCollection collection) {
-        collection.collection.remove(new BasicDBObject(ID, this.get(ID)));
+        collection.collection.remove(this.getId()).toBlockingObservable().first();
     }
 
     /**
@@ -182,15 +203,51 @@ public abstract class VitamType extends BasicDBObject {
      * @param collection
      * @param update
      */
-    protected final void update(final VitamCollection collection, final DBObject update) {
-        try {
-            collection.collection.update(new BasicDBObject(ID, this.get(ID)), update);
-        } catch (final MongoException e) {
-            LOGGER.error("Exception for " + update, e);
-            throw e;
-        }
+    protected final void update(final VitamCollection collection, final JsonObject update) {
+        json.toMap().putAll(update.toMap());
+        JsonDocument document = JsonDocument.create(getId(), json);
+        collection.collection.upsert(document);
     }
-
+    
+    protected Object get(String name) {
+        return json.get(name);
+    }
+    protected int getInt(String name) {
+        return json.getInt(name);
+    }
+    protected long getLong(String name) {
+        return json.getLong(name);
+    }
+    protected boolean getBoolean(String name) {
+        return json.getBoolean(name);
+    }
+    protected String getString(String name) {
+        return json.getString(name);
+    }
+    protected void put(String name, String value) {
+        json.put(name, value);
+    }
+    protected void put(String name, int value) {
+        json.put(name, value);
+    }
+    protected void put(String name, long value) {
+        json.put(name, value);
+    }
+    protected void put(String name, boolean value) {
+        json.put(name, value);
+    }
+    protected void put(String name, Collection<?> values) {
+        json.put(name, JsonArray.empty().toList().addAll(values));
+    }
+    protected Object removeField(String name) {
+        return json.toMap().remove(name);
+    }
+    protected boolean containsField(String name) {
+        return json.toMap().containsKey(name);
+    }
+    protected void putAll(VitamType vt) {
+        json.toMap().putAll(vt.json.toMap());
+    }
     /**
      *
      * @return the bypass toString
@@ -209,7 +266,7 @@ public abstract class VitamType extends BasicDBObject {
      * @return the toString for Debug mode
      */
     public String toStringDebug() {
-        return this.getClass().getSimpleName() + ": " + this.get(ID);
+        return this.getClass().getSimpleName() + ": " + json.get(ID);
     }
 
 }

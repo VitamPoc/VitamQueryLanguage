@@ -232,7 +232,42 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         termEs(command, tr0);
         tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].setAll((ObjectNode) command);
+        for (final Iterator<Entry<String, JsonNode>> iterator = command.fields(); iterator.hasNext();) {
+            final Entry<String, JsonNode> requestItem = iterator.next();
+            final String key = requestItem.getKey();
+            final JsonNode node = requestItem.getValue();
+            final String val = node.asText();
+            if (isAttributeNotAnalyzed(key)) {
+                tr0.requestModel[MONGODB].put(key.replaceFirst(_NA, ""), val);
+            } else {
+                tr0.requestModel[MONGODB].put(key, val);
+            }
+        }
+
+    }
+    
+
+    /**
+     * $wildcard : { name : regex }
+     *
+     * @param refCommand
+     * @param command
+     * @param tr0
+     * @param req
+     * @throws InvalidParseOperationException
+     */
+    @Override
+    protected void analyzeWildcard(final String refCommand, final JsonNode command, final TypeRequest tr0, final REQUEST req)
+            throws InvalidParseOperationException {
+        if (command == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
+        }
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
+        wildcardEs(entry, tr0);
+        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        String value = entry.getValue().asText();
+        value = value.replace('?', '.').replace("*", ".*");
+        tr0.requestModel[MONGODB].putObject(entry.getKey()).put(REQUEST.regex.exactToken(), value);
     }
 
     /**

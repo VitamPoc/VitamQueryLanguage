@@ -182,6 +182,21 @@ public class UUIDTest {
     }
 
     @Test
+    public void testJavaUtilUuid() {
+        final UUID id1 = new UUID(true);
+        final UUID id2 = new UUID(id1.getMostSignificantBits(), id1.getLeastSignificantBits());
+        assertEquals(id1, id2);
+        final java.util.UUID javaUuid0 = id1.getJavaUuid();
+        assertEquals(javaUuid0.getMostSignificantBits(), id1.getMostSignificantBits());
+        assertEquals(javaUuid0.getLeastSignificantBits(), id1.getLeastSignificantBits());
+        final java.util.UUID javaUuid = java.util.UUID.randomUUID();
+        final UUID id3 = new UUID(javaUuid);
+        assertEquals(javaUuid.getMostSignificantBits(), id3.getMostSignificantBits());
+        assertEquals(javaUuid.getLeastSignificantBits(), id3.getLeastSignificantBits());
+        assertEquals(javaUuid, id3.getJavaUuid());
+    }
+    
+    @Test
     public void testPIDField() throws Exception {
         final UUID id = new UUID();
 

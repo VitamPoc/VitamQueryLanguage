@@ -115,7 +115,7 @@ public class MainIngestFile implements Runnable {
     public static void main(final String[] args) throws Exception {
         if (args.length < 6) {
             System.err
-            .println("need: logfile noeraze/index host database escluster unicast nbload file start fileout limitdepth mongoimport stopindex/xx nbThread");
+            .println("need: logfile noeraze/index host database escluster unicast start nbload file fileout limitdepth mongoimport stopindex/xx nbThread");
             // System.err.println("before was need: logfile nbload files eraze/noeraze start host escluster unicast fileout limitdepth mongoimport 0/1 (1=stop index)");
             return;
         }
