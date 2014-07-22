@@ -353,7 +353,11 @@ public class ParserTokens {
         /**
          * Used in Set Depth (relative) part of each query
          */
-        relativedepth;
+        relativedepth,
+        /**
+         * Used to specify that argument is a date
+         */
+        date;
 
         /**
          * @return the exact token to be used in Mongo ($+code)

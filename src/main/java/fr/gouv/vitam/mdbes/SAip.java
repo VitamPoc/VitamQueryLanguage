@@ -113,9 +113,14 @@ public class SAip extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final SAip vt = (SAip) dbvitam.saips.collection.findOne(new BasicDBObject(ID, get(ID)));
+    public boolean load(final MongoDbAccess dbvitam) {
+        final SAip vt = (SAip) dbvitam.saips.collection.findOne(getId());
+        if (vt == null) {
+            return false;
+        }
         this.putAll((BSONObject) vt);
+        getAfterLoad();
+        return true;
     }
 
     /**

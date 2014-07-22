@@ -236,11 +236,19 @@ public class MdEsQueryParser extends EsQueryParser {
             final Entry<String, JsonNode> requestItem = iterator.next();
             final String key = requestItem.getKey();
             final JsonNode node = requestItem.getValue();
-            final String val = node.asText();
-            if (isAttributeNotAnalyzed(key)) {
-                tr0.requestModel[MONGODB].put(key.replaceFirst(_NA, ""), val);
+            if (node.isNumber()) {
+                if (isAttributeNotAnalyzed(key)) {
+                    tr0.requestModel[MONGODB].set(key.replaceFirst(_NA, ""), node);
+                } else {
+                    tr0.requestModel[MONGODB].set(key, node);
+                }
             } else {
-                tr0.requestModel[MONGODB].put(key, val);
+                final String val = node.asText();
+                if (isAttributeNotAnalyzed(key)) {
+                    tr0.requestModel[MONGODB].put(key.replaceFirst(_NA, ""), val);
+                } else {
+                    tr0.requestModel[MONGODB].put(key, val);
+                }
             }
         }
 
@@ -360,11 +368,8 @@ public class MdEsQueryParser extends EsQueryParser {
             tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
             ArrayNode array = null;
             if (req == REQUEST.not) {
-                if (trlist.size() == 1) {
-                    tr0.requestModel[MONGODB].set(REQUEST.not.exactToken(), trlist.get(0).requestModel[MONGODB]);
-                } else {
-                    array = tr0.requestModel[MONGODB].putObject(REQUEST.not.exactToken()).putArray(REQUEST.and.exactToken());
-                }
+                // MD does not really support not => nor
+                array = tr0.requestModel[MONGODB].putArray(REQUEST.nor.exactToken());
             } else {
                 array = tr0.requestModel[MONGODB].putArray(refCommand);
             }

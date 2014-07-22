@@ -253,32 +253,25 @@ public class MainIngestFile implements Runnable {
 
     private static final void runOnce(final MongoDbAccess dbvitam) throws InterruptedException, InstantiationException,
     IllegalAccessException, IOException {
-        final MainIngestFile[] ingests = new MainIngestFile[nbThread];
+        MainIngestFile ingests = null;
         nb = nb / nbThread;
-        ExecutorService executorService = null;
         int step = startFrom;
-        executorService = Executors.newFixedThreadPool(nbThread);
         final int interval = nb;
-        System.out.print("Load starting... " + nbThread + ":" + nb + ":" + interval);
-        ingests[0] = new MainIngestFile();
-        ingests[0].start = step;
-        ingests[0].stop = step + interval - 1;
-        step += interval;
-        executorService.execute(ingests[0]);
-        Thread.sleep(100);
-        for (int i = 1; i < nbThread; i++) {
-            ingests[i] = new MainIngestFile();
-            ingests[i].start = step;
-            ingests[i].stop = step + interval - 1;
+        LOGGER.warn("Load starting... " + nbThread + ":" + nb + ":" + interval);
+        for (int i = 0; i < nbThread; i++) {
+            ingests = new MainIngestFile();
+            ingests.start = step;
+            ingests.stop = step + interval - 1;
             step += interval;
-            executorService.execute(ingests[i]);
-        }
-        Thread.sleep(1000);
-        executorService.shutdown();
-        while (!executorService.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
-            ;
+            ingests.run();
         }
         System.out.println("Load ended");
+        final FileOutputStream outputStream = new FileOutputStream(fileout);
+        for (DAip daip : ParserIngest.savedDaips.values()) {
+            daip.load(dbvitam);
+            daip.toFile(outputStream);
+        }
+        outputStream.close();
         /*
          * System.out.println("All elements\n================================================================");
          * DbVitam.printStructure(dbvitam);
@@ -302,10 +295,11 @@ public class MainIngestFile implements Runnable {
             final long date11 = System.currentTimeMillis();
             parserIngest = new ParserIngest(simulate);
 
-            final File file = new File(fileout + "-" + start + "-" + stop + ".json");
+            final String filename = fileout+"-"+start+"-"+stop+".json";
+            final File file = new File(filename);
             final FileOutputStream outputStream = new FileOutputStream(file);
             parserIngest.bufferedOutputStream = new BufferedOutputStream(outputStream);
-
+            System.out.println("Start to File: "+filename);
             parserIngest.parse(ingest);
             parserIngest.executeToFile(dbvitam, start, stop);
             final long date12 = System.currentTimeMillis();
@@ -328,17 +322,23 @@ public class MainIngestFile implements Runnable {
         } finally {
             // release resources
             if (parserIngest.bufferedOutputStream != null) {
-                System.out.println("Flushing file");
+                if (GlobalDatas.PRINT_REQUEST) {
+                    System.out.println("Flushing file");
+                }
                 try {
                     parserIngest.bufferedOutputStream.flush();
                 } catch (final IOException e) {
                 }
-                System.out.println("Closing file");
+                if (GlobalDatas.PRINT_REQUEST) {
+                    System.out.println("Closing file");
+                }
                 try {
                     parserIngest.bufferedOutputStream.close();
                 } catch (final IOException e) {
                 }
-                System.out.println("File closed");
+                if (GlobalDatas.PRINT_REQUEST) {
+                    System.out.println("File closed");
+                }
             }
             if (dbvitam != null) {
                 dbvitam.close();

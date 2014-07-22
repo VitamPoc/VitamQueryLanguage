@@ -83,5 +83,25 @@ public final class GlobalDatas {
     /**
      * Shall we save ResultCache
      */
-    public static final boolean SAVERESULT = false;
+    public static final boolean SAVERESULT = true;
+    /**
+     * Default TTL : 24H
+     */
+    public static final int TTL = 3600*24;
+    /**
+     * Default TTL in ms : 24H
+     */
+    public static final int TTLMS = 3600*24*1000;
+    /**
+     * Shall we use Couchbase for cache of results
+     */
+    public static final boolean USECOUCHBASE = false;
+    /**
+     * In conjunction with Couchbase (if USECOUCHBASE is False, it is ignored)
+     */
+    public static final boolean USEMEMCACHED = true;
+    /**
+     * Shall we use SynchronizedLruCache for cache of results
+     */
+    public static final boolean USELRUCACHE = false;
 }

@@ -79,7 +79,7 @@ public class PAip extends VitamType {
 
     @Override
     protected boolean updated(final MongoDbAccess dbvitam) {
-        final PAip vt = (PAip) dbvitam.paips.collection.findOne(new BasicDBObject(ID, get(ID)));
+        final PAip vt = (PAip) dbvitam.paips.collection.findOne(getId());
         BasicDBObject update = null;
         if (vt != null) {
             final List<DBObject> list = new ArrayList<>();
@@ -161,9 +161,14 @@ public class PAip extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final PAip vt = (PAip) dbvitam.paips.collection.findOne(new BasicDBObject(ID, get(ID)));
+    public boolean load(final MongoDbAccess dbvitam) {
+        final PAip vt = (PAip) dbvitam.paips.collection.findOne(getId());
+        if (vt == null) {
+            return true;
+        }
         this.putAll((BSONObject) vt);
+        getAfterLoad();
+        return false;
     }
 
     /**

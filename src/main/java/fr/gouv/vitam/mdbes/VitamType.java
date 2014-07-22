@@ -136,8 +136,9 @@ public abstract class VitamType extends BasicDBObject {
      * load the object from the database, ignoring any previous data, except ID
      *
      * @param dbvitam
+     * @return True if the object is loaded
      */
-    public abstract void load(MongoDbAccess dbvitam);
+    public abstract boolean load(MongoDbAccess dbvitam);
 
     /**
      * Save the document if new, update it (keeping non set fields, replacing set fields)

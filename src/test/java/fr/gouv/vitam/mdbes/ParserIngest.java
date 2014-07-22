@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.bson.BSONObject;
 import org.bson.types.BasicBSONList;
+import org.joda.time.DateTime;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.util.JSON;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.FileUtil;
+import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
@@ -85,13 +87,13 @@ L'expression des occurences d'un niveau de MetaAip (variabilisation) : occurence
 
 Types simples: typeSimple
 =========================
-    { "__type" : "chaine", "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" } : une chaine de caracteres
+    { "__type" : "random", "__ftype" : "chaine", "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" } : une chaine de caracteres
         => une chaine aleatoire sera produite
 
-    { "__type" : "date", "__save" : "nomValeur" } : une date
+    { "__type" : "random", "__ftype" : "date", "__save" : "nomValeur" } : une date
         => une date aleatoire sera produite
 
-    { "__type" : "nombre", "__save" : "nomValeur" } : un format numerique (avec ou sans virgule)
+    { "__type" : "random", "__ftype" : "nombre", "__save" : "nomValeur" } : un format numerique (avec ou sans virgule)
         => un nombre aleatoire sera produite
     
     { "__type" : "save", "__subprefix" : [ "nomValeur", ... ], "__save" : "nomValeur" } : une chaine de caracteres
@@ -242,13 +244,17 @@ public class ParserIngest {
     private static enum OCCURENCE_ARGS {
         __occur, __idcpt, __high, __distrib, __notempty
     }
+    
+    private static enum FIELD_TYPE {
+        chaine, date, nombre, nombrevirgule
+    }
 
     private static enum FIELD {
-        chaine, date, nombre, save, constant, constantArray, liste, listeorder, serie, subfield, interval, select
+        random, save, constant, constantArray, liste, listeorder, serie, subfield, interval, select
     }
 
     private static enum FIELD_ARGS {
-        __model, __idcpt, __type, __liste, __listeorder, __serie, __prefix, __modulo, __subprefix, __low, __high, __field, __value, __save, __subfield
+        __model, __idcpt, __type, __ftype, __liste, __listeorder, __serie, __prefix, __modulo, __subprefix, __low, __high, __field, __value, __save, __subfield
     }
 
     private static class Occurence {
@@ -263,9 +269,13 @@ public class ParserIngest {
     private static class TypeField {
         private String name;
         /**
-         * Between chaine, date, nombre, liste, listeorder, serie, subfield, constant, constantArray
+         * Between random, liste, listeorder, serie, subfield, constant, constantArray
          */
         private FIELD type;
+        /**
+         * Type of field (chaine, date, nombre, nombrevirgule), default being chaine
+         */
+        private FIELD_TYPE ftype = FIELD_TYPE.chaine;
         /**
          * Used in liste, listeorder, constantArray
          */
@@ -300,6 +310,7 @@ public class ParserIngest {
             builder.append("\nField: ");
             builder.append(name);
             builder.append(" Type: " + type);
+            builder.append(" FType: " + ftype);
             builder.append(" Prefix: " + prefix);
             builder.append(" Cpt: " + idcpt);
             builder.append(" Modulo: " + modulo);
@@ -351,6 +362,8 @@ public class ParserIngest {
     private final AtomicLong totalCount = new AtomicLong(0);
 
     private boolean simulate = false;
+    
+    protected static Map<String, DAip> savedDaips = new HashMap<String, DAip>();
 
     public ParserIngest(final boolean simul) throws InvalidParseOperationException {
         setSimulate(simul);
@@ -471,7 +484,9 @@ public class ParserIngest {
             if (occur.containsField(OCCURENCE_ARGS.__distrib.name())) {
                 oc.distrib = (Integer) occur.get(OCCURENCE_ARGS.__distrib.name());
                 distribOccurence = oc;
-                System.out.println("Found a distribution occurence");
+                if (GlobalDatas.PRINT_REQUEST) {
+                    System.out.println("Found a distribution occurence");
+                }
             }
             if (occur.containsField(OCCURENCE_ARGS.__idcpt.name())) {
                 oc.idcpt = (String) occur.get(OCCURENCE_ARGS.__idcpt.name());
@@ -484,7 +499,9 @@ public class ParserIngest {
             occurences.add(oc);
             // now parse MetaAip field
             final List<TypeField> fields = new ArrayList<>();
-            System.out.println("LoadM: " + level + " " + maipModel);
+            if (GlobalDatas.PRINT_REQUEST) {
+                System.out.println("LoadM: " + level + " " + maipModel);
+            }
             final Set<String> fieldnames = maipModel.keySet();
             for (final String fieldname : fieldnames) {
                 final Object bfield = maipModel.get(fieldname);
@@ -528,7 +545,7 @@ public class ParserIngest {
     private TypeField getField(final BSONObject bfield) throws InvalidParseOperationException {
         final String type = (String) bfield.get(FIELD_ARGS.__type.name());
         if (type == null || type.isEmpty()) {
-            System.err.println("Unknown empty type: " + type);
+            LOGGER.error("Unknown empty type: " + type);
             throw new InvalidParseOperationException("Unknown empty type: " + type);
         }
         final TypeField field = new TypeField();
@@ -536,21 +553,30 @@ public class ParserIngest {
         try {
             fieldType = FIELD.valueOf(type);
         } catch (final IllegalArgumentException e) {
-            System.err.println("Unknown type: " + bfield);
+            LOGGER.error("Unknown type: " + bfield);
             throw new InvalidParseOperationException("Unknown type: " + bfield);
         }
         field.type = fieldType;
+        final String sftype = (String) bfield.get(FIELD_ARGS.__ftype.name());
+        FIELD_TYPE ftype = FIELD_TYPE.chaine;
+        if (sftype != null && ! sftype.isEmpty()) {
+            try {
+                ftype = FIELD_TYPE.valueOf(sftype);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("Unknown ftype: " + bfield);
+                ftype = FIELD_TYPE.chaine;
+            }
+        }
+        field.ftype = ftype;
         switch (fieldType) {
-            case chaine:
-            case date:
-            case nombre:
+            case random:
             case save:
                 break;
             case liste:
             case listeorder: {
                 final BasicBSONList liste = (BasicBSONList) bfield.get("__" + fieldType.name());
                 if (liste == null || liste.isEmpty()) {
-                    System.err.println("Empty List: " + liste);
+                    LOGGER.error("Empty List: " + liste);
                     throw new InvalidParseOperationException("Empty List: " + bfield);
                 }
                 field.listeValeurs = new String[liste.size()];
@@ -562,7 +588,7 @@ public class ParserIngest {
             case serie: {
                 final BSONObject bson = (BSONObject) bfield.get(FIELD_ARGS.__serie.name());
                 if (bson == null) {
-                    System.err.println("Empty serie: " + bfield);
+                    LOGGER.error("Empty serie: " + bfield);
                     throw new InvalidParseOperationException("Empty serie: " + bfield);
                 }
                 if (bson.containsField(FIELD_ARGS.__prefix.name())) {
@@ -590,11 +616,13 @@ public class ParserIngest {
             case subfield: {
                 final BSONObject subfield = (BSONObject) bfield.get(FIELD_ARGS.__subfield.name());
                 if (subfield == null) {
-                    System.err.println("Unknown subfield: " + bfield);
+                    LOGGER.error("Unknown subfield: " + bfield);
                     throw new InvalidParseOperationException("Unknown subfield: " + bfield);
                 }
                 final List<TypeField> fields = new ArrayList<>();
-                System.out.println("LoadMS: " + subfield);
+                if (GlobalDatas.PRINT_REQUEST) {
+                    System.out.println("LoadMS: " + subfield);
+                }
                 final Set<String> fieldnames = subfield.keySet();
                 for (final String fieldname : fieldnames) {
                     final BSONObject bfield2 = (BSONObject) subfield.get(fieldname);
@@ -608,12 +636,12 @@ public class ParserIngest {
             case interval: {
                 final Integer low = (Integer) bfield.get(FIELD_ARGS.__low.name());
                 if (low == null) {
-                    System.err.println("Empty interval: " + bfield);
+                    LOGGER.error("Empty interval: " + bfield);
                     throw new InvalidParseOperationException("Empty interval: " + bfield);
                 }
                 final Integer high = (Integer) bfield.get(FIELD_ARGS.__high.name());
                 if (high == null) {
-                    System.err.println("Empty interval: " + bfield);
+                    LOGGER.error("Empty interval: " + bfield);
                     throw new InvalidParseOperationException("Empty interval: " + bfield);
                 }
                 field.low = low;
@@ -623,7 +651,7 @@ public class ParserIngest {
             case select: {
                 final BasicBSONList liste = (BasicBSONList) bfield.get("__" + fieldType.name());
                 if (liste == null || liste.isEmpty()) {
-                    System.err.println("Empty List: " + liste);
+                    LOGGER.error("Empty List: " + liste);
                     throw new InvalidParseOperationException("Empty List: " + bfield);
                 }
                 field.subfields = new ArrayList<>();
@@ -633,7 +661,7 @@ public class ParserIngest {
                     request.name = (String) obj.get(FIELD_ARGS.__field.name());
                     final BasicBSONList prefixes = (BasicBSONList) obj.get(FIELD_ARGS.__value.name());
                     if (prefixes == null || prefixes.isEmpty()) {
-                        System.err.println("Empty prefixes: " + prefixes);
+                        LOGGER.error("Empty prefixes: " + prefixes);
                         throw new InvalidParseOperationException("Empty prefixes: " + obj);
                     }
                     request.subprefixes = new String[prefixes.size()];
@@ -645,7 +673,7 @@ public class ParserIngest {
                 break;
             }
             default:
-                System.err.println("Incorrect type: " + bfield);
+                LOGGER.error("Incorrect type: " + bfield);
                 throw new InvalidParseOperationException("Incorrect type: " + bfield);
         }
         if (bfield.containsField(FIELD_ARGS.__save.name())) {
@@ -657,7 +685,7 @@ public class ParserIngest {
         if (bfield.containsField(FIELD_ARGS.__subprefix.name())) {
             final BasicBSONList liste = (BasicBSONList) bfield.get(FIELD_ARGS.__subprefix.name());
             if (liste == null || liste.isEmpty()) {
-                System.err.println("Empty SubPrefix List: " + liste);
+                LOGGER.error("Empty SubPrefix List: " + liste);
                 throw new InvalidParseOperationException("Empty SubPrefix List: " + bfield);
             }
             field.subprefixes = new String[liste.size()];
@@ -680,7 +708,9 @@ public class ParserIngest {
             final BSONObject bdata = (BSONObject) bson.removeField(MongoDbAccess.VitamCollections.Cpaip.getName());
             context.cpts.put(CPTLEVEL + level, new AtomicLong(0));
             final List<TypeField> fields = new ArrayList<>();
-            System.out.println("LoadD: " + level + " " + bdata);
+            if (GlobalDatas.PRINT_REQUEST) {
+                System.out.println("LoadD: " + level + " " + bdata);
+            }
             final Set<String> fieldnames = bdata.keySet();
             for (final String fieldname : fieldnames) {
                 final Object bfield = bdata.get(fieldname);
@@ -727,11 +757,13 @@ public class ParserIngest {
         if (simulate) {
             return executeSimulate(start, stop);
         }
-        System.out.println("Start To File");
+        if (GlobalDatas.PRINT_REQUEST) {
+            System.out.println("Start To File");
+        }
         this.dbvitam = dbvitam;
         // Domain
         domobj = (Domain) dbvitam.fineOne(VitamCollections.Cdomain, REFID, domRefid);
-        LOGGER.warn("Found Domain ? " + (domobj != null));
+        LOGGER.debug("Found Domain ? " + (domobj != null));
         if (domobj == null) {
             domobj = new Domain();
             domobj.put(REFID, domRefid);
@@ -740,7 +772,7 @@ public class ParserIngest {
             domobj.save(dbvitam);
             domobj.setRoot();
             LOGGER.warn("Create Domain: {}", domobj);
-            // System.err.println("Load: "+domobj);
+            // LOGGER.error("Load: "+domobj);
         }
         // Set DISTRIB to start-stop
         if (distribOccurence != null) {
@@ -768,11 +800,19 @@ public class ParserIngest {
             listmetaaips = execDAipNewToFile(null, subdepth, esIndex, 1, occurence, lstart, lstop, cpt, fields);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new InvalidExecOperationException(e);
+        } catch (Exception e) {
+            throw new InvalidExecOperationException(e);
         }
-        System.out.println("End of MAIPs");
+        if (GlobalDatas.PRINT_REQUEST) {
+            System.out.println("End of MAIPs");
+        }
         if (listmetaaips != null && !listmetaaips.isEmpty()) {
             if (MainIngestFile.minleveltofile > 1) {
                 domobj.addDAip(dbvitam, listmetaaips);
+                for (DAip dAip : listmetaaips) {
+                    dAip.addEsIndex(dbvitam, esIndex, model);
+                    savedDaips.put(dAip.getId(), dAip);
+                }
             } else {
                 // XXX NO SAVE OF MAIP!
                 domobj.addDAipNoSave(dbvitam, bufferedOutputStream, listmetaaips);
@@ -782,7 +822,9 @@ public class ParserIngest {
             listmetaaips = null;
         }
         if (!esIndex.isEmpty()) {
-            System.out.println("Last bulk ES");
+            if (GlobalDatas.PRINT_REQUEST) {
+                System.out.println("Last bulk ES");
+            }
             dbvitam.addEsEntryIndex(true, esIndex, model);
             esIndex.clear();
         }
@@ -887,7 +929,7 @@ public class ParserIngest {
                     if (duaobj != null) {
                         maip.addDuaRef(dbvitam, duaobj);
                     } else {
-                        System.err.println("wrong dua: " + duaname);
+                        LOGGER.error("wrong dua: " + duaname);
                     }
                 }
             }
@@ -942,24 +984,25 @@ public class ParserIngest {
             if (father != null) {
                 long nb = father.nb;
                 father.addDAipWithNoSave(maip);
-                if (level == MainIngestFile.minleveltofile) {
-                    System.out.print("Add Daip: "+nb+":"+father.nb);
+                if (GlobalDatas.PRINT_REQUEST) {
+                    if (level == MainIngestFile.minleveltofile) {
+                        System.out.print("Add Daip: "+nb+":"+father.nb);
+                    }
                 }
             }
             if (fromDatabase) {
-                long nb = maip.nb;
                 maip.save(dbvitam);
                 if (metaCreated) {
                     maip.forceSave(dbvitam.daips);
                 }
-                System.out.println(maip);
+                savedDaips.put(maip.getId(), maip);
             }
             // System.out.println("M: "+maip.toString());
-            maip.addEsIndex(dbvitam, esIndex, model);
             if (metaCreated && father == null) {
                 listmetaaips.add(maip);
             } else if (father != null && ! fromDatabase) {
-                maip.saveToFile(dbvitam, bufferedOutputStream, level);
+                maip.addEsIndex(dbvitam, esIndex, model);
+                maip.saveToFile(dbvitam, bufferedOutputStream);
             }
         }
         return listmetaaips;
@@ -1115,6 +1158,30 @@ public class ParserIngest {
         return finalVal;
     }
 
+    private final void setValue(BasicDBObject subobj, TypeField typeField, String value) {
+        try {
+            switch (typeField.ftype) {
+                case date:
+                    DateTime dt = new DateTime(value);
+                    Date date = new Date(dt.getMillis());
+                    subobj.put(typeField.name, date);
+                    break;
+                case nombre:
+                    subobj.put(typeField.name, Long.parseLong(value));
+                    break;
+                case nombrevirgule:
+                    subobj.put(typeField.name, Double.parseDouble(value));
+                    break;
+                case chaine:
+                default:
+                    subobj.put(typeField.name, value);
+                    break;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Issue with "+typeField+" and value: '"+value+"'", e);
+            throw e;
+        }
+    }
     /**
      *
      * @param typeField
@@ -1130,40 +1197,52 @@ public class ParserIngest {
         String val = null;
         switch (typeField.type) {
             case constant:
-                subobj.put(typeField.name, typeField.prefix);
+                setValue(subobj, typeField, typeField.prefix);
                 break;
             case constantArray:
                 subobj.put(typeField.name, typeField.listeValeurs);
                 break;
-            case chaine:
-                val = randomString(32);
-                val = getValue(typeField, val);
-                subobj.put(typeField.name, val);
-                break;
-            case date:
-                final long curdate = System.currentTimeMillis();
-                final Date date = new Date(curdate - rnd.nextInt());
-                if (typeField.saveName != null) {
-                    context.savedNames.put(typeField.saveName, date.toString());
+            case random:
+                switch (typeField.ftype) {
+                    case date:
+                        final long curdate = System.currentTimeMillis();
+                        final Date date = new Date(curdate - rnd.nextInt());
+                        if (typeField.saveName != null) {
+                            context.savedNames.put(typeField.saveName, date.toString());
+                        }
+                        subobj.put(typeField.name, date);
+                        break;
+                    case nombre:
+                        final Long lnval = rnd.nextLong();
+                        if (typeField.saveName != null) {
+                            context.savedNames.put(typeField.saveName, lnval.toString());
+                        }
+                        subobj.put(typeField.name, lnval);
+                        break;
+                    case nombrevirgule:
+                        final Double dnval = rnd.nextDouble();
+                        if (typeField.saveName != null) {
+                            context.savedNames.put(typeField.saveName, dnval.toString());
+                        }
+                        subobj.put(typeField.name, dnval);
+                        break;
+                    case chaine:
+                    default:
+                        val = randomString(32);
+                        val = getValue(typeField, val);
+                        subobj.put(typeField.name, val);
+                        break;
                 }
-                subobj.put(typeField.name, date);
-                break;
-            case nombre:
-                final Long lnval = rnd.nextLong();
-                if (typeField.saveName != null) {
-                    context.savedNames.put(typeField.saveName, lnval.toString());
-                }
-                subobj.put(typeField.name, lnval);
                 break;
             case save:
                 val = getValue(typeField, "");
-                subobj.put(typeField.name, val);
+                setValue(subobj, typeField, val);
                 break;
             case liste:
                 final int rlist = rnd.nextInt(typeField.listeValeurs.length);
                 val = typeField.listeValeurs[rlist];
                 val = getValue(typeField, val);
-                subobj.put(typeField.name, val);
+                setValue(subobj, typeField, val);
                 break;
             case listeorder:
                 long i = rank - lstart;
@@ -1172,7 +1251,7 @@ public class ParserIngest {
                 }
                 val = typeField.listeValeurs[(int) i];
                 val = getValue(typeField, val);
-                subobj.put(typeField.name, val);
+                setValue(subobj, typeField, val);
                 break;
             case serie:
                 AtomicLong newcpt = cpt;
@@ -1182,7 +1261,7 @@ public class ParserIngest {
                     // System.out.println("CPT replaced by: "+typeField.idcpt);
                     if (newcpt == null) {
                         newcpt = cpt;
-                        System.err.println("wrong cpt name: " + typeField.idcpt);
+                        LOGGER.error("wrong cpt name: " + typeField.idcpt);
                     } else {
                         j = newcpt.getAndIncrement();
                         // System.out.println("increment: "+j+" for "+typeField.name);
@@ -1193,7 +1272,7 @@ public class ParserIngest {
                 }
                 val = (typeField.prefix != null ? typeField.prefix : "") + j;
                 val = getValue(typeField, val);
-                subobj.put(typeField.name, val);
+                setValue(subobj, typeField, val);
                 break;
             case subfield:
                 final BasicDBObject subobjs = new BasicDBObject();
@@ -1210,7 +1289,7 @@ public class ParserIngest {
             case interval:
                 final int newval = rnd.nextInt(typeField.low, typeField.high + 1);
                 val = getValue(typeField, "" + newval);
-                subobj.put(typeField.name, val);
+                setValue(subobj, typeField, val);
                 break;
             case select:
                 final BasicDBObject request = new BasicDBObject();
@@ -1220,7 +1299,7 @@ public class ParserIngest {
                     request.append(name, arg);
                 }
                 if (simulate) {
-                    System.err.println("NotAsking: " + request);
+                    LOGGER.error("NotAsking: " + request);
                     return null;
                 }
                 final DAip maip = (DAip) MongoDbAccess.VitamCollections.Cdaip.getCollection().findOne(request,
@@ -1228,9 +1307,9 @@ public class ParserIngest {
                 if (maip != null) {
                     // System.out.println("Select: "+typeField.name+":"+ maip.get(typeField.name));
                     val = getValue(typeField, (String) maip.get(typeField.name));
-                    subobj.put(typeField.name, val);
+                    setValue(subobj, typeField, val);
                 } else {
-                    // System.err.println("NotFound: "+request);
+                    // LOGGER.error("NotFound: "+request);
                     return null;
                 }
                 break;

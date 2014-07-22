@@ -25,19 +25,31 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * @author "Frederic Bregier"
  *
  */
 public class FileUtil {
-
+    private static VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileUtil.class);
+    /**
+     * UTF-8 string
+     */
+    public static final String UTF_8 = "UTF-8";
+    /**
+     * UTF-8 Charset
+     */
+    public static final Charset UTF8 = Charset.forName(UTF_8);
     /**
      * @param filename
      * @return the content of the file
      * @throws IOException
      */
-    public static String readFile(final String filename) throws IOException {
+    public static final String readFile(final String filename) throws IOException {
         final StringBuilder builder = new StringBuilder();
 
         final File file = new File(filename);
@@ -54,8 +66,7 @@ public class FileUtil {
                 reader.close();
                 inputStream.close();
             } catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                LOGGER.error(e);
                 throw e;
             }
         }

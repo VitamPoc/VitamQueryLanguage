@@ -409,7 +409,37 @@ public final class UUID {
             return Base64.encodeBytes(uuid);
         }
     }
+    /**
+     * 
+     * @param bytes
+     * @return the hex string
+     */
+    public static final String toHex(byte []bytes) {
+        final int keysize = bytes.length;
+        final int keyb16 = keysize*2;
+        final char[] id = new char[keyb16];
 
+        // split each byte into 4 bit numbers and map to hex characters
+        for (int i = 0, j = 0; i < keysize; i++) {
+            id[j++] = HEX_CHARS[(bytes[i] & 0xF0) >> 4];
+            id[j++] = HEX_CHARS[(bytes[i] & 0x0F)];
+        }
+        return new String(id);
+    }
+    /**
+     * 
+     * @param hex
+     * @return the bytes from hex
+     */
+    public static byte[] fromHex(String hex) {
+        final int keysize = hex.length()/2;
+        final byte [] bytes = new byte[keysize];
+        final char[] chars = hex.toCharArray();
+        for (int i = 0, j = 0; i < KEYSIZE;) {
+            bytes[i++] = asByte(chars[j++], chars[j++]);
+        }
+        return bytes;
+    }
     /**
      * @return the Hexadecimal representation
      */

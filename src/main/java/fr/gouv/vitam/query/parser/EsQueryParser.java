@@ -150,8 +150,15 @@ public class EsQueryParser extends AbstractQueryParser {
      */
     protected final void compareEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element) {
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.range.name()).putObject(element.getKey())
-        .set(req.name(), element.getValue());
+        String key = element.getKey();
+        JsonNode node = element.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
+        if (node == null) {
+            node = element.getValue();
+        } else {
+            key += "." + ParserTokens.REQUESTARGS.date.exactToken();
+        }
+        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.range.name()).putObject(key)
+            .set(req.name(), node);
     }
 
     /**
@@ -270,14 +277,25 @@ public class EsQueryParser extends AbstractQueryParser {
     protected final void inEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element) {
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         ArrayNode objectES = null;
+        String key = element.getKey();
+        List<JsonNode> nodes = element.getValue().findValues(ParserTokens.REQUESTARGS.date.exactToken());
+        if (nodes != null && ! nodes.isEmpty()) {
+            key += "." + ParserTokens.REQUESTARGS.date.exactToken();
+        }
         if (req == REQUEST.nin) {
             objectES = tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
-                    .putObject(req.name()).putArray(element.getKey());
+                    .putObject(req.name()).putArray(key);
         } else {
-            objectES = tr0.requestModel[ELASTICSEARCH].putObject(req.name()).putArray(element.getKey());
+            objectES = tr0.requestModel[ELASTICSEARCH].putObject(req.name()).putArray(key);
         }
-        for (final JsonNode value : element.getValue()) {
-            objectES.add(value);
+        if (nodes != null && ! nodes.isEmpty()) {
+            for (final JsonNode value : nodes) {
+                objectES.add(value);
+            }
+        } else {
+            for (final JsonNode value : element.getValue()) {
+                objectES.add(value);
+            }
         }
     }
 
@@ -308,21 +326,30 @@ public class EsQueryParser extends AbstractQueryParser {
     protected final void rangeEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element)
             throws InvalidParseOperationException {
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        final ObjectNode objectES = tr0.requestModel[ELASTICSEARCH].putObject(req.name()).putObject(element.getKey());
+        String key = element.getKey();
+        JsonNode node = element.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
+        if (node != null) {
+            key += "." + ParserTokens.REQUESTARGS.date.exactToken();
+        }
+        final ObjectNode objectES = tr0.requestModel[ELASTICSEARCH].putObject(req.name()).putObject(key);
         for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg = null;
             try {
-                final String key = requestItem.getKey();
-                if (key.startsWith("$")) {
-                    arg = RANGEARGS.valueOf(requestItem.getKey().substring(1));
+                final String skey = requestItem.getKey();
+                if (skey.startsWith("$")) {
+                    arg = RANGEARGS.valueOf(skey.substring(1));
                 } else {
                     throw new InvalidParseOperationException("Invalid Range query command: " + requestItem);
                 }
             } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException("Invalid Range query command: " + requestItem, e);
             }
-            objectES.set(arg.name(), requestItem.getValue());
+            node = requestItem.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
+            if (node == null) {
+                node = requestItem.getValue();
+            }
+            objectES.set(arg.name(), node);
         }
     }
 
@@ -372,7 +399,6 @@ public class EsQueryParser extends AbstractQueryParser {
         }
         termEs(command, tr0);
     }
-
     /**
      * @param command
      * @param tr0
@@ -388,23 +414,38 @@ public class EsQueryParser extends AbstractQueryParser {
         }
         for (final Iterator<Entry<String, JsonNode>> iterator = command.fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
-            final String key = requestItem.getKey();
-            final JsonNode node = requestItem.getValue();
-            final String val = node.asText();
-            if (!multiple) {
-                if (isAttributeNotAnalyzed(key)) {
-                    tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val);
-                    // XXX FIXME tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
-                } else {
-                    tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
-                }
-                return;
-            }
-            if (isAttributeNotAnalyzed(key)) {
-                arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val);
-                // XXX FIXME arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+            String key = requestItem.getKey();
+            JsonNode node = requestItem.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
+            boolean isDate = false;
+            if (node == null) {
+                node = requestItem.getValue();
             } else {
-                arrayES.addObject().putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+                isDate = true;
+                key += "." + ParserTokens.REQUESTARGS.date.exactToken();
+            }
+            if (node.isNumber()) {
+                if (!multiple) {
+                    tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(key, node);
+                    return;
+                }
+                arrayES.addObject().putObject(ES_KEYWORDS.term.name()).set(key, node);
+            } else {
+                final String val = node.asText();
+                if (!multiple) {
+                    if (isAttributeNotAnalyzed(key) || isDate) {
+                        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val);
+                        // XXX FIXME tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+                    } else {
+                        tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+                    }
+                    return;
+                }
+                if (isAttributeNotAnalyzed(key) || isDate) {
+                    arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val);
+                    // XXX FIXME arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
+                } else {
+                    arrayES.addObject().putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+                }
             }
         }
     }
@@ -465,11 +506,18 @@ public class EsQueryParser extends AbstractQueryParser {
      */
     protected final void eqEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> entry) {
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
+        String key = entry.getKey();
+        JsonNode node = entry.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
+        if (node == null) {
+            node = entry.getValue();
+        } else {
+            key += "." + ParserTokens.REQUESTARGS.date.exactToken();
+        }
         if (req == REQUEST.ne) {
             tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
-            .putObject(ES_KEYWORDS.term.name()).set(entry.getKey(), entry.getValue());
+                .putObject(ES_KEYWORDS.term.name()).set(key, node);
         } else {
-            tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(entry.getKey(), entry.getValue());
+            tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(key, node);
         }
     }
 
@@ -606,7 +654,6 @@ public class EsQueryParser extends AbstractQueryParser {
                     arrayFilter = nodeFilter.putArray(ES_KEYWORDS.must.name());
                 }
                 break;
-            case nor: // ES does not support nor => or
             case or:
                 if (isRequest) {
                     array = node.putArray(ES_KEYWORDS.should.name());
@@ -615,6 +662,7 @@ public class EsQueryParser extends AbstractQueryParser {
                     arrayFilter = nodeFilter.putArray(ES_KEYWORDS.should.name());
                 }
                 break;
+            case nor: // ES does not support nor => not
             case not:
                 if (isRequest) {
                     array = node.putArray(ES_KEYWORDS.must_not.name());

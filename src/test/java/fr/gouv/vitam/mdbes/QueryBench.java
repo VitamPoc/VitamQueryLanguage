@@ -206,8 +206,8 @@ L'expression d'une requete : request
  * @author "Frederic Bregier"
  * 
  */
-public class ParserBench extends MdEsQueryParser {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserBench.class);
+public class QueryBench extends MdEsQueryParser {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueryBench.class);
     
     private static final String CPTLEVEL = "__cptlevel__";
 
@@ -219,20 +219,94 @@ public class ParserBench extends MdEsQueryParser {
 	}
 
     protected static enum FIELD_ARGS { 
-		__name, __type,
+		__name, __type, __ftype,
 		__liste, __listeorder, __serie, __prefix, __idcpt, __modulo, __low, __high, __subprefix, __save
 	}
+    
+    protected static enum FIELD_TYPE {
+        chaine, date, nombre, nombrevirgule
+    }
 
+    /**
+     * Use to implement variability of Field
+     * @author "Frederic Bregier"
+     *
+     */
+    protected static class TypeField {
+        public String name;
+        /**
+         * Between liste, listeorder, serie
+         */
+        public FIELD type;
+        /**
+         * Type of value (default chaine)
+         */
+        public FIELD_TYPE ftype = FIELD_TYPE.chaine;
+        /**
+         * Used in liste, listeorder
+         */
+        public String [] listeValeurs;
+        /**
+         * Used in serie for fixed value in constant
+         */
+        public String prefix;
+        public String idcpt;
+        public int modulo;
+        /**
+         * Interval
+         */
+        public int low;
+        /**
+         * Interval
+         */
+        public int high;
+        /**
+         * saved as new current value for name
+         */
+        public String saveName;
+        /**
+         * add several prefix to value
+         */
+        public String [] subprefixes;
+        
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Field: ");
+            builder.append(name);
+            builder.append(" Type: "+type);
+            builder.append(" FType: "+ftype);
+            builder.append(" Prefix: "+prefix);
+            builder.append(" Cpt: "+idcpt);
+            builder.append(" Modulo: "+modulo);
+            builder.append(" Low: "+low);
+            builder.append(" High: "+high);
+            builder.append(" Save: "+saveName);
+            if (subprefixes != null) {
+                builder.append(" SubPrefix: [ ");
+                for (String curname : subprefixes) {
+                    builder.append(curname);
+                    builder.append(' ');
+                }
+                builder.append(']');
+            }
+            if (listeValeurs != null) {
+                builder.append(" Vals: "+listeValeurs.length);
+            }
+            return builder.toString();
+        }
+    }
+    
 	BenchContext context = new BenchContext();
 	AtomicLong distribCpt = null;
     List<List<TypeField>> levelFields = new ArrayList<List<TypeField>>();
     List<JsonNode> levelRequests = new ArrayList<JsonNode>();
     String model;
+    long cacheRanks = 0;
     
 	/**
 	 * @param simul
 	 */
-	public ParserBench(boolean simul) {
+	public QueryBench(boolean simul) {
 		super(simul);
 	}
 	
@@ -298,6 +372,7 @@ public class ParserBench extends MdEsQueryParser {
 	private TypeField getField(JsonNode bfield, int level) throws InvalidParseOperationException {
 		String name = bfield.get(FIELD_ARGS.__name.name()).asText();
 		String type = bfield.get(FIELD_ARGS.__type.name()).asText();
+        String sftype = bfield.path(FIELD_ARGS.__ftype.name()).asText();
 		if (type == null || type.isEmpty()) {
 			LOGGER.warn("Unknown empty type: {}", type);
 			throw new InvalidParseOperationException("Unknown empty type: "+type);
@@ -312,6 +387,16 @@ public class ParserBench extends MdEsQueryParser {
 		}
 		field.name = name;
 		field.type = fieldType;
+		FIELD_TYPE ftype = FIELD_TYPE.chaine;
+        if (sftype != null && ! sftype.isEmpty()) {
+            try {
+                ftype = FIELD_TYPE.valueOf(sftype);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("Unknown ftype: " + bfield);
+                ftype = FIELD_TYPE.chaine;
+            }
+        }
+        field.ftype = ftype;
 		switch (fieldType) {
 			case setdistrib: {
 				// no field but CPT level
@@ -437,8 +522,8 @@ public class ParserBench extends MdEsQueryParser {
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	public List<ResultCached> executeBenchmark(MongoDbAccess dbvitam, long start, BenchContext newBenchContext) throws InvalidExecOperationException, InvalidParseOperationException, InstantiationException, IllegalAccessException {
-        ParserBench executeParser= new ParserBench(simulate);
+	public List<ResultInterface> executeBenchmark(MongoDbAccess dbvitam, long start, BenchContext newBenchContext) throws InvalidExecOperationException, InvalidParseOperationException, InstantiationException, IllegalAccessException {
+        QueryBench executeParser= new QueryBench(simulate);
         JsonNode empty = JsonHandler.createObjectNode();
         executeParser.filterParse(empty);
         executeParser.projectionParse(empty);
@@ -454,20 +539,24 @@ public class ParserBench extends MdEsQueryParser {
             if (request != null) {
                 array.add(JsonHandler.getFromString(request));
             } else {
-                array.add(levelRequests.get(i));
+                array.add(levelRequests.get(i).deepCopy());
             }
             level++;
             rank = newBenchContext.cpts.get(CPTLEVEL+level);
         }
         executeParser.queryParse(array);
+        LOGGER.debug("Will execute: {}\n\t{}", executeParser.getSources(), executeParser.getRequests());
         // Now execute
         DbRequest dbrequest = new DbRequest(dbvitam, newBenchContext.indexName, newBenchContext.typeName);
         dbrequest.setSimulate(simulate);
-        ResultCached startSet = new ResultCached(GlobalDatas.ROOTS);
-        startSet.maxLevel = 0;
-        startSet.minLevel = 0;
+        dbrequest.setUseCache(GlobalDatas.SAVERESULT);
+        ResultInterface startSet = MongoDbAccess.createOneResult(GlobalDatas.ROOTS);
+        startSet.setMaxLevel(0);
+        startSet.setMinLevel(0);
         startSet.putBeforeSave();
-        return dbrequest.execQuery(executeParser, startSet);
+        List<ResultInterface> list = dbrequest.execQuery(executeParser, startSet);
+        cacheRanks += dbrequest.getLastCacheRank();
+        return list;
 	}
 	
 	/**
@@ -478,10 +567,11 @@ public class ParserBench extends MdEsQueryParser {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public ResultCached finalizeResults(MongoDbAccess dbvitam, BenchContext newBenchContext, List<ResultCached> results) throws InstantiationException, IllegalAccessException {
+	public ResultInterface finalizeResults(MongoDbAccess dbvitam, BenchContext newBenchContext, List<ResultInterface> results) throws InstantiationException, IllegalAccessException {
 	    DbRequest dbrequest = new DbRequest(dbvitam, newBenchContext.indexName, newBenchContext.typeName);
         dbrequest.setSimulate(simulate);
-        return dbrequest.finalizeResults(results);
+        dbrequest.setUseCache(GlobalDatas.SAVERESULT);
+        return dbrequest.finalizeResults(false, results);
 	}
 	
 	public String toString() {
@@ -498,7 +588,7 @@ public class ParserBench extends MdEsQueryParser {
 		return builder.toString();
 	}
 
-    private static String getValue(TypeField typeField, String curval, Map<String, String> savedNames) {
+    private static final String getValue(TypeField typeField, String curval, Map<String, String> savedNames) {
         String finalVal = curval;
         if (typeField.subprefixes != null) {
             String prefix = "";
@@ -518,6 +608,16 @@ public class ParserBench extends MdEsQueryParser {
         return finalVal;
     }
     
+    private static final String getFinalRequest(TypeField typeField, String curval, Map<String, String> savedNames, String request) {
+        final String finalVal = getValue(typeField, curval, savedNames);
+        if (typeField.ftype == FIELD_TYPE.nombre || typeField.ftype == FIELD_TYPE.nombrevirgule) {
+            return request.replace('\"'+typeField.name+'\"', finalVal);  
+        } else {
+            return request.replace(typeField.name, finalVal);
+        }
+        
+    }
+    
     private static String getRequest(JsonNode request, List<TypeField> fields, AtomicLong rank, BenchContext bench) {
         if (fields != null && ! fields.isEmpty()) {
             String finalRequest = request.toString();
@@ -526,14 +626,12 @@ public class ParserBench extends MdEsQueryParser {
                 String val = null;
                 switch (field.type) {
                     case save:
-                        val = getValue(field, "", bench.savedNames);
-                        finalRequest = finalRequest.replace(field.name, val);
+                        finalRequest = getFinalRequest(field, "", bench.savedNames, finalRequest);
                         break;
                     case liste:
                         int rlist = rnd.nextInt(field.listeValeurs.length);
                         val = field.listeValeurs[rlist];
-                        val = getValue(field, val, bench.savedNames);
-                        finalRequest = finalRequest.replace(field.name, val);
+                        finalRequest = getFinalRequest(field, val, bench.savedNames, finalRequest);
                         break;
                     case listeorder:
                         long i = rank.getAndIncrement();
@@ -541,8 +639,7 @@ public class ParserBench extends MdEsQueryParser {
                             i = field.listeValeurs.length-1;
                         }
                         val = field.listeValeurs[(int) i];
-                        val = getValue(field, val, bench.savedNames);
-                        finalRequest = finalRequest.replace(field.name, val);
+                        finalRequest = getFinalRequest(field, val, bench.savedNames, finalRequest);
                         break;
                     case serie:
                         AtomicLong newcpt = rank;
@@ -558,13 +655,11 @@ public class ParserBench extends MdEsQueryParser {
                             j = j % field.modulo;
                         }
                         val = (field.prefix != null ? field.prefix : "")+j;
-                        val = getValue(field, val, bench.savedNames);
-                        finalRequest = finalRequest.replace(field.name, val);
+                        finalRequest = getFinalRequest(field, val, bench.savedNames, finalRequest);
                         break;
                     case interval:
                         int newval = rnd.nextInt(field.low, field.high+1);
-                        val = getValue(field, ""+newval, bench.savedNames);
-                        finalRequest = finalRequest.replace(field.name, val);
+                        finalRequest = getFinalRequest(field, ""+newval, bench.savedNames, finalRequest);
                         break;
                     default:
                         break;

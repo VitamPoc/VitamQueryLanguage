@@ -140,7 +140,22 @@ public abstract class AbstractQueryParser {
             projectionParse(rootNode.get(GLOBAL.projection.exactToken()));
         }
     }
-
+    /**
+     * 
+     * @param request containing only the JSON query part (no filter neither projection)
+     * @throws InvalidParseOperationException
+     */
+    public void parseQueryOnly(final String request) throws InvalidParseOperationException {
+        this.request = request;
+        final JsonNode rootNode = JsonHandler.getFromString(request);
+        if (rootNode.isMissingNode()) {
+            throw new InvalidParseOperationException("The current Node is missing(empty): RequestRoot");
+        }
+        // Not as array and no filter no projection
+        queryParse(rootNode);
+        filterParse(JsonHandler.createObjectNode());
+        projectionParse(JsonHandler.createObjectNode());
+    }
     /**
      * In MongoDB : find(Query, Projection).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
      * In addition, one shall limit the scan by: find(Query, Projection)._addSpecial( "$maxscan", highlimit
@@ -226,6 +241,13 @@ public abstract class AbstractQueryParser {
         }
     }
 
+    /**
+     * 
+     * @return True if the cache hint is in the query
+     */
+    public boolean hintCache() {
+        return hintCache;
+    }
     /**
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId
      *

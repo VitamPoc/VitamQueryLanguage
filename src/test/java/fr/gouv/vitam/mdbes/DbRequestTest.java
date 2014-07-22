@@ -72,26 +72,26 @@ public class DbRequestTest {
             e1.printStackTrace();
             fail(e1.getMessage());
         }
-        final ResultCached startSet = new ResultCached();
-        startSet.currentDaip.add(new UUID().toString());
-        startSet.minLevel = 1;
-        startSet.maxLevel = 1;
-        startSet.loaded = true;
-        startSet.nbSubNodes = 10;
+        final ResultInterface startSet = MongoDbAccess.createOneResult();
+        startSet.getCurrentDaip().add(new UUID().toString());
+        startSet.setMinLevel(1);
+        startSet.setMaxLevel(1);
+        startSet.setLoaded(true);
+        startSet.setNbSubNodes(10);
         startSet.putBeforeSave();
         try {
-            final List<ResultCached> results = dbRequest.execQuery(query, startSet);
+            final List<ResultInterface> results = dbRequest.execQuery(query, startSet);
             assertFalse(results.isEmpty());
             int i = 0;
-            for (final ResultCached resultCached : results) {
+            for (final ResultInterface resultCached : results) {
                 resultCached.putBeforeSave();
                 i++;
-                assertFalse(resultCached.currentDaip.isEmpty());
-                System.out.println("Level: " + i + " : " + resultCached.currentDaip);
+                assertFalse(resultCached.getCurrentDaip().isEmpty());
+                System.out.println("Level: " + i + " : " + resultCached.getCurrentDaip());
             }
-            final ResultCached result = dbRequest.finalizeResults(results);
+            final ResultInterface result = dbRequest.finalizeResults(query.hintCache(), results);
             result.putBeforeSave();
-            assertFalse(result.currentDaip.isEmpty());
+            assertFalse(result.getCurrentDaip().isEmpty());
             System.out.println("Final: " + result);
         } catch (final InstantiationException e) {
             // TODO Auto-generated catch block

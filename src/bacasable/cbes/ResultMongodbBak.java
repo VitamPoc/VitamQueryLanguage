@@ -22,6 +22,7 @@ package fr.gouv.vitam.mdbes;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.Set;
 
 import org.bson.BSONObject;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
@@ -44,8 +46,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * @author "Frederic Bregier"
  *
  */
-public class ResultCached extends VitamType {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResultCached.class);
+public class ResultMongodbBak extends VitamType implements ResultInterface {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResultMongodbBak.class);
     private static final long serialVersionUID = 5962911495483495562L;
 
     /**
@@ -64,6 +66,10 @@ public class ResultCached extends VitamType {
      * Number of sub nodes
      */
     public static final String NBSUBNODES = "__nbnd";
+    /**
+     * TTL
+     */
+    public static final String TTL = "__ttl";
 
     /**
      * Current SAip in the result
@@ -85,23 +91,39 @@ public class ResultCached extends VitamType {
      * If loaded (or saved) to the database = True
      */
     public boolean loaded = false;
-
+    /**
+     * ttl date
+     */
+    private Date ttl = getNewTtl();
+    
+    private static final Date getNewTtl() {
+        return new Date(System.currentTimeMillis()+GlobalDatas.TTLMS);
+    }
     /**
      *
      */
-    public ResultCached() {
+    public ResultMongodbBak() {
 
     }
 
     /**
      * @param collection
      */
-    public ResultCached(final Collection<String> collection) {
+    public ResultMongodbBak(final Collection<String> collection) {
         currentDaip.addAll(collection);
         updateMinMax();
         // Path list so as loaded (never cached)
         loaded = true;
         putBeforeSave();
+    }
+    /**
+     * Put from argument
+     * @param from
+     */
+    public void putFrom(final ResultInterface from) {
+        this.putAll((BSONObject) from);
+        loaded = true;
+        getAfterLoad();
     }
 
     @Override
@@ -114,18 +136,27 @@ public class ResultCached extends VitamType {
         loaded = false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void getAfterLoad() {
         super.getAfterLoad();
         if (containsField(CURRENTDAIP)) {
-            @SuppressWarnings("unchecked")
-            final Set<String> list = (Set<String>) this.get(CURRENTDAIP);
+            final Object obj = this.get(CURRENTDAIP);
+            final Set<String> vtset = new HashSet<String>();
+            if (obj instanceof BasicDBList) {
+                for (Object string : (BasicDBList) obj) {
+                    vtset.add((String) string);
+                }
+            } else {
+                vtset.addAll((Set<String>) obj);
+            }
             currentDaip.clear();
-            currentDaip.addAll(list);
+            currentDaip.addAll(vtset);
         }
         minLevel = this.getInt(MINLEVEL, 0);
         maxLevel = this.getInt(MAXLEVEL, 0);
         nbSubNodes = this.getLong(NBSUBNODES, -1);
+        ttl = this.getDate(TTL, getNewTtl());
     }
 
     @Override
@@ -137,41 +168,57 @@ public class ResultCached extends VitamType {
         put(MINLEVEL, minLevel);
         put(MAXLEVEL, maxLevel);
         put(NBSUBNODES, nbSubNodes);
+        put(TTL, ttl);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected boolean updated(final MongoDbAccess dbvitam) {
-        final ResultCached vt = (ResultCached) dbvitam.requests.collection.findOne(new BasicDBObject(ID, get(ID)));
+        final ResultMongodbBak vt = (ResultMongodbBak) dbvitam.requests.collection.findOne(getId());
         if (vt != null) {
             final List<DBObject> list = new ArrayList<DBObject>();
-            final List<String> slist = (List<String>) vt.get(CURRENTDAIP);
-            if (slist != null) {
+            final Object obj = vt.get(CURRENTDAIP);
+            final Set<String> vtset = new HashSet<String>();
+            if (obj instanceof BasicDBList) {
+                for (Object string : (BasicDBList) obj) {
+                    vtset.add((String) string);
+                }
+            } else {
+                vtset.addAll((Set<String>) obj);
+            }
+            if (! vtset.isEmpty()) {
                 final Set<String> newset = new HashSet<String>(currentDaip);
-                newset.removeAll(currentDaip);
+                newset.removeAll(vtset);
                 if (!newset.isEmpty()) {
                     list.add(new BasicDBObject(CURRENTDAIP, new BasicDBObject("$each", newset)));
                 }
             }
             if (!list.isEmpty()) {
-                final BasicDBObject upd = new BasicDBObject();
+                final BasicDBObject updset = new BasicDBObject();
                 for (final DBObject dbObject : list) {
-                    upd.putAll(dbObject);
+                    updset.putAll(dbObject);
                 }
+                final BasicDBObject upd = new BasicDBObject();
                 upd.append(MINLEVEL, minLevel);
                 upd.append(MAXLEVEL, maxLevel);
                 upd.append(NBSUBNODES, nbSubNodes);
-                final BasicDBObject update = new BasicDBObject("$addToSet", upd);
+                upd.append(TTL, ttl);
+                final BasicDBObject update = new BasicDBObject("$addToSet", updset).
+                        append("$set", upd);
                 dbvitam.requests.collection.update(new BasicDBObject(ID, this.get(ID)), update);
+            }
+            if (GlobalDatas.PRINT_REQUEST) {
+                LOGGER.warn("UPDATE: "+this);
             }
         } else if (containsField(ID)) {
             // not in DB but got already an ID => Save it
-            if (GlobalDatas.SAVERESULT) {
-                this.forceSave(dbvitam.requests);
+            if (GlobalDatas.PRINT_REQUEST) {
+                LOGGER.warn("SAVE: "+this);
             }
+            this.forceSave(dbvitam.requests);
             return true;
         }
-        return ! GlobalDatas.SAVERESULT;
+        return false;
     }
 
     @Override
@@ -186,12 +233,28 @@ public class ResultCached extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final ResultCached vt = (ResultCached) dbvitam.requests.collection.findOne(new BasicDBObject(ID, get(ID)));
+    public boolean load(final MongoDbAccess dbvitam) {
+        final ResultMongodbBak vt = (ResultMongodbBak) dbvitam.requests.collection.findOne(getId());
+        if (vt == null) {
+            return false;
+        }
         this.putAll((BSONObject) vt);
+        getAfterLoad();
+        if (GlobalDatas.PRINT_REQUEST) {
+            LOGGER.warn("LOAD: "+this);
+        }
         loaded = true;
+        return true;
     }
-
+    /**
+     * Update the TTL for this
+     * @param dbvitam
+     */
+    public void updateTtl(final MongoDbAccess dbvitam) {
+        ttl = getNewTtl();
+        dbvitam.requests.collection.update(new BasicDBObject(ID, this.get(ID)), 
+                new BasicDBObject().append("$set", new BasicDBObject(TTL, ttl)));
+    }
     /**
      * Compute min and max from list of UUID in currentMaip.
      * Note: this should not be called from a list of "short" UUID, but only with "path" UUIDs
@@ -217,6 +280,8 @@ public class ResultCached extends VitamType {
         }
     }
 
+    private static final DBObject FIELDDOMDEPTH = new BasicDBObject(DAip.DAIPDEPTHS, 1);
+
     /**
      * Compute min and max from list of real MAIP (from UUID), so loaded from database (could be heavy)
      *
@@ -234,11 +299,19 @@ public class ResultCached extends VitamType {
         for (final String id : currentDaip) {
             int level = UUID.getUuidNb(id);
             if (level == 1) {
+                DBObject dbObject = dbvitam.daips.collection.findOne(id, FIELDDOMDEPTH);
+                if (dbObject == null) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                final Map<String, Integer> domdepth = (Map<String, Integer>) dbObject.get(DAip.DAIPDEPTHS);
+                /*
                 final DAip daip = DAip.findOne(dbvitam, id);
                 if (daip == null) {
                     continue;
                 }
                 final Map<String, Integer> domdepth = daip.getDomDepth();
+                 */
                 if (domdepth == null || domdepth.isEmpty()) {
                     level = 1;
                 } else {
@@ -271,7 +344,7 @@ public class ResultCached extends VitamType {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public boolean checkAncestor(final MongoDbAccess mdAccess, final ResultCached next) throws InstantiationException,
+    public boolean checkAncestor(final MongoDbAccess mdAccess, final ResultInterface next) throws InstantiationException,
             IllegalAccessException {
         if (mdAccess == null) {
             return true;
@@ -282,8 +355,9 @@ public class ResultCached extends VitamType {
             previousLastSet.add(UUID.getLastAsString(id));
         }
         final Map<String, List<String>> nextFirstMap = new HashMap<String, List<String>>();
+        final ResultMongodbBak rnext = (ResultMongodbBak) next;
         // Compute first Id from current result
-        for (final String id : next.currentDaip) {
+        for (final String id : rnext.currentDaip) {
             List<String> list = nextFirstMap.get(UUID.getFirstAsString(id));
             if (list == null) {
                 list = new ArrayList<String>();
@@ -293,11 +367,19 @@ public class ResultCached extends VitamType {
         }
         final Map<String, List<String>> newMap = new HashMap<String, List<String>>(nextFirstMap);
         for (final String id : nextFirstMap.keySet()) {
+            DBObject dbObject = mdAccess.daips.collection.findOne(id, FIELDDOMDEPTH);
+            if (dbObject == null) {
+                continue;
+            }
+            @SuppressWarnings("unchecked")
+            final Map<String, Integer> fathers = (Map<String, Integer>) dbObject.get(DAip.DAIPDEPTHS);
+            /*
             final DAip aip = DAip.findOne(mdAccess, id);
             if (aip == null) {
                 continue;
             }
             final Map<String, Integer> fathers = aip.getDomDepth();
+            */
             final Set<String> fathersIds = fathers.keySet();
             // Check that parents of First Ids of Current result contains Last Ids from Previous result
             fathersIds.retainAll(previousLastSet);
@@ -309,15 +391,76 @@ public class ResultCached extends VitamType {
                 newMap.remove(id);
             }
         }
-        next.currentDaip.clear();
+        rnext.currentDaip.clear();
         for (final List<String> list : newMap.values()) {
-            next.currentDaip.addAll(list);
+            rnext.currentDaip.addAll(list);
         }
-        next.putBeforeSave();
-        return !next.currentDaip.isEmpty();
+        rnext.putBeforeSave();
+        return !rnext.currentDaip.isEmpty();
     }
 
     protected static void addIndexes(final MongoDbAccess mongoDbAccess) {
         // dbvitam.requests.collection.createIndex(new BasicDBObject(MongoDbAccess.VitamLinks.DAip2PAip.field2to1, 1));
+        mongoDbAccess.requests.collection.createIndex(new BasicDBObject(TTL, 1), new BasicDBObject("expireAfterSeconds", 0));
+    }
+    /**
+     * @return the currentDaip
+     */
+    public Set<String> getCurrentDaip() {
+        return currentDaip;
+    }
+    /**
+     * @param currentDaip the currentDaip to set
+     */
+    public void setCurrentDaip(Set<String> currentDaip) {
+        this.currentDaip = currentDaip;
+    }
+    /**
+     * @return the minLevel
+     */
+    public int getMinLevel() {
+        return minLevel;
+    }
+    /**
+     * @param minLevel the minLevel to set
+     */
+    public void setMinLevel(int minLevel) {
+        this.minLevel = minLevel;
+    }
+    /**
+     * @return the maxLevel
+     */
+    public int getMaxLevel() {
+        return maxLevel;
+    }
+    /**
+     * @param maxLevel the maxLevel to set
+     */
+    public void setMaxLevel(int maxLevel) {
+        this.maxLevel = maxLevel;
+    }
+    /**
+     * @return the nbSubNodes
+     */
+    public long getNbSubNodes() {
+        return nbSubNodes;
+    }
+    /**
+     * @param nbSubNodes the nbSubNodes to set
+     */
+    public void setNbSubNodes(long nbSubNodes) {
+        this.nbSubNodes = nbSubNodes;
+    }
+    /**
+     * @return the loaded
+     */
+    public boolean isLoaded() {
+        return loaded;
+    }
+    /**
+     * @param loaded the loaded to set
+     */
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
     }
 }

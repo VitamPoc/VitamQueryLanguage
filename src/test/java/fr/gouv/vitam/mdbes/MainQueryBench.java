@@ -18,7 +18,11 @@
 package fr.gouv.vitam.mdbes;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,6 +35,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
 
+import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
@@ -49,13 +54,15 @@ public class MainQueryBench implements Runnable {
     private static VitamLogger LOGGER = null;
 	private static AtomicLong depthmax = new AtomicLong();
 	private static AtomicLong tree = new AtomicLong();
+    private static AtomicLong cachedepthmax = new AtomicLong();
+    private static AtomicLong cachetree = new AtomicLong();
 
 	private static MongoClient mongoClient = null;
-	private static final int MAXTHREAD = 8;
+	private static final int MAXTHREAD = 4;
 	/**
 	 * Either 0, either x*2*10
 	 */
-	private static final int waitBetweenQuery = 20;
+	private static final int waitBetweenQuery = 0;
 	
     private static boolean simulate = false;
     private static String fileDepth;
@@ -64,11 +71,12 @@ public class MainQueryBench implements Runnable {
     private static String database = "VitamLinks";
     private static String esbase = "vitam";
     private static String unicast = "mdb002, mdb003, mdb004";
-    private static int repeatNb = 100;
+    private static int repeatNb = 50;// XXX FIXME could be 50 or more
     private static int nbload = 1;
     private static int nbThread = 1;
     protected static AtomicLong cptMaip = new AtomicLong();
-
+    protected static int maxRequestsTree = 0;
+    protected static int maxRequestsDepth = 0;
     private int start, stop;
 	
 
@@ -84,6 +92,9 @@ public class MainQueryBench implements Runnable {
         final String log4j = args[0];
         PropertyConfigurator.configure(log4j);
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
+        Properties systemProperties = System.getProperties();
+        systemProperties.put("net.spy.log.LoggerImpl", "net.spy.memcached.compat.log.SLF4JLogger");
+        System.setProperties(systemProperties);
         LOGGER = VitamLoggerFactory.getInstance(MainQueryBench.class);
         final String networkHost = "192.168.56.102";
         GlobalDatas.localNetworkAddress = networkHost;
@@ -117,15 +128,29 @@ public class MainQueryBench implements Runnable {
             mongoClient = new MongoClient(host, options);
             mongoClient.setReadPreference(ReadPreference.primaryPreferred());
             dbvitam = new MongoDbAccess(mongoClient, database, esbase, unicast, false);
+            List<URI> hosts = new ArrayList<URI>();
+            hosts.add(new URI("http://192.168.56.110:8091/pools"));
+            dbvitam.connectCouchbase(hosts, "VitamRequests", "");
+            LOGGER.warn("USECOUCHBASE: "+GlobalDatas.USECOUCHBASE+" USEMEMCACHED: "+GlobalDatas.USEMEMCACHED+
+                    " USELRUCACHE: "+GlobalDatas.USELRUCACHE+" USECACHE: "+GlobalDatas.SAVERESULT);
+            LOGGER.warn("Cache starting with: "+dbvitam.getCacheSize());
 			int nbt = 1;
-			for (nbt = 1; nbt <= MAXTHREAD; nbt *= 2) {
-			//for (nbt = 1; nbt <= maxThread; nbt += 2) {
-				// for (; nbt <= maxThread; nbt += 100) {
-				nbThread = nbt;
-				MainQueryBench.tree = new AtomicLong();
-				MainQueryBench.depthmax = new AtomicLong();
-				cptMaip.set(0);
-				runOnce(dbvitam);
+			int nbloop = 2;
+			if (GlobalDatas.SAVERESULT) {
+			    nbloop = 5;
+			}
+			for (int i = 0; i < nbloop; i++) {
+    			for (nbt = 1; nbt <= MAXTHREAD; nbt *= 2) {
+    			//for (nbt = 1; nbt <= maxThread; nbt += 2) {
+    				// for (; nbt <= maxThread; nbt += 100) {
+    				nbThread = nbt;
+    				MainQueryBench.tree.set(0);
+    				MainQueryBench.depthmax.set(0);
+    				MainQueryBench.cachetree.set(0);
+    				MainQueryBench.cachedepthmax.set(0);
+    				cptMaip.set(0);
+    				runOnce(dbvitam);
+    			}
 			}
         } catch (Exception e) {
             LOGGER.error(e);
@@ -139,7 +164,6 @@ public class MainQueryBench implements Runnable {
 	protected static void runOnce(MongoDbAccess dbvitam) throws InterruptedException,
 			InstantiationException, IllegalAccessException, IOException {
 		MainQueryBench[] ingests = new MainQueryBench[nbThread];
-		//GlobalDatas.nb = GlobalDatas.nb / GlobalDatas.nbThread;
 		ExecutorService executorService = null;
 		LOGGER.warn("Unitary test\n================================================================================================================================");
 		try {
@@ -149,6 +173,7 @@ public class MainQueryBench implements Runnable {
 			return;
 		}
 		Thread.sleep(2000);
+		//if (true) return;
 		LOGGER.warn("requests\n================================================================================================================================");
 		executorService = Executors.newFixedThreadPool(nbThread);
 		//int step = 0;
@@ -174,43 +199,54 @@ public class MainQueryBench implements Runnable {
 				+ " DepthMax:" + (MainQueryBench.depthmax.get())
 				/ ((float) nbload * repeatNb * nbThread));
 
-		LOGGER.warn("Thread;nbReq;nbMaip;Tree;DepthMax");
+		LOGGER.warn("Thread;nbReq;nbMaip;Tree;DepthMax;nbReqTree;nbReqDepth;avgReqTree;avgReqDepth");
 		LOGGER.warn(nbThread + ";" + (nbload * repeatNb * nbThread) + ";" + nbBigM
 				+ ";" 
 				+ (MainQueryBench.tree.get()) / ((float) nbload * repeatNb * nbThread)
 				+ ";"
 				+ (MainQueryBench.depthmax.get())
-				/ ((float) nbload * repeatNb * nbThread)+"\n");
+				/ ((float) nbload * repeatNb * nbThread)
+                + ";" + maxRequestsTree + ";" + maxRequestsDepth
+				+ ";"
+				+ (MainQueryBench.tree.get()) / ((float) nbload * maxRequestsTree * repeatNb * nbThread)
+                + ";"
+                + (MainQueryBench.depthmax.get())
+                / ((float) nbload * maxRequestsDepth * repeatNb * nbThread)+"\n");
+		LOGGER.warn("ResultCached: "+dbvitam.getCacheSize()+":"+
+                (cachetree.get()/ ((float) nbload * repeatNb * nbThread))+
+                ":"+(cachedepthmax.get()/ ((float) nbload * repeatNb * nbThread)));
 	}
 
 	protected static void oneShot(MongoDbAccess dbvitam) throws InvalidParseOperationException, InvalidExecOperationException, InstantiationException, IllegalAccessException {
 		String comdtree = fileTree.toString();
-		ParserBench commandTree = new ParserBench(simulate);
+		QueryBench commandTree = new QueryBench(simulate);
 		commandTree.prepareParse(comdtree);
         BenchContext contextTree = commandTree.getNewContext(GlobalDatas.INDEXNAME, commandTree.model);
         String comddepth = fileDepth.toString();
-		ParserBench commandDepth = new ParserBench(simulate);
+		QueryBench commandDepth = new QueryBench(simulate);
 		commandDepth.prepareParse(comddepth);
 		BenchContext contextDepth = commandDepth.getNewContext(GlobalDatas.INDEXNAME, commandDepth.model);
 		// Requesting
 		long date13 = System.currentTimeMillis();
-		List<ResultCached> results = commandTree.executeBenchmark(dbvitam, 0, contextTree);
+		List<ResultInterface> results = commandTree.executeBenchmark(dbvitam, 0, contextTree);
+		maxRequestsTree = results.size();
 		long date14 = System.currentTimeMillis();
-		ResultCached result = commandTree.finalizeResults(dbvitam, contextTree, results);
+		ResultInterface result = commandTree.finalizeResults(dbvitam, contextTree, results);
 		long date15 = System.currentTimeMillis();
 
         long date23 = System.currentTimeMillis();
-        List<ResultCached> results2 = commandDepth.executeBenchmark(dbvitam, 0, contextDepth);
+        List<ResultInterface> results2 = commandDepth.executeBenchmark(dbvitam, 0, contextDepth);
+        maxRequestsDepth = results2.size();
         long date24 = System.currentTimeMillis();
-        ResultCached result2 = commandDepth.finalizeResults(dbvitam, contextDepth, results2);
+        ResultInterface result2 = commandDepth.finalizeResults(dbvitam, contextDepth, results2);
         long date25 = System.currentTimeMillis();
 
 		long nbUnitaryM = dbvitam.getDaipSize();
 		LOGGER.warn("Unitary Test Tree with DAIP: " + nbUnitaryM 
 				+ " => TreeExec:" + (date14 - date13) +
 				" TreePath:" + (date15 - date14));
-		if (result != null && ! result.currentDaip.isEmpty()) {
-            LOGGER.warn("ResTree= "+result.currentDaip.size());
+		if (result != null && ! result.getCurrentDaip().isEmpty()) {
+            LOGGER.warn("ResTree= "+result.getCurrentDaip().size());
 		    /*for (String id : result.currentDaip) {
 	            DAip daip = DAip.findOne(dbvitam, UUID.getLastAsString(id));
                 LOGGER.warn("ResTree: "+daip);
@@ -221,8 +257,8 @@ public class MainQueryBench implements Runnable {
         LOGGER.warn("Unitary Test Depth with DAIP: " + nbUnitaryM 
                 + " => DepthExec:" + (date24 - date23) +
                 " DepthPath:" + (date25 - date24));
-        if (result2 != null && ! result2.currentDaip.isEmpty()) {
-            LOGGER.warn("ResDepth= "+result2.currentDaip.size());
+        if (result2 != null && ! result2.getCurrentDaip().isEmpty()) {
+            LOGGER.warn("ResDepth= "+result2.getCurrentDaip().size());
             /*for (String id : result2.currentDaip) {
                 DAip daip = DAip.findOne(dbvitam, UUID.getLastAsString(id));
                 LOGGER.warn("\tResDepth: "+daip);
@@ -232,7 +268,8 @@ public class MainQueryBench implements Runnable {
         }
 	}
 
-	@Override
+	@SuppressWarnings("unused")
+    @Override
 	public void run() {
 		// connect to the local database server
         String comdtree = fileTree.toString();
@@ -240,10 +277,14 @@ public class MainQueryBench implements Runnable {
 		MongoDbAccess dbvitam = null;
 		try {
 		    dbvitam = new MongoDbAccess(mongoClient, database, esbase, unicast, false);
-	        ParserBench commandTree = new ParserBench(simulate);
+            List<URI> hosts = new ArrayList<URI>();
+            hosts.add(new URI("http://192.168.56.110:8091/pools"));
+            dbvitam.connectCouchbase(hosts, "VitamRequests", "");
+
+	        QueryBench commandTree = new QueryBench(simulate);
 	        commandTree.prepareParse(comdtree);
 	        BenchContext contextTree = commandTree.getNewContext(GlobalDatas.INDEXNAME, commandTree.model);
-	        ParserBench commandDepth = new ParserBench(simulate);
+	        QueryBench commandDepth = new QueryBench(simulate);
 	        commandDepth.prepareParse(comddepth);
 	        BenchContext contextDepth = commandDepth.getNewContext(GlobalDatas.INDEXNAME, commandDepth.model);
 			// Tree
@@ -253,8 +294,8 @@ public class MainQueryBench implements Runnable {
 			long date1 = System.currentTimeMillis();
 			for (int repeat = 0; repeat < repeatNb; repeat++) {
 				for (int i = start; i <= stop; i++) {
-			        List<ResultCached> results = commandTree.executeBenchmark(dbvitam, i, contextTree);
-			        ResultCached result = commandTree.finalizeResults(dbvitam, contextTree, results);
+			        List<ResultInterface> results = commandTree.executeBenchmark(dbvitam, i, contextTree);
+			        ResultInterface result = commandTree.finalizeResults(dbvitam, contextTree, results);
 					if (waitBetweenQuery > 0) {
 						long time = ( random.nextLong(minTime, waitBetweenQuery) / 10 )* 10;
 						extraTimes[0] += time;
@@ -268,8 +309,8 @@ public class MainQueryBench implements Runnable {
 			long date2 = System.currentTimeMillis();
 			for (int repeat = 0; repeat < repeatNb; repeat++) {
 				for (int i = start; i <= stop; i++) {
-                    List<ResultCached> results = commandDepth.executeBenchmark(dbvitam, i, contextDepth);
-                    ResultCached result = commandDepth.finalizeResults(dbvitam, contextDepth, results);
+                    List<ResultInterface> results = commandDepth.executeBenchmark(dbvitam, i, contextDepth);
+                    ResultInterface result = commandDepth.finalizeResults(dbvitam, contextDepth, results);
 					if (waitBetweenQuery > 0) {
 						long time = ( random.nextLong(minTime, waitBetweenQuery) / 10 )* 10;
 						extraTimes[1] += time;
@@ -283,6 +324,8 @@ public class MainQueryBench implements Runnable {
 			long date3 = System.currentTimeMillis();
 			MainQueryBench.tree.addAndGet(date2 - date1 - extraTimes[0]);
 			MainQueryBench.depthmax.addAndGet(date3 - date2 - extraTimes[1]);
+            MainQueryBench.cachetree.addAndGet(commandTree.cacheRanks);
+            MainQueryBench.cachedepthmax.addAndGet(commandDepth.cacheRanks);
 		} catch (InvalidExecOperationException e1) {
 			LOGGER.error(e1);
 		} catch (InvalidParseOperationException e1) {
@@ -292,6 +335,10 @@ public class MainQueryBench implements Runnable {
         } catch (InstantiationException e1) {
             LOGGER.error(e1);
         } catch (IllegalAccessException e1) {
+            LOGGER.error(e1);
+        } catch (URISyntaxException e1) {
+            LOGGER.error(e1);
+        } catch (InvalidCreateOperationException e1) {
             LOGGER.error(e1);
         } finally {
 			// release resources

@@ -115,7 +115,7 @@ public class Domain extends VitamType {
             if (MongoDbAccess.addAsymmetricLinksetNoSave(maip, VitamLinks.Domain2DAip.field2to1, this)) {
                 nb++;
             }
-            maip.saveToFile(dbvitam, outputStream, 1);
+            maip.saveToFile(dbvitam, outputStream);
         }
     }
 
@@ -134,9 +134,9 @@ public class Domain extends VitamType {
 
     @Override
     protected boolean updated(final MongoDbAccess dbvitam) {
-        final Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, getId()));
+        final Domain vt = (Domain) dbvitam.domains.collection.findOne(getId());
         BasicDBObject update = null;
-        LOGGER.warn("Previous Domain exists ? " + (vt != null));
+        LOGGER.debug("Previous Domain exists ? " + (vt != null));
         if (vt != null) {
             final List<DBObject> list = new ArrayList<>();
             BasicDBObject upd = dbvitam.updateLinks(this, vt, VitamLinks.Domain2DAip, true);
@@ -175,7 +175,7 @@ public class Domain extends VitamType {
         if (updated(dbvitam)) {
             return;
         }
-        LOGGER.warn("Domain will be saved: {}", this);
+        LOGGER.debug("Domain will be saved: {}", this);
         updateOrSave(dbvitam.domains);
     }
 
@@ -203,9 +203,14 @@ public class Domain extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final Domain vt = (Domain) dbvitam.domains.collection.findOne(new BasicDBObject(ID, get(ID)));
+    public boolean load(final MongoDbAccess dbvitam) {
+        final Domain vt = (Domain) dbvitam.domains.collection.findOne(getId());
+        if (vt == null) {
+            return false;
+        }
         this.putAll((BSONObject) vt);
+        getAfterLoad();
+        return true;
     }
 
     /**

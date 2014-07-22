@@ -20,6 +20,7 @@
  */
 package fr.gouv.vitam.mdbes;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.bson.BSONObject;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -37,6 +39,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
+import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.logging.VitamLogger;
@@ -61,7 +64,8 @@ public class MongoDbAccess {
     protected VitamCollection duarefs = null;
     protected VitamCollection requests = null;
     private ElasticSearchAccess es = null;
-
+    protected CouchbaseAccess cba = null;
+    
     private static enum LinkType {
         /**
          * Link N-N
@@ -95,13 +99,13 @@ public class MongoDbAccess {
 
     protected static enum VitamCollections {
         Cdomain(Domain.class), Cdaip(DAip.class), Cpaip(PAip.class), Csaip(SAip.class), Cdua(DuaRef.class), Crequests(
-                ResultCached.class);
+                ResultMongodb.class);
 
         @SuppressWarnings("rawtypes")
         private Class clasz;
         private String name;
         private int rank;
-        private DBCollection collection;
+        private DBCollection collection = null;
 
         @SuppressWarnings("rawtypes")
         private VitamCollections(final Class clasz) {
@@ -219,6 +223,7 @@ public class MongoDbAccess {
      *            shall we recreate the index
      * @throws InvalidUuidOperationException
      */
+    @SuppressWarnings("unused")
     public MongoDbAccess(final MongoClient mongoClient, final String dbname, final String esname, final String unicast,
             final boolean recreate) throws InvalidUuidOperationException {
         db = mongoClient.getDB(dbname);
@@ -233,7 +238,12 @@ public class MongoDbAccess {
         paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(db, VitamCollections.Cpaip, recreate);
         saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(db, VitamCollections.Csaip, recreate);
         duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(db, VitamCollections.Cdua, recreate);
-        requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(db, VitamCollections.Crequests, recreate);
+        if (GlobalDatas.USECOUCHBASE || GlobalDatas.USELRUCACHE) {
+            requests = null;
+            collections[VitamCollections.Crequests.rank] = null;
+        } else {
+            requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(db, VitamCollections.Crequests, recreate);
+        }
         final DBCursor cursor = domains.collection.find();
         for (final DBObject dbObject : cursor) {
             final Domain dom = (Domain) dbObject;
@@ -242,6 +252,18 @@ public class MongoDbAccess {
         // elasticsearch index
         LOGGER.info("ES on cluster name: " + esname + ":" + unicast);
         es = new ElasticSearchAccess(esname, unicast, GlobalDatas.localNetworkAddress);
+    }
+    /**
+     * Connect to Couchbase
+     * @param hosts
+     * @param bucket
+     * @param password
+     * @throws InvalidCreateOperationException
+     */
+    public void connectCouchbase(List<URI> hosts, String bucket, String password) throws InvalidCreateOperationException {
+        if (GlobalDatas.USECOUCHBASE) {
+            cba = new CouchbaseAccess(hosts, bucket, password);
+        }
     }
     /**
      * 
@@ -278,11 +300,15 @@ public class MongoDbAccess {
      */
     public final void close() {
         es.close();
+        if (cba != null) {
+            cba.close();
+        }
     }
 
     /**
      * Ensure that all MongoDB database schema are indexed
      */
+    @SuppressWarnings("unused")
     public void ensureIndex() {
         for (int i = 0; i < collections.length; i++) {
             collections[i].collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
@@ -292,7 +318,9 @@ public class MongoDbAccess {
         PAip.addIndexes(this);
         SAip.addIndexes(this);
         DuaRef.addIndexes(this);
-        ResultCached.addIndexes(this);
+        if (!(GlobalDatas.USECOUCHBASE && GlobalDatas.USELRUCACHE)) {
+            ResultMongodb.addIndexes(this);
+        }
     }
 
     /**
@@ -354,6 +382,19 @@ public class MongoDbAccess {
     public long getPaipSize() {
         return paips.collection.count();
     }
+    /**
+     * 
+     * @return the size of the Result Cache
+     */
+    public long getCacheSize() {
+        if (requests != null) {
+            return requests.collection.count();
+        } else if (cba != null) {
+            return cba.getCount();
+        } else {
+            return ResultLRU.count();
+        }
+    }
 
     /**
      * Force flush on disk (MongoDB): should not be used
@@ -369,8 +410,7 @@ public class MongoDbAccess {
      * @return a VitamType generic object from ID ref value
      */
     public final VitamType loadFromObjectId(final VitamCollection collection, final String ref) {
-        final BasicDBObject obj = new BasicDBObject(VitamType.ID, ref);
-        return (VitamType) collection.collection.findOne(obj);
+        return (VitamType) collection.collection.findOne(ref);
     }
 
     /**
@@ -423,8 +463,7 @@ public class MongoDbAccess {
         if (id == null || id.length() == 0) {
             return null;
         }
-        final BasicDBObject query = new BasicDBObject(VitamType.ID, id);
-        final VitamType vitobj = (VitamType) col.collection.findOne(query);
+        final VitamType vitobj = (VitamType) col.collection.findOne(id);
         if (vitobj == null) {
             return null;
         } else {
@@ -432,6 +471,8 @@ public class MongoDbAccess {
         }
         return vitobj;
     }
+    
+    private static BasicDBObject IDONLY = new BasicDBObject(VitamType.ID, 1);
 
     /**
      *
@@ -439,13 +480,50 @@ public class MongoDbAccess {
      * @param id
      * @return True if one VitamType object exists with this id
      */
+    @SuppressWarnings("unused")
     public final boolean exists(final VitamCollections col, final String id) {
         if (id == null || id.length() == 0) {
             return false;
         }
-        final BasicDBObject query = new BasicDBObject(VitamType.ID, id);
-        return col.collection.count(query) > 0;
+        if (col == VitamCollections.Crequests && (GlobalDatas.USECOUCHBASE || GlobalDatas.USELRUCACHE)) {
+            if (GlobalDatas.USECOUCHBASE) {
+                // Couchbase
+                return cba.exists(id);
+            } else {
+                return ResultLRU.exists(id);
+            }
+        }
+        return col.collection.findOne(id, IDONLY) != null;
     }
+    /**
+    *
+    * @param id
+    * @return the ResultInterface if any (null else)
+    */
+    public final ResultInterface load(final String id) {
+       if (id == null || id.length() == 0) {
+           return null;
+       }
+       if (GlobalDatas.USECOUCHBASE) {
+           JsonNode vt = cba.getFromId(id);
+           if (vt != null) {
+               ResultCouchbase ri = (ResultCouchbase) createOneResult();
+               ri.setId(id);
+               ri.loadFromJson(vt);
+               return ri;
+           }
+           return null;
+       } else if (GlobalDatas.USELRUCACHE) {
+           // Couchbase
+           return ResultLRU.LRU_ResultCached.get(id);
+       } else {
+           ResultMongodb rm = (ResultMongodb) requests.collection.findOne(id);
+           if (rm != null) {
+               rm.getAfterLoad();
+           }
+           return rm;
+       }
+   }
 
     /**
      *
@@ -475,7 +553,7 @@ public class MongoDbAccess {
      *         Note that the exact depth is not checked, so it must be checked
      *         after (using checkAncestor method)
      */
-    public final ResultCached getSubDepth(final String indexName, final String type, final Collection<String> currentNodes,
+    public final ResultInterface getSubDepth(final String indexName, final String type, final Collection<String> currentNodes,
             final int subdepth, final QueryBuilder condition, final FilterBuilder filterCond, final boolean useStart) {
         if (useStart) {
             return es.getSubDepthStart(indexName, type, currentNodes.toArray(new String[0]), subdepth, condition, filterCond);
@@ -493,7 +571,7 @@ public class MongoDbAccess {
     * @param filterCond
     * @return the ResultCached associated with this request
     */
-   public final ResultCached getNegativeSubDepth(final String indexName, final String type, final Collection<String> subset,
+   public final ResultInterface getNegativeSubDepth(final String indexName, final String type, final Collection<String> subset,
            final QueryBuilder condition, final FilterBuilder filterCond) {
        return es.getNegativeSubDepth(indexName, type, subset.toArray(new String[0]), condition, filterCond);
    }
@@ -781,6 +859,34 @@ public class MongoDbAccess {
             relation12.add(oid2);
             obj1.put(obj1ToObj2, relation12);
             return null;
+        }
+    }
+
+    /**
+     * 
+     * @return a new ResultInterface
+     */
+    public static ResultInterface createOneResult() {
+        if (GlobalDatas.USECOUCHBASE) {
+            return new ResultCouchbase();
+        } else if (GlobalDatas.USELRUCACHE) {
+            return new ResultLRU();
+        } else {
+            return new ResultMongodb();
+        }
+    }
+    /**
+     * 
+     * @param collection 
+     * @return a new ResultInterface
+     */
+    public static ResultInterface createOneResult(Collection<String> collection) {
+        if (GlobalDatas.USECOUCHBASE) {
+            return new ResultCouchbase(collection);
+        } else if (GlobalDatas.USELRUCACHE) {
+            return new ResultLRU(collection);
+        } else {
+            return new ResultMongodb(collection);
         }
     }
 

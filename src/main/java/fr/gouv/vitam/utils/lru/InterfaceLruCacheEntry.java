@@ -15,8 +15,36 @@
  * You should have received a copy of the GNU General Public License along with Vitam . If not, see
  * <http://www.gnu.org/licenses/>.
  */
+
+package fr.gouv.vitam.utils.lru;
+
 /**
- * @author "Frederic Bregier"
+ * Cache Entry interface
+ * 
+ * @author Frederic Bregier
+ * @author Damian Momot
+ * @param <V> Value
  * 
  */
-package fr.gouv.vitam.query.old.exec;
+public interface InterfaceLruCacheEntry<V> {
+    /**
+     * Returns value stored in entry or null if entry is not valid
+     * 
+     * @return Value
+     */
+    public V getValue();
+
+    /**
+     * 
+     * @param timeRef
+     * @return True if this entry is still valid
+     */
+    public boolean isStillValid(long timeRef);
+    
+    /**
+     * Reset the time of overtime
+     * @param ttl 
+     * @return True if this entry has its time reset
+     */
+    public boolean resetTime(long ttl);
+}

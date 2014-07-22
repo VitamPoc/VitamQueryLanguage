@@ -257,15 +257,21 @@ public class MainIngestMDBFromFile implements Runnable {
                 bulk.insert(bson);
                 nb++;
                 if (nb % GlobalDatas.LIMIT_MDB_NEW_INDEX == 0) {
-                    bulk.execute();
+                    BulkWriteResult result = bulk.execute();
                     bulk = dbvitam.daips.collection.initializeUnorderedBulkOperation();
+                    if (result.getInsertedCount() != nb) {
+                        LOGGER.error("Wrong bulk op: "+result);
+                    }
                     MainIngestFile.cptMaip.addAndGet(nb);
                     nb = 0;
                     System.out.print(".");
                 }
             }
             if (nb != 0) {
-                bulk.execute();
+                BulkWriteResult result = bulk.execute();
+                if (result.getInsertedCount() != nb) {
+                    LOGGER.error("Wrong bulk op: "+result);
+                }
                 MainIngestFile.cptMaip.addAndGet(nb);
                 nb = 0;
             }

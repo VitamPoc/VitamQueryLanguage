@@ -38,7 +38,6 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.index.query.BoolFilterBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.IdsFilterBuilder;
@@ -343,11 +342,11 @@ public class ElasticSearchAccess {
      * @param subdepth
      * @param condition
      * @param filterCond
-     * @return the ResultCached associated with this request. 
+     * @return the ResultInterface associated with this request. 
      *         Note that the exact depth is not checked, so it must be checked
      *         after (using checkAncestor method)
      */
-    public final ResultCached getSubDepth(final String indexName, final String type, final String[] currentNodes,
+    public final ResultInterface getSubDepth(final String indexName, final String type, final String[] currentNodes,
             final int subdepth, final QueryBuilder condition, final FilterBuilder filterCond) {
         QueryBuilder query = null;
         FilterBuilder filter = null;
@@ -478,11 +477,11 @@ public class ElasticSearchAccess {
     * @param subdepth
     * @param condition
     * @param filterCond
-    * @return the ResultCached associated with this request. 
+    * @return the ResultInterface associated with this request. 
     *         Note that the exact depth is not checked, so it must be checked
     *         after (using checkAncestor method)
     */
-   public final ResultCached getSubDepthStart(final String indexName, final String type, final String[] currentNodes,
+   public final ResultInterface getSubDepthStart(final String indexName, final String type, final String[] currentNodes,
            final int subdepth, final QueryBuilder condition, final FilterBuilder filterCond) {
        QueryBuilder query = null;
        FilterBuilder filter = null;
@@ -533,9 +532,9 @@ public class ElasticSearchAccess {
     * @param subset subset of valid nodes
     * @param condition
     * @param filterCond
-    * @return the ResultCached associated with this request. 
+    * @return the ResultInterface associated with this request. 
     */
-   public final ResultCached getNegativeSubDepth(final String indexName, final String type, final String[] subset,
+   public final ResultInterface getNegativeSubDepth(final String indexName, final String type, final String[] subset,
            final QueryBuilder condition, final FilterBuilder filterCond) {
        QueryBuilder query = null;
        FilterBuilder filter = null;
@@ -577,9 +576,9 @@ public class ElasticSearchAccess {
      *            as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }"
      *            "{ "ids" : { "values" : [list of id] } }"
      * @param filter
-     * @return a structure as ResultCached
+     * @return a structure as ResultInterface
      */
-    protected final ResultCached search(final String indexName, final String type, final QueryBuilder query,
+    protected final ResultInterface search(final String indexName, final String type, final QueryBuilder query,
             final FilterBuilder filter) {
         SearchRequestBuilder request = client.prepareSearch(indexName).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setTypes(type).setQuery(query) // Query
@@ -606,7 +605,7 @@ public class ElasticSearchAccess {
             return null;
         }
         long nb = 0;
-        final ResultCached resultRequest = new ResultCached();
+        final ResultInterface resultRequest = MongoDbAccess.createOneResult();
         final Iterator<SearchHit> iterator = hits.iterator();
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();
@@ -625,11 +624,11 @@ public class ElasticSearchAccess {
                     LOGGER.error("Not Integer: " + val.getClass().getName());
                 }
             }
-            resultRequest.currentDaip.add(id);
+            resultRequest.getCurrentDaip().add(id);
         }
-        resultRequest.nbSubNodes = nb;
+        resultRequest.setNbSubNodes(nb);
         if (GlobalDatas.PRINT_REQUEST) {
-            LOGGER.warn("FinalEsResult: {} : {}", resultRequest.currentDaip, resultRequest.nbSubNodes);
+            LOGGER.warn("FinalEsResult: {} : {}", resultRequest.getCurrentDaip(), resultRequest.getNbSubNodes());
         }
         return resultRequest;
     }

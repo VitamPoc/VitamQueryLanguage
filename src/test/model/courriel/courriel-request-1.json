@@ -31,7 +31,7 @@
 		   } ] },
 	{	"$term" : { "Annee" : "##anneefromliste##" },
 		"vary" : [ 
-		  { "__name" : "##anneefromliste##", "__type" : "interval", "__low" : 1900, "__high" : 2013, "__save" : "AN" } ] },
+		  { "__name" : "##anneefromliste##", "__type" : "interval", "__ftype" : "nombre", "__low" : 1900, "__high" : 2013, "__save" : "AN" } ] },
 	{	"$term" : { "MessageId" : "##rankfromliste##" },
 		"vary" : [ { "__name" : "##rankfromliste##", "__type" : "serie", "__serie" : { "__prefix" : ".", "__idcpt" : "rank", "__modulo" : 100, "__was" : 10000 }, "__subprefix" : ["SRV", ".", "AN"], "__save" : "NOMCRL" } ] },
 	{	"$term" : { "TYPEOBJECT" : "CORPS" } }

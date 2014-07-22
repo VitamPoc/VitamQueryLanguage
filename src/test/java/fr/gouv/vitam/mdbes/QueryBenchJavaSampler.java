@@ -59,7 +59,7 @@ public class QueryBenchJavaSampler extends AbstractJavaSamplerClient {
 	long count = 0;
 	
 	MongoDbAccess dbvitam = null;
-	ParserBench parserBench = null;
+	QueryBench queryBench = null;
 	String mongohost = "localhost";
 	String mongobase = "VitamLinks";
 	int maxconn = 20;
@@ -124,12 +124,12 @@ public class QueryBenchJavaSampler extends AbstractJavaSamplerClient {
 			return sr;
 		}
 		if (threadBenchContext.get() == null) {
-			threadBenchContext.set(parserBench.getNewContext(GlobalDatas.INDEXNAME, model));
+			threadBenchContext.set(queryBench.getNewContext(GlobalDatas.INDEXNAME, model));
 		}
 		BenchContext context = threadBenchContext.get();
 		if (context.cpts.isEmpty()) {
 			// wrong initialization
-			threadBenchContext.set(parserBench.getNewContext(GlobalDatas.INDEXNAME, model));
+			threadBenchContext.set(queryBench.getNewContext(GlobalDatas.INDEXNAME, model));
 			context = threadBenchContext.get();
 		}
 		if (current < start || current > stop) {
@@ -138,8 +138,8 @@ public class QueryBenchJavaSampler extends AbstractJavaSamplerClient {
 		long stamp = System.currentTimeMillis();
 		// run test
 		try {
-		    List<ResultCached> results = parserBench.executeBenchmark(dbvitam, current, context);
-            ResultCached result = parserBench.finalizeResults(dbvitam, context, results);
+		    List<ResultInterface> results = queryBench.executeBenchmark(dbvitam, current, context);
+		    ResultInterface result = queryBench.finalizeResults(dbvitam, context, results);
 			count++;
 		} catch (InvalidExecOperationException e) {
 			msg = e.getMessage();
@@ -216,13 +216,13 @@ public class QueryBenchJavaSampler extends AbstractJavaSamplerClient {
 			}
 		}
 		if (initialized) {
-			parserBench = new ParserBench(false);
+			queryBench = new QueryBench(false);
 			try {
-				parserBench.prepareParse(modelQuery);
+				queryBench.prepareParse(modelQuery);
 			} catch (InvalidParseOperationException e) {
 				e.printStackTrace();
 			}
-			model = parserBench.getModel();
+			model = queryBench.getModel();
 			return;
 		}
 		// called when the test is startup but only for global argument, not specific ones
@@ -259,9 +259,9 @@ public class QueryBenchJavaSampler extends AbstractJavaSamplerClient {
 						mongoClient.setReadPreference(ReadPreference.primaryPreferred());
 					}
 					dbvitam = new MongoDbAccess(mongoClient, mongobase, esclustername, unicast, false);
-					parserBench = new ParserBench(false);
-					parserBench.prepareParse(modelQuery);
-					model = parserBench.getModel();
+					queryBench = new QueryBench(false);
+					queryBench.prepareParse(modelQuery);
+					model = queryBench.getModel();
 					initialized = true;
 				} catch (UnknownHostException e) {
 					e.printStackTrace();

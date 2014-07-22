@@ -1,9 +1,9 @@
-{ "Domaine" : "ArchivesNationales", "__model" : "courriel", "Fonds" : "ArchivesNationales",
-	"MetaAip" : [
+{ "Domain" : "ArchivesNationales", "__model" : "courriel", "Fonds" : "ArchivesNationales",
+	"DAip" : [
 		{ "__occur" : 1}, 
 		{ "Subfonds" : "Courriel", "_refid" : "Courriel" },
 		
-		{ "MetaAip" : [
+		{ "DAip" : [
 			{ "__occur" : 60, "__distrib" : 0}, 
 			{ "Series" : "Service", 
 				"Service" : { "__type" : "listeorder", "__listeorder" : [ 
@@ -69,40 +69,41 @@
                 "11.4 Vie quotidienne" ], "__save" : "SRV" },
                 "_refid" : { "__type" : "save", "__subprefix" : [ "Courriel", ".", "SRV" ] } },
 
-			{ "MetaAip" : [
+			{ "DAip" : [
 				{ "__occur" : 1900, "__high" : 2013}, 
-				{ "Subseries" : "Annees", "Annee" : { "__type" : "serie",  "__serie" : { "__prefix" : ""}, "__save" : "AN" },
-                    "_refid" : { "__type" : "save", "__subprefix" : [ "Courriel", ".", "SRV", ".", "AN" ] } },
+				{ "Subseries" : "Annees", 
+				"Annee" : { "__type" : "serie", "__ftype" : "nombre", "__serie" : { "__prefix" : ""}, "__save" : "AN" },
+                "_refid" : { "__type" : "save", "__subprefix" : [ "Courriel", ".", "SRV", ".", "AN" ] } },
 
-				{ "MetaAip" : [
-					{ "__occur" : 10000, "_was" : 1000 }, 
+				{ "DAip" : [
+					{ "__occur" : 100, "_was" : 10000 }, 
 					{
 						"Item" : "Courriel", 
-						"Rank" : { "__type" : "serie",  
+						"Rank" : { "__type" : "serie", "__ftype" : "nombre",  
 							"__serie" : { "__modulo" : 1000000 }, "__save" : "RK" },
 						"MessageId" : { "__type" : "save",  
 							"__subprefix" : ["SRV", ".", "AN", ".", "RK"], "__save" : "NOMCRL" },  
 						"Priority" : { "__type" : "liste", "__liste" : [ "Low", "Normal", "High" ] },
 						"Sensitivy" : { "__type" : "liste", "__liste" : [ "Normal", "Personal", "Private", "Confidential" ] },
-						"SentDate" : { "__type" : "date" },
-						"RecvDate" : { "__type" : "date" },
-						"Subject" : { "__type" : "chaine" },
-						"From" : { "__type" : "chaine" },
-						"Sender": { "__type" : "chaine" },
-						"InReplyTo" : { "__type" : "chaine" },
+						"SentDate" : { "__type" : "random", "__ftype" : "date" },
+						"RecvDate" : { "__type" : "random", "__ftype" : "date" },
+						"Subject" : { "__type" : "random", "__ftype" : "chaine" },
+						"From" : { "__type" : "random", "__ftype" : "chaine" },
+						"Sender": { "__type" : "random", "__ftype" : "chaine" },
+						"InReplyTo" : { "__type" : "random", "__ftype" : "chaine" },
 						"Folder" : { "__type" : "liste", 
 							"__liste" : [ "Affaires consulaires", "Affaires européennes", "Culture et éducation", "Droit et Justice", 
 								"Economie Finances", "Environnement - Développement durable", "Francophonie", "MAEE Gestion financière", 
 								"MAEE Orientations", "MAEE Personnel", "MAEE Support", "Politique internationale", 
 								"Sciences, recherche et techniques", "Situation politique des Etats", "Société", "Sécurité - DéfenseTD" ] },
-						"FolderPath" : { "__type" : "chaine" },
-						"TO" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "chaine" } } },
-						"CC" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "chaine" } } },
-						"BCC" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "chaine" } } },
+						"FolderPath" : { "__type" : "random", "__ftype" : "chaine" },
+						"TO" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "random", "__ftype" : "chaine" } } },
+						"CC" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "random", "__ftype" : "chaine" } } },
+						"BCC" : { "__type" : "subfield" , "__subfield" : { "DESTINATAIRE" : { "__type" : "random", "__ftype" : "chaine" } } },
                         "_refid" : { "__type" : "save", "__subprefix" : [ "Courriel", ".", "NOMCRL" ] }
 					},
 					
-					{ "MetaAip" : [
+					{ "DAip" : [
 						{ "__occur" : 3 }, 
 						{
 							"Sub-item" : "PJ",
@@ -111,7 +112,7 @@
 								"__serie" : { "__prefix" : "_", "__modulo" : 3 }, "__subprefix" : [ "NOMCRL", ".", "TOBJ" ], "__save": "IDPJ" },
                             "_refid" : { "__type" : "save", "__subprefix" : [ "Courriel", ".", "IDPJ" ] }
 						},
-						{ "DataObject" : { "dataobj" : "dataobj" } }
+						{ "PAip" : { "dataobj" : "dataobj" } }
 						]
 					}
 					]

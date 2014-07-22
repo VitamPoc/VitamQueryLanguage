@@ -24,8 +24,6 @@ import static fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections.Cdua;
 
 import org.bson.BSONObject;
 
-import com.mongodb.BasicDBObject;
-
 /**
  * DUA object
  *
@@ -102,9 +100,14 @@ public class DuaRef extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final DuaRef vt = (DuaRef) dbvitam.duarefs.collection.findOne(new BasicDBObject(ID, get(ID)));
+    public boolean load(final MongoDbAccess dbvitam) {
+        final DuaRef vt = (DuaRef) dbvitam.duarefs.collection.findOne(getId());
+        if (vt == null) {
+            return false;
+        }
         this.putAll((BSONObject) vt);
+        getAfterLoad();
+        return true;
     }
 
     /**

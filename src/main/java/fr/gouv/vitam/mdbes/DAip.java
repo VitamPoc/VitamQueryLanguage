@@ -89,7 +89,7 @@ public class DAip extends VitamType {
 
     @Override
     protected boolean updated(final MongoDbAccess dbvitam) {
-        final DAip vt = (DAip) dbvitam.daips.collection.findOne(new BasicDBObject(ID, get(ID)));
+        final DAip vt = (DAip) dbvitam.daips.collection.findOne(getString(ID));
         BasicDBObject update = null;
         if (vt != null) {
             LOGGER.debug("UpdateLinks: {}\n\t{}", this, vt);
@@ -201,9 +201,8 @@ public class DAip extends VitamType {
      *
      * @param dbvitam
      * @param outputStream
-     * @param level
      */
-    public void saveToFile(final MongoDbAccess dbvitam, final OutputStream outputStream, final int level) {
+    public void saveToFile(final MongoDbAccess dbvitam, final OutputStream outputStream) {
         putBeforeSave();
         dbvitam.updateLinksToFile(this, VitamLinks.DAip2DAip, false);
         dbvitam.updateLinksToFile(this, VitamLinks.Domain2DAip, false);
@@ -214,6 +213,23 @@ public class DAip extends VitamType {
             }
         }
         append(NBCHILD, nb);
+        String toprint = toStringDirect() + "\n";
+        try {
+            outputStream.write(toprint.getBytes());
+        } catch (final IOException e) {
+            LOGGER.error("Cannot save to File", e);
+        }
+        toprint = null;
+        LOGGER.debug("{}", this);
+    }
+
+    /**
+     * Special method to save to file and not to database
+     *
+     * @param dbvitam
+     * @param outputStream
+     */
+    public void toFile(final OutputStream outputStream) {
         String toprint = toStringDirect() + "\n";
         try {
             outputStream.write(toprint.getBytes());
@@ -543,9 +559,14 @@ public class DAip extends VitamType {
     }
 
     @Override
-    public void load(final MongoDbAccess dbvitam) {
-        final DAip vt = (DAip) dbvitam.daips.collection.findOne(new BasicDBObject(ID, get(ID)));
+    public boolean load(final MongoDbAccess dbvitam) {
+        final DAip vt = (DAip) dbvitam.daips.collection.findOne(getString(ID));
+        if (vt == null) {
+            return false;
+        }
         this.putAll((BSONObject) vt);
+        getAfterLoad();
+        return true;
     }
 
     /**
