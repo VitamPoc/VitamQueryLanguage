@@ -64,6 +64,7 @@ public class DbRequestTest {
     @Test
     public void testExecQuery() {
         final DbRequest dbRequest = new DbRequest();
+        dbRequest.setUseCache(false);
         final MdEsQueryParser query = new MdEsQueryParser(true);
         try {
             query.parse(exampleBothEsMd);
@@ -89,7 +90,7 @@ public class DbRequestTest {
                 assertFalse(resultCached.getCurrentDaip().isEmpty());
                 System.out.println("Level: " + i + " : " + resultCached.getCurrentDaip());
             }
-            final ResultInterface result = dbRequest.finalizeResults(query.hintCache(), results);
+            final ResultInterface result = dbRequest.finalizeResults(false, results);
             result.putBeforeSave();
             assertFalse(result.getCurrentDaip().isEmpty());
             System.out.println("Final: " + result);
