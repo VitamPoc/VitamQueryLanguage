@@ -89,30 +89,30 @@ public class MainErazeData {
         PropertyConfigurator.configure(log4j);
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
         LOGGER = VitamLoggerFactory.getInstance(MainErazeData.class);
-        if (args.length > 1) {
-            eraze = args[1].equals("eraze");
-        }
-        if (simulate) {
-            eraze = false;
-        }
-        final String networkHost = "192.168.56.102";
-        GlobalDatas.localNetworkAddress = networkHost;
-        // connect to the local database server
-        if (args.length > 2) {
-            host = args[2];
-        }
-        if (args.length > 3) {
-            database = args[3];
-        }
-        if (args.length > 4) {
-            esbase = args[4];
-        }
-        if (args.length > 5) {
-            unicast = args[5];
-        }
-        LOGGER.debug("Start with " + eraze + ":" + host + ":" + database + ":" + esbase + ":" + unicast);
         MongoDbAccess dbvitam = null;
         try {
+            if (args.length > 1) {
+                eraze = args[1].equals("eraze");
+            }
+            if (simulate) {
+                eraze = false;
+            }
+            final String networkHost = "192.168.56.102";
+            GlobalDatas.localNetworkAddress = networkHost;
+            // connect to the local database server
+            if (args.length > 2) {
+                host = args[2];
+            }
+            if (args.length > 3) {
+                database = args[3];
+            }
+            if (args.length > 4) {
+                esbase = args[4];
+            }
+            if (args.length > 5) {
+                unicast = args[5];
+            }
+            LOGGER.debug("Start with " + eraze + ":" + host + ":" + database + ":" + esbase + ":" + unicast);
             MAXTHREAD += nbThread;
             final MongoClientOptions options = new MongoClientOptions.Builder().connectionsPerHost(MAXTHREAD).build();
             mongoClient = new MongoClient(host, options);
@@ -126,6 +126,8 @@ public class MainErazeData {
                 return;
             }
             return;
+        } catch (Exception e) {
+            LOGGER.error(e);
         } finally {
             // release resources
             final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);

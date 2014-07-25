@@ -85,8 +85,8 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(element.getKey()).set(refCommand, element.getValue());
     }
 
     /**
@@ -105,8 +105,8 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(element.getKey()).set(refCommand, element.getValue());
     }
 
     /**
@@ -178,8 +178,8 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        final ArrayNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey()).putArray(refCommand);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        final ArrayNode objectMD = tr0.requestModel.putObject(element.getKey()).putArray(refCommand);
         for (final JsonNode value : element.getValue()) {
             objectMD.add(value);
         }
@@ -200,8 +200,8 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        final ObjectNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        final ObjectNode objectMD = tr0.requestModel.putObject(element.getKey());
         for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg = null;
@@ -235,8 +235,8 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(entry.getKey()).set(refCommand, entry.getValue());
     }
 
     /**
@@ -253,8 +253,8 @@ public class MdQueryParser extends AbstractQueryParser {
         if (command == null) {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].setAll((ObjectNode) command);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.setAll((ObjectNode) command);
     }
 
     /**
@@ -273,10 +273,10 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel = JsonHandler.createObjectNode();
         String value = entry.getValue().asText();
         value = value.replace('?', '.').replace("*", ".*");
-        tr0.requestModel[MONGODB].putObject(entry.getKey()).put(REQUEST.regex.exactToken(), value);
+        tr0.requestModel.putObject(entry.getKey()).put(REQUEST.regex.exactToken(), value);
     }
 
     /**
@@ -294,11 +294,11 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel = JsonHandler.createObjectNode();
         if (req == REQUEST.ne) {
-            tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
+            tr0.requestModel.putObject(entry.getKey()).set(refCommand, entry.getValue());
         } else {
-            tr0.requestModel[MONGODB].set(entry.getKey(), entry.getValue());
+            tr0.requestModel.set(entry.getKey(), entry.getValue());
         }
     }
 
@@ -319,8 +319,8 @@ public class MdQueryParser extends AbstractQueryParser {
         }
         // only fieldname
         final String fieldname = command.asText();
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(fieldname).put(REQUEST.exists.exactToken(), req == REQUEST.exists);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(fieldname).put(REQUEST.exists.exactToken(), req == REQUEST.exists);
     }
 
     /**
@@ -340,8 +340,8 @@ public class MdQueryParser extends AbstractQueryParser {
         }
         // only fieldname
         final String fieldname = command.asText();
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(fieldname).put("$type", BSON.NULL);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(fieldname).put("$type", BSON.NULL);
     }
 
     /**
@@ -373,22 +373,22 @@ public class MdQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Boolean operator needs an array of expression: " + command);
         }
         // MD
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel = JsonHandler.createObjectNode();
         ArrayNode array = null;
         if (req == REQUEST.not) {
             if (trlist.size() == 1) {
-                tr0.requestModel[MONGODB].set(REQUEST.not.exactToken(), trlist.get(0).requestModel[MONGODB]);
+                tr0.requestModel.set(REQUEST.not.exactToken(), trlist.get(0).requestModel);
             } else {
-                array = tr0.requestModel[MONGODB].putObject(REQUEST.not.exactToken()).putArray(REQUEST.and.exactToken());
+                array = tr0.requestModel.putObject(REQUEST.not.exactToken()).putArray(REQUEST.and.exactToken());
             }
         } else {
-            array = tr0.requestModel[MONGODB].putArray(refCommand);
+            array = tr0.requestModel.putArray(refCommand);
         }
         if (array != null) {
             for (int i = 0; i < trlist.size(); i++) {
                 final TypeRequest tr = trlist.get(i);
-                if (tr.requestModel[MONGODB] != null) {
-                    array.add(tr.requestModel[MONGODB]);
+                if (tr.requestModel != null) {
+                    array.add(tr.requestModel);
                 }
             }
         }

@@ -19,6 +19,8 @@ package fr.gouv.vitam.query.construct.request;
 
 import java.util.Date;
 
+import org.joda.time.DateTime;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
@@ -180,8 +182,10 @@ public class RangeRequest extends Request {
                 throw new InvalidCreateOperationException("Request " + to + " is not a valid Compare Request");
         }
         final ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
-        sub.putObject(from.exactToken()).put(DATE, valueFrom.toString());
-        sub.putObject(to.exactToken()).put(DATE, valueTo.toString());
+        final DateTime dateFrom = new DateTime(valueFrom);
+        final DateTime dateTo = new DateTime(valueTo);
+        sub.putObject(from.exactToken()).put(DATE, dateFrom.toString());
+        sub.putObject(to.exactToken()).put(DATE, dateTo.toString());
         currentREQUEST = REQUEST.range;
         setReady(true);
     }

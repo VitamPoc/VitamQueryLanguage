@@ -19,6 +19,8 @@ package fr.gouv.vitam.query.construct.request;
 
 import java.util.Date;
 
+import org.joda.time.DateTime;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -83,7 +85,8 @@ public class Request {
             throw new InvalidCreateOperationException("Request " + request + " cannot be created with empty variable name");
         }
         currentObject = ((ObjectNode) currentObject).putObject(request.exactToken());
-        ((ObjectNode) currentObject).putObject(variableName.trim()).put(DATE, value.toString());
+        final DateTime dateTime = new DateTime(value);
+        ((ObjectNode) currentObject).putObject(variableName.trim()).put(DATE, dateTime.toString());
     }
 
     protected final void createRequestVariableValue(final REQUEST request, final String variableName, final boolean value)

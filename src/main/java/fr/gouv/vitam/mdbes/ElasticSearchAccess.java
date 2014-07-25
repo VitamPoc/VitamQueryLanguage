@@ -20,10 +20,8 @@
  */
 package fr.gouv.vitam.mdbes;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -40,6 +38,7 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.FilteredQueryBuilder;
 import org.elasticsearch.index.query.IdsFilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -231,8 +230,7 @@ public class ElasticSearchAccess {
      * @return True if ok
      */
     public final boolean addEntryIndex(final String indexName, final String type, final String id, final String json) {
-        client.prepareIndex(indexName, type, id).setSource(json).execute();
-        return true;
+        return client.prepareIndex(indexName, type, id).setSource(json).execute().actionGet().getVersion() > 0;
     }
 
     private final ListenableActionFuture<BulkResponse> addEntryIndexesInternal(final String indexName, final String type, final Map<String, String> mapIdJson) {
@@ -271,6 +269,37 @@ public class ElasticSearchAccess {
         return !bulkResponse.hasFailures();
         // Should process failures by iterating through each bulk response item
     }
+    
+    private static final BasicDBObject getFiltered(final BSONObject bson) {
+        BasicDBObject maip = new BasicDBObject();
+        maip.putAll(bson);
+        maip.removeField(VitamLinks.DAip2DAip.field1to2);
+        // Keep it maip.removeField(VitamLinks.DAip2DAip.field2to1);
+        //maip.removeField(VitamLinks.Domain2DAip.field2to1);
+        //maip.removeField(VitamLinks.DAip2Dua.field1to2);
+        //maip.removeField(VitamLinks.DAip2PAip.field1to2);
+        // maip.removeField(ParserIngest.REFID);
+        // DOMDEPTH already ok but duplicate it
+        @SuppressWarnings("unchecked")
+        final HashMap<String, Integer> map = (HashMap<String, Integer>) maip.get(DAip.DAIPDEPTHS);
+        //final List<String> list = new ArrayList<>(map.keySet());
+        maip.append(DAip.DAIPPARENTS, map.keySet());// was list);
+        return maip;
+    }
+    /**
+     * 
+     * @param dbvitam
+     * @param model
+     * @param bson
+     * @return True if inserted in ES
+     */
+    public static final boolean addEsIndex(final MongoDbAccess dbvitam, final String model,
+            final BSONObject bson) {
+        BasicDBObject maip = getFiltered(bson);
+        final String id = maip.getString(VitamType.ID);
+        maip.removeField(VitamType.ID);
+        return dbvitam.addEsEntryIndex(model, id, maip.toString());
+    }
 
     /**
      * Should be called only once saved (last time), but for the moment let the object as it is, next should remove not indexable
@@ -284,22 +313,9 @@ public class ElasticSearchAccess {
      */
     public static final int addEsIndex(final MongoDbAccess dbvitam, final String model, final Map<String, String> indexes,
             final BSONObject bson) {
-        BasicDBObject maip = new BasicDBObject();
-        maip.putAll(bson);
-        maip.removeField(VitamLinks.DAip2DAip.field1to2);
-        // Keep it maip.removeField(VitamLinks.DAip2DAip.field2to1);
-        //maip.removeField(VitamLinks.Domain2DAip.field2to1);
-        //maip.removeField(VitamLinks.DAip2Dua.field1to2);
-        //maip.removeField(VitamLinks.DAip2PAip.field1to2);
+        BasicDBObject maip = getFiltered(bson);
         final String id = maip.getString(VitamType.ID);
         maip.removeField(VitamType.ID);
-        // maip.removeField(ParserIngest.REFID);
-        // DOMDEPTH already ok but duplicate it
-        @SuppressWarnings("unchecked")
-        final HashMap<String, Integer> map = (HashMap<String, Integer>) maip.get(DAip.DAIPDEPTHS);
-        final List<String> list = new ArrayList<>();
-        list.addAll(map.keySet());
-        maip.append(DAip.DAIPPARENTS, list);
         // System.err.println(maip);
         // System.err.println(this);
         indexes.put(id, maip.toString());
@@ -581,10 +597,16 @@ public class ElasticSearchAccess {
     protected final ResultInterface search(final String indexName, final String type, final QueryBuilder query,
             final FilterBuilder filter) {
         SearchRequestBuilder request = client.prepareSearch(indexName).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setTypes(type).setQuery(query) // Query
-                .setExplain(false).setSize(GlobalDatas.limitLoad);
+                .setTypes(type).setExplain(false).setSize(GlobalDatas.limitLoad);
         if (filter != null) {
-            request = request.setPostFilter(filter); // Filter
+            if (GlobalDatas.useFilteredRequest) {
+                FilteredQueryBuilder filteredQueryBuilder = QueryBuilders.filteredQuery(query, filter);
+                request.setQuery(filteredQueryBuilder);
+            } else {
+                request.setQuery(query).setPostFilter(filter);
+            }
+        } else {
+            request.setQuery(query);
         }
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("ESReq: {}", request);
@@ -601,7 +623,7 @@ public class ElasticSearchAccess {
             LOGGER.warn("Warning, more than " + GlobalDatas.limitLoad + " hits: " + hits.getTotalHits());
         }
         if (hits.getTotalHits() == 0) {
-            LOGGER.warn("No result from : " + request + ":" + query + " # " + filter);
+            LOGGER.info("No result from : " + request);
             return null;
         }
         long nb = 0;

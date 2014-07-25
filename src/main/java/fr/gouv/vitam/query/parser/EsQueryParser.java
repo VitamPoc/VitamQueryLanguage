@@ -18,9 +18,17 @@
 package fr.gouv.vitam.query.parser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
+
+import org.elasticsearch.index.query.BoolFilterBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -42,6 +50,16 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  */
 public class EsQueryParser extends AbstractQueryParser {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EsQueryParser.class);
+    /**
+     * ElasticSearch Keywords
+     *
+     */
+    @SuppressWarnings("javadoc")
+    public static enum ES_KEYWORDS {
+        range, like_text, simple_query_string, query, fields, regexp, term, wildcard, 
+        field, bool, must_not, should, must, missing, existence, null_value, script, max_expansions
+    }
+
 
     /**
      * @param simul
@@ -119,9 +137,7 @@ public class EsQueryParser extends AbstractQueryParser {
      * @param element
      */
     protected final void sizeEs(final TypeRequest tr0, final Entry<String, JsonNode> element) {
-        tr0.filterModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        tr0.filterModel[ELASTICSEARCH].putObject(ES_KEYWORDS.script.name()).put(ES_KEYWORDS.script.name(),
-                "doc['" + element.getKey() + "'].values.length == " + element.getValue());
+        tr0.filter = FilterBuilders.scriptFilter("doc['" + element.getKey() + "'].values.length == " + element.getValue());
     }
 
     /**
@@ -147,9 +163,9 @@ public class EsQueryParser extends AbstractQueryParser {
      * @param tr0
      * @param req
      * @param element
+     * @throws InvalidParseOperationException 
      */
-    protected final void compareEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element) {
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
+    protected final void compareEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element) throws InvalidParseOperationException {
         String key = element.getKey();
         JsonNode node = element.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
         if (node == null) {
@@ -157,8 +173,22 @@ public class EsQueryParser extends AbstractQueryParser {
         } else {
             key += "." + ParserTokens.REQUESTARGS.date.exactToken();
         }
-        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.range.name()).putObject(key)
-            .set(req.name(), node);
+        switch (req) {
+            case gt:
+                tr0.query = QueryBuilders.rangeQuery(key).gt(getAsObject(node));
+                break;
+            case gte:
+                tr0.query = QueryBuilders.rangeQuery(key).gte(getAsObject(node));
+                break;
+            case lt:
+                tr0.query = QueryBuilders.rangeQuery(key).lt(getAsObject(node));
+                break;
+            case lte: 
+                tr0.query = QueryBuilders.rangeQuery(key).lte(getAsObject(node));
+                break;
+            default:
+                throw new InvalidParseOperationException("Not correctly parsed: " + req);
+        }
     }
 
     /**
@@ -183,10 +213,21 @@ public class EsQueryParser extends AbstractQueryParser {
         if (fields == null || like == null) {
             throw new InvalidParseOperationException("Incorrect command: " + refCommand + " : " + command);
         }
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        final ObjectNode xlt = tr0.requestModel[ELASTICSEARCH].putObject(req.name());
-        xlt.set(ES_KEYWORDS.fields.name(), fields);
-        xlt.set(ES_KEYWORDS.like_text.name(), like);
+        String []names = new String[fields.size()];
+        int i = 0;
+        for (JsonNode name : fields) {
+            names[i++] = name.toString();
+        }
+        switch (req) {
+            case flt:
+                tr0.query = QueryBuilders.fuzzyLikeThisQuery(names).likeText(like.toString());
+                break;
+            case mlt:
+                tr0.query = QueryBuilders.moreLikeThisQuery(names).likeText(like.toString());
+                break;
+            default:
+                throw new InvalidParseOperationException("Not correctly parsed: " + req);
+        }
     }
 
     /**
@@ -207,10 +248,7 @@ public class EsQueryParser extends AbstractQueryParser {
         tr0.isOnlyES = true;
         LOGGER.debug("ES only: {}", refCommand);
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        final ObjectNode objectES = tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.simple_query_string.name());
-        objectES.set(ES_KEYWORDS.query.name(), element.getValue());
-        objectES.putArray(ES_KEYWORDS.fields.name()).add(element.getKey());
+        tr0.query = QueryBuilders.simpleQueryString(element.getValue().toString()).field(element.getKey());
     }
 
     /**
@@ -232,21 +270,42 @@ public class EsQueryParser extends AbstractQueryParser {
         LOGGER.debug("ES only: {}", refCommand);
         final JsonNode max = ((ObjectNode) command).remove(REQUESTARGS.max_expansions.exactToken());
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         final String attribute = element.getKey();
         if ((req == REQUEST.match_phrase_prefix || req == REQUEST.prefix) && isAttributeNotAnalyzed(attribute)) {
-            tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.prefix.name()).set(element.getKey(), element.getValue());
+            tr0.query = QueryBuilders.prefixQuery(element.getKey(), element.getValue().toString());
         } else {
             REQUEST req2 = req;
             if (req == REQUEST.prefix) {
                 req2 = REQUEST.match_phrase_prefix;
             }
             if (max != null && !max.isMissingNode()) {
-                final ObjectNode node = tr0.requestModel[ELASTICSEARCH].putObject(req2.name()).putObject(element.getKey());
-                node.set(ES_KEYWORDS.query.name(), element.getValue());
-                node.put(ES_KEYWORDS.max_expansions.name(), max.asInt());
+                switch (req2) {
+                    case match:
+                        tr0.query = QueryBuilders.matchQuery(element.getKey(), element.getValue().toString()).maxExpansions(max.asInt());
+                        break;
+                    case match_phrase:
+                        tr0.query = QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().toString()).maxExpansions(max.asInt());
+                        break;
+                    case match_phrase_prefix:
+                        tr0.query = QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().toString()).maxExpansions(max.asInt());
+                        break;
+                    default:
+                        throw new InvalidParseOperationException("Not correctly parsed: " + req);
+                }
             } else {
-                tr0.requestModel[ELASTICSEARCH].putObject(req2.name()).set(element.getKey(), element.getValue());
+                switch (req) {
+                    case match:
+                        tr0.query = QueryBuilders.matchQuery(element.getKey(), element.getValue().toString());
+                        break;
+                    case match_phrase:
+                        tr0.query = QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().toString());
+                        break;
+                    case match_phrase_prefix:
+                        tr0.query = QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().toString());
+                        break;
+                    default:
+                        throw new InvalidParseOperationException("Not correctly parsed: " + req);
+                }
             }
         }
     }
@@ -275,27 +334,41 @@ public class EsQueryParser extends AbstractQueryParser {
      * @param element
      */
     protected final void inEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element) {
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        ArrayNode objectES = null;
         String key = element.getKey();
         List<JsonNode> nodes = element.getValue().findValues(ParserTokens.REQUESTARGS.date.exactToken());
         if (nodes != null && ! nodes.isEmpty()) {
             key += "." + ParserTokens.REQUESTARGS.date.exactToken();
         }
-        if (req == REQUEST.nin) {
-            objectES = tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
-                    .putObject(req.name()).putArray(key);
-        } else {
-            objectES = tr0.requestModel[ELASTICSEARCH].putObject(req.name()).putArray(key);
-        }
         if (nodes != null && ! nodes.isEmpty()) {
+            Set<Object> set = new HashSet<Object>();
             for (final JsonNode value : nodes) {
-                objectES.add(value);
+                set.add(getAsObject(value));
+            }
+            tr0.query = QueryBuilders.inQuery(key, set);
+            if (req == REQUEST.nin) {
+                tr0.query = QueryBuilders.boolQuery().mustNot(tr0.query);
             }
         } else {
+            Set<Object> set = new HashSet<Object>();
             for (final JsonNode value : element.getValue()) {
-                objectES.add(value);
+                set.add(getAsObject(value));
             }
+            tr0.query = QueryBuilders.inQuery(key, set);
+            if (req == REQUEST.nin) {
+                tr0.query = QueryBuilders.boolQuery().mustNot(tr0.query);
+            }
+        }
+    }
+    
+    private static final Object getAsObject(JsonNode value) {
+        if (value.isBoolean()) {
+            return value.asBoolean();
+        } else if (value.canConvertToLong()) {
+            return value.asLong();
+        } else if (value.isDouble()) {
+            return value.asDouble();
+        } else {
+            return value.asText();
         }
     }
 
@@ -325,13 +398,12 @@ public class EsQueryParser extends AbstractQueryParser {
      */
     protected final void rangeEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> element)
             throws InvalidParseOperationException {
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         String key = element.getKey();
         JsonNode node = element.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
         if (node != null) {
             key += "." + ParserTokens.REQUESTARGS.date.exactToken();
         }
-        final ObjectNode objectES = tr0.requestModel[ELASTICSEARCH].putObject(req.name()).putObject(key);
+        RangeQueryBuilder range = QueryBuilders.rangeQuery(key);
         for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg = null;
@@ -349,7 +421,23 @@ public class EsQueryParser extends AbstractQueryParser {
             if (node == null) {
                 node = requestItem.getValue();
             }
-            objectES.set(arg.name(), node);
+            switch (arg) {
+                case gt:
+                    range.gt(getAsObject(node));
+                    break;
+                case gte:
+                    range.gte(getAsObject(node));
+                    break;
+                case lt:
+                    range.lt(getAsObject(node));
+                    break;
+                case lte: 
+                    range.lte(getAsObject(node));
+                    break;
+                default:
+                    throw new InvalidParseOperationException("Not correctly parsed: " + req);
+            }
+            tr0.query = range;
         }
     }
 
@@ -378,9 +466,7 @@ public class EsQueryParser extends AbstractQueryParser {
      */
     protected final void regexEs(final TypeRequest tr0, final Entry<String, JsonNode> entry) {
         // possibility to use ES too with Query_String /regex/
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.regexp.name()).put(entry.getKey(),
-                "/" + entry.getValue().asText() + "/");
+        tr0.query = QueryBuilders.regexpQuery(entry.getKey(), "/" + entry.getValue().asText() + "/");
     }
 
     /**
@@ -405,12 +491,10 @@ public class EsQueryParser extends AbstractQueryParser {
      */
     protected final void termEs(final JsonNode command, final TypeRequest tr0) {
         boolean multiple = false;
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        ArrayNode arrayES = null;
         if (command.size() > 1) {
             multiple = true;
             // ES
-            arrayES = tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putArray(ES_KEYWORDS.must.name());
+            tr0.query = QueryBuilders.boolQuery();
         }
         for (final Iterator<Entry<String, JsonNode>> iterator = command.fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
@@ -425,24 +509,24 @@ public class EsQueryParser extends AbstractQueryParser {
             }
             if (node.isNumber()) {
                 if (!multiple) {
-                    tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(key, node);
+                    tr0.query = QueryBuilders.termQuery(key, getAsObject(node));
                     return;
                 }
-                arrayES.addObject().putObject(ES_KEYWORDS.term.name()).set(key, node);
+                ((BoolQueryBuilder)tr0.query).must(QueryBuilders.termQuery(key, getAsObject(node)));
             } else {
                 final String val = node.asText();
                 if (!multiple) {
                     if (isAttributeNotAnalyzed(key) || isDate) {
-                        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val);
+                        tr0.query = QueryBuilders.termQuery(key, val);
                     } else {
-                        tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+                        tr0.query = QueryBuilders.matchPhrasePrefixQuery(key, val).maxExpansions(0);
                     }
                     return;
                 }
                 if (isAttributeNotAnalyzed(key) || isDate) {
-                    arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val);
+                    ((BoolQueryBuilder)tr0.query).must(QueryBuilders.termQuery(key, val));
                 } else {
-                    arrayES.addObject().putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
+                    ((BoolQueryBuilder)tr0.query).must(QueryBuilders.matchPhrasePrefixQuery(key, val).maxExpansions(0));
                 }
             }
         }
@@ -471,11 +555,10 @@ public class EsQueryParser extends AbstractQueryParser {
      * @param tr0
      */
     protected final void wildcardEs(final Entry<String, JsonNode> entry, final TypeRequest tr0) {
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         final String key = entry.getKey();
         final JsonNode node = entry.getValue();
         final String val = node.asText();
-        tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.wildcard.name()).put(key, val);
+        tr0.query = QueryBuilders.wildcardQuery(key, val);
     }
 
     /**
@@ -502,7 +585,6 @@ public class EsQueryParser extends AbstractQueryParser {
      * @param entry
      */
     protected final void eqEs(final TypeRequest tr0, final REQUEST req, final Entry<String, JsonNode> entry) {
-        tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         String key = entry.getKey();
         JsonNode node = entry.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
         boolean isDate = false;
@@ -513,18 +595,14 @@ public class EsQueryParser extends AbstractQueryParser {
             key += "." + ParserTokens.REQUESTARGS.date.exactToken();
         }
         if (isAttributeNotAnalyzed(key) || isDate) {
+            tr0.query = QueryBuilders.termQuery(key, getAsObject(node));
             if (req == REQUEST.ne) {
-                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
-                    .putObject(ES_KEYWORDS.term.name()).set(key, node);
-            } else {
-                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(key, node);
+                tr0.query = QueryBuilders.boolQuery().mustNot(tr0.query);
             }
         } else {
+            tr0.query = QueryBuilders.matchPhrasePrefixQuery(key, getAsObject(node)).maxExpansions(0);
             if (req == REQUEST.ne) {
-                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
-                    .putObject(REQUEST.match_phrase_prefix.name()).set(key, node);
-            } else {
-                tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).set(key, node);
+                tr0.query = QueryBuilders.boolQuery().mustNot(tr0.query);
             }
         }
     }
@@ -551,12 +629,21 @@ public class EsQueryParser extends AbstractQueryParser {
      * @param command
      * @param tr0
      * @param req
+     * @throws InvalidParseOperationException 
      */
-    protected final void existsEs(final JsonNode command, final TypeRequest tr0, final REQUEST req) {
+    protected final void existsEs(final JsonNode command, final TypeRequest tr0, final REQUEST req) throws InvalidParseOperationException {
         // only fieldname
         final String fieldname = command.asText();
-        tr0.filterModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        tr0.filterModel[ELASTICSEARCH].putObject(req.name()).put(ES_KEYWORDS.field.name(), fieldname);
+        switch (req) {
+            case exists:
+                tr0.filter = FilterBuilders.existsFilter(fieldname);
+                break;
+            case missing:
+                tr0.filter = FilterBuilders.missingFilter(fieldname);
+                break;
+            default:
+                throw new InvalidParseOperationException("Not correctly parsed: " + req);
+        }
     }
 
     /**
@@ -584,11 +671,7 @@ public class EsQueryParser extends AbstractQueryParser {
     protected final void isNullEs(final JsonNode command, final TypeRequest tr0) {
         // only fieldname
         final String fieldname = command.asText();
-        tr0.filterModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-        final ObjectNode objectES = tr0.filterModel[ELASTICSEARCH].putObject(ES_KEYWORDS.missing.name());
-        objectES.put(ES_KEYWORDS.field.name(), fieldname);
-        objectES.put(ES_KEYWORDS.existence.name(), false);
-        objectES.put(ES_KEYWORDS.null_value.name(), true);
+        tr0.filter = FilterBuilders.missingFilter(fieldname).existence(false).nullValue(true);
     }
 
     /**
@@ -630,10 +713,10 @@ public class EsQueryParser extends AbstractQueryParser {
                 final TypeRequest tr = analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
                 trlist.add(tr);
                 unionTransaction(tr0, tr);
-                if (tr.filterModel[ELASTICSEARCH] != null) {
+                if (tr.filter != null) {
                     isFilter = true;
                 }
-                if (tr.requestModel[ELASTICSEARCH] != null) {
+                if (tr.query != null) {
                     isRequest = true;
                 }
             }
@@ -641,57 +724,44 @@ public class EsQueryParser extends AbstractQueryParser {
             throw new InvalidParseOperationException("Boolean operator needs an array of expression: " + command);
         }
         // ES
-        ObjectNode node = null;
-        ArrayNode array = null;
         if (isRequest) {
-            tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-            node = tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name());
+            tr0.query = QueryBuilders.boolQuery();
         }
-        ObjectNode nodeFilter = null;
-        ArrayNode arrayFilter = null;
         if (isFilter) {
-            tr0.filterModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
-            nodeFilter = tr0.filterModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name());
-        }
-        switch (req) {
-            case and:
-                if (isRequest) {
-                    array = node.putArray(ES_KEYWORDS.must.name());
-                }
-                if (isFilter) {
-                    arrayFilter = nodeFilter.putArray(ES_KEYWORDS.must.name());
-                }
-                break;
-            case or:
-                if (isRequest) {
-                    array = node.putArray(ES_KEYWORDS.should.name());
-                }
-                if (isFilter) {
-                    arrayFilter = nodeFilter.putArray(ES_KEYWORDS.should.name());
-                }
-                break;
-            case nor: // ES does not support nor => not
-            case not:
-                if (isRequest) {
-                    array = node.putArray(ES_KEYWORDS.must_not.name());
-                }
-                if (isFilter) {
-                    arrayFilter = nodeFilter.putArray(ES_KEYWORDS.must_not.name());
-                }
-                break;
-            default:
-                throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
+            tr0.filter = FilterBuilders.boolFilter();
         }
         for (int i = 0; i < trlist.size(); i++) {
             final TypeRequest tr = trlist.get(i);
-            if (isRequest) {
-                if (tr.requestModel[ELASTICSEARCH] != null) {
-                    array.add(tr.requestModel[ELASTICSEARCH]);
+            if (isRequest && tr.query != null) {
+                switch (req) {
+                    case and:
+                        ((BoolQueryBuilder) tr0.query).must(tr.query);
+                        break;
+                    case or:
+                        ((BoolQueryBuilder) tr0.query).should(tr.query);
+                        break;
+                    case nor:
+                    case not:
+                        ((BoolQueryBuilder) tr0.query).mustNot(tr.query);
+                        break;
+                    default:
+                        throw new InvalidParseOperationException("Not correctly parsed: " + req);
                 }
             }
-            if (isFilter) {
-                if (tr.filterModel[ELASTICSEARCH] != null) {
-                    arrayFilter.add(tr.filterModel[ELASTICSEARCH]);
+            if (isFilter && tr.filter != null) {
+                switch (req) {
+                    case and:
+                        ((BoolFilterBuilder) tr0.filter).must(tr.filter);
+                        break;
+                    case or:
+                        ((BoolFilterBuilder) tr0.filter).should(tr.filter);
+                        break;
+                    case nor:
+                    case not:
+                        ((BoolFilterBuilder) tr0.filter).mustNot(tr.filter);
+                        break;
+                    default:
+                        throw new InvalidParseOperationException("Not correctly parsed: " + req);
                 }
             }
         }

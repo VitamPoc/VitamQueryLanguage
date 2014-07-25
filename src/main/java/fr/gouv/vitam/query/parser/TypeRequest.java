@@ -19,6 +19,9 @@ package fr.gouv.vitam.query.parser;
 
 import java.util.List;
 
+import org.elasticsearch.index.query.FilterBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
@@ -59,14 +62,17 @@ public class TypeRequest {
      */
     public String requestCb;
     /**
-     * Request Model: MongoDB or ElasticSearch
+     * Request Model: MongoDB
      */
-    public ObjectNode[] requestModel;
+    public ObjectNode requestModel;
     /**
-     * Filter model: shall be used only to filter on "parent" relation and some others
+     * Request model: ES
      */
-    public ObjectNode[] filterModel;
-    
+    public QueryBuilder query;
+    /**
+     * Filter for ES
+     */
+    public FilterBuilder filter;
     /**
      *
      * @param nbModel
@@ -74,8 +80,7 @@ public class TypeRequest {
      */
     public TypeRequest(final int nbModel) {
         isOnlyES = false;
-        requestModel = new ObjectNode[nbModel];
-        filterModel = new ObjectNode[nbModel];
+        requestModel = null;
     }
 
     @Override
@@ -84,13 +89,10 @@ public class TypeRequest {
         builder.append(" Type: " + type + ":" + refId);
         builder.append(" Depth: " + isDepth + ":" + relativedepth + ":" + exactdepth);
         builder.append(" isOnlyES: " + isOnlyES);
-        for (final ObjectNode o : filterModel) {
-            builder.append("\n\tfilter: " + o);
-        }
-        for (final ObjectNode o : requestModel) {
-            builder.append("\n\trequest: " + o);
-        }
-        builder.append("\n\trequest: " + requestCb);
+        builder.append("\n\tfilter: " + filter);
+        builder.append("\n\trequest1: " + requestModel);
+        builder.append("\n\trequest2: " + query);
+        builder.append("\n\trequest3: " + requestCb);
         return builder.toString();
     }
 }

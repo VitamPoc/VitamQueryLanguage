@@ -224,7 +224,7 @@ public class DbRequest {
                     result.setLoaded(true);
                 }
             } else {
-                LOGGER.error("No result at rank: "+rank);
+                LOGGER.error("No result at rank: "+rank + " from "+request+" \n\twhere previous is "+result);
                 // clear also the list since no result
                 list.clear();
             }
@@ -494,10 +494,10 @@ public class DbRequest {
         if (request.isOnlyES) {
             throw new InvalidExecOperationException("Expression is not valid for Domain");
         }
-        if (request.requestModel[AbstractQueryParser.MONGODB] == null) {
+        if (request.requestModel == null) {
             throw new InvalidExecOperationException("Expression is not valid for Domain since no Request is available");
         }
-        final String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
+        final String srequest = request.requestModel.toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         final ResultInterface newResult = MongoDbAccess.createOneResult();
         newResult.setMinLevel(1);
@@ -545,22 +545,18 @@ public class DbRequest {
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
         // must be ES
         if ((previous.getNbSubNodes() > GlobalDatas.limitES) || request.isOnlyES) {
-            if (request.requestModel[AbstractQueryParser.ELASTICSEARCH] == null) {
+            if (request.query == null) {
                 throw new InvalidExecOperationException(
                         "Expression is not valid for Daip Level 1 with ES only since no ES request is available");
             }
-            final String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
-            final String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH] == null ? null
-                    : request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
-            final QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
-            final FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
+            final QueryBuilder query = request.query;
+            final FilterBuilder filter = request.filter;
             if (simulate) {
-                LOGGER.info("Req1LevelES: {}\n\t{}", srequest, sfilter);
+                LOGGER.info("Req1LevelES: {}\n\t{}", request, filter);
                 return createFalseResult(previous, 1);
             }
-            LOGGER.debug("Req1LevelES: {}\n\t{}", srequest, sfilter);
             if (GlobalDatas.PRINT_REQUEST) {
-                LOGGER.warn("Req1LevelES: {}\n\t{}", srequest, sfilter);
+                LOGGER.warn("Req1LevelES: {}\n\t{}", request, filter);
             }
             final ResultInterface subresult = mdAccess.getSubDepth(indexName, typeName, previous.getCurrentDaip(), 1, query, filter, useStart);
             if (subresult != null && !subresult.getCurrentDaip().isEmpty()) {
@@ -589,7 +585,7 @@ public class DbRequest {
     private final ResultInterface getRequest1LevelMaipFromMD(final TypeRequest request, final ResultInterface previous, final boolean useStart)
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
         BasicDBObject query = null;
-        if (request.requestModel[AbstractQueryParser.MONGODB] == null) {
+        if (request.requestModel == null) {
             throw new InvalidExecOperationException(
                     "Expression is not valid for Daip Level 1 with MD only since no MD request is available");
         }
@@ -602,7 +598,7 @@ public class DbRequest {
                 query = getInClauseForField(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, previous.getCurrentDaip());
             }
         }
-        final String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
+        final String srequest = request.requestModel.toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         query.putAll((BSONObject) condition);
         final ResultInterface subresult = MongoDbAccess.createOneResult();
@@ -649,7 +645,7 @@ public class DbRequest {
     private final ResultInterface getRequestNegativeRelativeDepthFromMD(final TypeRequest request, final ResultInterface previous, final boolean useStart) 
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
         BasicDBObject query = null;
-        if (request.requestModel[AbstractQueryParser.MONGODB] == null) {
+        if (request.requestModel == null) {
             throw new InvalidExecOperationException(
                     "Expression is not valid for Daip Level "+request.relativedepth+" with MD only since no MD request is available");
         }
@@ -673,7 +669,7 @@ public class DbRequest {
         }
         // Use ID and not graph dependencies
         query = getInClauseForField(DAip.ID, subset);
-        final String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
+        final String srequest = request.requestModel.toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         query.putAll((BSONObject) condition);
         final ResultInterface subresult = MongoDbAccess.createOneResult();
@@ -725,18 +721,16 @@ public class DbRequest {
                 }
             }
         }
-        final String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
-        final String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH] == null ? null
-                : request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
-        final QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
-        final FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
+        final QueryBuilder query = request.query;
+        final FilterBuilder filter = request.filter;
+        //final QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
+        //final FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
         if (simulate) {
-            LOGGER.info("ReqDepth: {}\n\t{}", srequest, sfilter);
+            LOGGER.info("ReqDepth: {}\n\t{}", request, filter);
             return createFalseResult(previous, distance);
         }
-        LOGGER.debug("ReqDepth: {}\n\t{}", srequest, sfilter);
         if (GlobalDatas.PRINT_REQUEST) {
-            LOGGER.warn("ReqDepth: {}\n\t{}", srequest, sfilter);
+            LOGGER.warn("ReqDepth: {}\n\t{}", request, filter);
         }
         final ResultInterface subresult = mdAccess.getNegativeSubDepth(indexName, typeName, subset, query, filter);
         if (subresult != null && !subresult.getCurrentDaip().isEmpty()) {
@@ -756,7 +750,7 @@ public class DbRequest {
             return getRequestNegativeRelativeDepthFromMD(request, previous, useStart);
         }
         // request on MAIP with depth using ES if relative depth > 0 or exact depth
-        if (request.requestModel[AbstractQueryParser.ELASTICSEARCH] == null) {
+        if (request.query == null) {
             throw new InvalidExecOperationException(
                     "Expression is not valid for Daip DepthRequest with ES only since no ES request is available");
         }
@@ -768,18 +762,14 @@ public class DbRequest {
         if (request.exactdepth != 0) {
             subdepth = request.exactdepth - previous.getMinLevel();
         }
-        final String srequest = request.requestModel[AbstractQueryParser.ELASTICSEARCH].toString();
-        final String sfilter = request.filterModel[AbstractQueryParser.ELASTICSEARCH] == null ? null
-                : request.filterModel[AbstractQueryParser.ELASTICSEARCH].toString();
-        final QueryBuilder query = ElasticSearchAccess.getQueryFromString(srequest);
-        final FilterBuilder filter = (sfilter != null ? ElasticSearchAccess.getFilterFromString(sfilter) : null);
+        final QueryBuilder query = request.query;
+        final FilterBuilder filter = request.filter;
         if (simulate) {
-            LOGGER.info("ReqDepth: {}\n\t{}", srequest, sfilter);
+            LOGGER.info("ReqDepth: {}\n\t{}", request, filter);
             return createFalseResult(previous, subdepth);
         }
-        LOGGER.debug("ReqDepth: {}\n\t{}", srequest, sfilter);
         if (GlobalDatas.PRINT_REQUEST) {
-            LOGGER.warn("ReqDepth: {}\n\t{}", srequest, sfilter);
+            LOGGER.warn("ReqDepth: {}\n\t{}", request, filter);
         }
         final ResultInterface subresult = mdAccess.getSubDepth(indexName, typeName, previous.getCurrentDaip(), subdepth, query, filter, useStart);
         if (subresult != null && !subresult.getCurrentDaip().isEmpty()) {

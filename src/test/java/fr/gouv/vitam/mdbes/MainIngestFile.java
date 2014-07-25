@@ -214,6 +214,8 @@ public class MainIngestFile implements Runnable {
                 System.out.println("Launch MongoImport");
                 runOnceMongo(dbvitam, stopindex);
             }
+        } catch (Exception e) {
+            LOGGER.error(e);
         } finally {
             // release resources
             final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
@@ -270,6 +272,7 @@ public class MainIngestFile implements Runnable {
         for (DAip daip : ParserIngest.savedDaips.values()) {
             daip.load(dbvitam);
             daip.toFile(outputStream);
+            daip.addEsIndex(dbvitam, model);
         }
         outputStream.close();
         /*
@@ -308,17 +311,13 @@ public class MainIngestFile implements Runnable {
             files.add(file);
             return;
         } catch (final InvalidExecOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
         } catch (final InvalidParseOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
         } catch (final InvalidUuidOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
         } catch (final FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
         } finally {
             // release resources
             if (parserIngest.bufferedOutputStream != null) {
@@ -393,7 +392,7 @@ public class MainIngestFile implements Runnable {
                 process = runtime.exec(cmd);
             } catch (final IOException e1) {
                 // TODO Auto-generated catch block
-                e1.printStackTrace();
+                LOGGER.error(e1);
                 return;
             }
             // Consommation de la sortie standard de l'application externe dans un Thread separe
@@ -412,7 +411,7 @@ public class MainIngestFile implements Runnable {
                             reader.close();
                         }
                     } catch (final IOException ioe) {
-                        ioe.printStackTrace();
+                        LOGGER.error(ioe);
                     }
                 }
             }.start();
@@ -433,15 +432,14 @@ public class MainIngestFile implements Runnable {
                             reader.close();
                         }
                     } catch (final IOException ioe) {
-                        ioe.printStackTrace();
+                        LOGGER.error(ioe);
                     }
                 }
             }.start();
             try {
                 process.waitFor();
             } catch (final InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                LOGGER.error(e);
             }
             final long date12 = System.currentTimeMillis();
             mongoLoad.addAndGet(date12 - date11);

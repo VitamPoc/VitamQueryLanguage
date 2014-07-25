@@ -60,16 +60,6 @@ public abstract class AbstractQueryParser {
      */
     public static final int ELASTICSEARCH = 1;
 
-    /**
-     * ElasticSearch Keywords
-     *
-     */
-    @SuppressWarnings("javadoc")
-    public static enum ES_KEYWORDS {
-        range, like_text, simple_query_string, query, fields, regexp, term, wildcard, 
-        field, bool, must_not, should, must, missing, existence, null_value, script, max_expansions
-    }
-
     protected boolean usingMongoDb = false;
     protected boolean usingCouchBase = false;
     protected boolean usingElasticSearch = false;

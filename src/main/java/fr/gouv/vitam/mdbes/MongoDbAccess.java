@@ -304,7 +304,9 @@ public class MongoDbAccess {
      */
     public final void reset(final String model) {
         for (int i = 0; i < collections.length; i++) {
-            collections[i].collection.drop();
+            if (collections[i] != null && collections[i].collection != null) {
+                collections[i].collection.drop();
+            }
         }
         es.deleteIndex(GlobalDatas.INDEXNAME);
         es.addIndex(GlobalDatas.INDEXNAME, model);
@@ -347,14 +349,16 @@ public class MongoDbAccess {
     @SuppressWarnings("unused")
     public void ensureIndex() {
         for (int i = 0; i < collections.length; i++) {
-            collections[i].collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
+            if (collections[i] != null && collections[i].collection != null) {
+                collections[i].collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
+            }
         }
         Domain.addIndexes(this);
         DAip.addIndexes(this);
         PAip.addIndexes(this);
         SAip.addIndexes(this);
         DuaRef.addIndexes(this);
-        if (!(GlobalDatas.USECOUCHBASE && GlobalDatas.USELRUCACHE && GlobalDatas.USEREDIS)) {
+        if (!(GlobalDatas.USECOUCHBASE || GlobalDatas.USELRUCACHE || GlobalDatas.USEREDIS)) {
             ResultMongodb.addIndexes(this);
         }
     }
@@ -392,12 +396,14 @@ public class MongoDbAccess {
             builder.append('\n');
         }
         for (final VitamCollection coll : collections) {
-            final List<DBObject> list = coll.collection.getIndexInfo();
-            for (final DBObject dbObject : list) {
-                builder.append(coll.coll.name);
-                builder.append(' ');
-                builder.append(dbObject);
-                builder.append('\n');
+            if (coll != null && coll.collection != null) {
+                final List<DBObject> list = coll.collection.getIndexInfo();
+                for (final DBObject dbObject : list) {
+                    builder.append(coll.coll.name);
+                    builder.append(' ');
+                    builder.append(dbObject);
+                    builder.append('\n');
+                }
             }
         }
         return builder.toString();
@@ -424,7 +430,6 @@ public class MongoDbAccess {
      */
     public long getCacheSize() {
         if (GlobalDatas.USECOUCHBASE) {
-            // Couchbase
             return cba.getCount();
         } else if (GlobalDatas.USELRUCACHE) {
             return ResultLRU.count();
@@ -525,7 +530,6 @@ public class MongoDbAccess {
         }
         if (col == VitamCollections.Crequests) {
             if (GlobalDatas.USECOUCHBASE) {
-                // Couchbase
                 return cba.exists(id);
             } else if (GlobalDatas.USELRUCACHE) {
                 return ResultLRU.exists(id);
@@ -669,7 +673,17 @@ public class MongoDbAccess {
        return es.getNegativeSubDepth(indexName, type, subset.toArray(new String[0]), condition, filterCond);
    }
 
-    /**
+   /**
+    * 
+    * @param model
+    * @param id
+    * @param json
+    * @return True if inserted in ES
+    */
+   public final boolean addEsEntryIndex(final String model, String id, String json) {
+       return es.addEntryIndex(GlobalDatas.INDEXNAME, model, id, json);
+   }
+   /**
      * Add indexes to ES model
      *
      * @param indexes

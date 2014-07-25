@@ -548,16 +548,29 @@ public class DAip extends VitamType {
      * @return the number of DAip inserted in ES
      */
     public int addEsIndex(final MongoDbAccess dbvitam, final Map<String, String> indexes, final String model) {
+        if (!this.containsField(NBCHILD)) {
+            this.append(NBCHILD, nb);
+            final int nb = ElasticSearchAccess.addEsIndex(dbvitam, model, indexes, this);
+            this.removeField(NBCHILD);
+            return nb;
+        } else {
+            return ElasticSearchAccess.addEsIndex(dbvitam, model, indexes, this);
+        }
+    }
+    /**
+     * 
+     * @param dbvitam
+     * @param model
+     * @return True if inserted in ES
+     */
+    public boolean addEsIndex(final MongoDbAccess dbvitam, final String model) {
         BasicDBObject maip = (BasicDBObject) copy();
         if (!maip.containsField(NBCHILD)) {
             maip.append(NBCHILD, nb);
         }
-        final int nb = ElasticSearchAccess.addEsIndex(dbvitam, model, indexes, maip);
-        maip.clear();
-        maip = null;
-        return nb;
+        return ElasticSearchAccess.addEsIndex(dbvitam, model, maip);
     }
-
+    
     @Override
     public boolean load(final MongoDbAccess dbvitam) {
         final DAip vt = (DAip) dbvitam.daips.collection.findOne(getString(ID));

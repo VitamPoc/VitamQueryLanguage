@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.joda.time.DateTime;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
@@ -119,7 +121,8 @@ public class TermRequest extends Request {
             } else if (val instanceof Double) {
                 node.put(name.trim(), (Double) val);
             } else if (val instanceof Date) {
-                node.put(name.trim(), val.toString());
+                final DateTime dateTime = new DateTime(val);
+                node.putObject(name.trim()).put(DATE, dateTime.toString());
             } else {
                 node.put(name.trim(), val.toString());
             }
@@ -224,7 +227,8 @@ public class TermRequest extends Request {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
         }
-        ((ObjectNode) currentObject).put(variableName.trim(), value.toString());
+        final DateTime dateTime = new DateTime(value);
+        ((ObjectNode) currentObject).putObject(variableName.trim()).put(DATE, dateTime.toString());
         return this;
     }
 

@@ -112,8 +112,8 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
         sizeEs(tr0, element);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(element.getKey()).set(refCommand, element.getValue());
     }
 
     /**
@@ -133,8 +133,8 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
         compareEs(tr0, req, element);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(element.getKey()).set(refCommand, element.getValue());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(element.getKey()).set(refCommand, element.getValue());
     }
 
     /**
@@ -153,8 +153,8 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
         inEs(tr0, req, element);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        final ArrayNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey()).putArray(refCommand);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        final ArrayNode objectMD = tr0.requestModel.putObject(element.getKey()).putArray(refCommand);
         for (final JsonNode value : element.getValue()) {
             objectMD.add(value);
         }
@@ -176,8 +176,8 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(refCommand, command);
         rangeEs(tr0, req, element);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        final ObjectNode objectMD = tr0.requestModel[MONGODB].putObject(element.getKey());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        final ObjectNode objectMD = tr0.requestModel.putObject(element.getKey());
         for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg = null;
@@ -212,8 +212,8 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
         regexEs(tr0, entry);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(entry.getKey()).set(refCommand, entry.getValue());
     }
 
     /**
@@ -231,23 +231,23 @@ public class MdEsQueryParser extends EsQueryParser {
             throw new InvalidParseOperationException("Not correctly parsed: " + refCommand);
         }
         termEs(command, tr0);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel = JsonHandler.createObjectNode();
         for (final Iterator<Entry<String, JsonNode>> iterator = command.fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             final String key = requestItem.getKey();
             final JsonNode node = requestItem.getValue();
             if (node.isNumber()) {
                 if (isAttributeNotAnalyzed(key)) {
-                    tr0.requestModel[MONGODB].set(key.replaceFirst(_NA, ""), node);
+                    tr0.requestModel.set(key.replaceFirst(_NA, ""), node);
                 } else {
-                    tr0.requestModel[MONGODB].set(key, node);
+                    tr0.requestModel.set(key, node);
                 }
             } else {
                 final String val = node.asText();
                 if (isAttributeNotAnalyzed(key)) {
-                    tr0.requestModel[MONGODB].put(key.replaceFirst(_NA, ""), val);
+                    tr0.requestModel.put(key.replaceFirst(_NA, ""), val);
                 } else {
-                    tr0.requestModel[MONGODB].put(key, val);
+                    tr0.requestModel.put(key, val);
                 }
             }
         }
@@ -272,10 +272,10 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
         wildcardEs(entry, tr0);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel = JsonHandler.createObjectNode();
         String value = entry.getValue().asText();
         value = value.replace('?', '.').replace("*", ".*");
-        tr0.requestModel[MONGODB].putObject(entry.getKey()).put(REQUEST.regex.exactToken(), value);
+        tr0.requestModel.putObject(entry.getKey()).put(REQUEST.regex.exactToken(), value);
     }
 
     /**
@@ -294,11 +294,11 @@ public class MdEsQueryParser extends EsQueryParser {
         }
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(refCommand, command);
         eqEs(tr0, req, entry);
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+        tr0.requestModel = JsonHandler.createObjectNode();
         if (req == REQUEST.ne) {
-            tr0.requestModel[MONGODB].putObject(entry.getKey()).set(refCommand, entry.getValue());
+            tr0.requestModel.putObject(entry.getKey()).set(refCommand, entry.getValue());
         } else {
-            tr0.requestModel[MONGODB].set(entry.getKey(), entry.getValue());
+            tr0.requestModel.set(entry.getKey(), entry.getValue());
         }
     }
 
@@ -320,8 +320,8 @@ public class MdEsQueryParser extends EsQueryParser {
         existsEs(command, tr0, req);
         // only fieldname
         final String fieldname = command.asText();
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(fieldname).put(REQUEST.exists.exactToken(), req == REQUEST.exists);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(fieldname).put(REQUEST.exists.exactToken(), req == REQUEST.exists);
     }
 
     /**
@@ -342,8 +342,8 @@ public class MdEsQueryParser extends EsQueryParser {
         isNullEs(command, tr0);
         // only fieldname
         final String fieldname = command.asText();
-        tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
-        tr0.requestModel[MONGODB].putObject(fieldname).put("$type", BSON.NULL);
+        tr0.requestModel = JsonHandler.createObjectNode();
+        tr0.requestModel.putObject(fieldname).put("$type", BSON.NULL);
     }
 
     /**
@@ -365,19 +365,19 @@ public class MdEsQueryParser extends EsQueryParser {
         booleanEs(refCommand, command, tr0, req, trlist);
         if (!tr0.isOnlyES) {
             // MD
-            tr0.requestModel[MONGODB] = JsonHandler.createObjectNode();
+            tr0.requestModel = JsonHandler.createObjectNode();
             ArrayNode array = null;
             if (req == REQUEST.not) {
                 // MD does not really support not => nor
-                array = tr0.requestModel[MONGODB].putArray(REQUEST.nor.exactToken());
+                array = tr0.requestModel.putArray(REQUEST.nor.exactToken());
             } else {
-                array = tr0.requestModel[MONGODB].putArray(refCommand);
+                array = tr0.requestModel.putArray(refCommand);
             }
             if (array != null) {
                 for (int i = 0; i < trlist.size(); i++) {
                     final TypeRequest tr = trlist.get(i);
-                    if (tr.requestModel[MONGODB] != null) {
-                        array.add(tr.requestModel[MONGODB]);
+                    if (tr.requestModel != null) {
+                        array.add(tr.requestModel);
                     }
                 }
             }

@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.joda.time.DateTime;
+
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -174,7 +176,8 @@ public class InRequest extends Request {
                 }
                 final ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
-                final String sdate = value.toString();
+                final DateTime dateTime = new DateTime(value);
+                final String sdate = dateTime.toString();
                 ObjectNode elt = JsonHandler.createObjectNode().put(DATE, sdate);
                 array.add(elt);
                 stringVals = new HashSet<String>();
@@ -282,7 +285,8 @@ public class InRequest extends Request {
                 final ArrayNode array = sub.putArray(variable.trim());
                 stringVals = new HashSet<String>();
                 for (final Date value : values) {
-                    final String sdate = value.toString();
+                    final DateTime dateTime = new DateTime(value);
+                    final String sdate = dateTime.toString();
                     if (!stringVals.contains(sdate)) {
                         ObjectNode elt = JsonHandler.createObjectNode().put(DATE, sdate);
                         array.add(elt);
@@ -435,7 +439,8 @@ public class InRequest extends Request {
             stringVals = new HashSet<String>();
         }
         for (final Date val : inValue) {
-            final String sdate = val.toString();
+            final DateTime dateTime = new DateTime(val);
+            final String sdate = dateTime.toString();
             if (!stringVals.contains(sdate)) {
                 ObjectNode elt = JsonHandler.createObjectNode().put(DATE, sdate);
                 array.add(elt);

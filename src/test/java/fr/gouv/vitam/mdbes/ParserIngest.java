@@ -913,8 +913,8 @@ public class ParserIngest {
                     if (father == null) {
                         listmetaaips.add(metaaip2);
                     }
-                    metaaip2.addEsIndex(dbvitam, esIndex, model);
                     metaaip2.save(dbvitam);
+                    metaaip2.addEsIndex(dbvitam, esIndex, model);
                     continue;
                 }
             }
@@ -1001,8 +1001,8 @@ public class ParserIngest {
             if (metaCreated && father == null) {
                 listmetaaips.add(maip);
             } else if (father != null && ! fromDatabase) {
-                maip.addEsIndex(dbvitam, esIndex, model);
                 maip.saveToFile(dbvitam, bufferedOutputStream);
+                maip.addEsIndex(dbvitam, esIndex, model);
             }
         }
         return listmetaaips;
@@ -1207,8 +1207,9 @@ public class ParserIngest {
                     case date:
                         final long curdate = System.currentTimeMillis();
                         final Date date = new Date(curdate - rnd.nextInt());
+                        final DateTime dateTime = new DateTime(date);
                         if (typeField.saveName != null) {
-                            context.savedNames.put(typeField.saveName, date.toString());
+                            context.savedNames.put(typeField.saveName, dateTime.toString());
                         }
                         subobj.put(typeField.name, date);
                         break;

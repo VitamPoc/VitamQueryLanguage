@@ -203,7 +203,9 @@ public class ParserTokens {
          */
         match_phrase_prefix,
         /**
-         * Not to be used externally but in replacement of match_phrase_prefix if parameter not analyzed
+         * Selects where field named 'name' matches a phrase as a prefix of the field
+         * $prefix : { name : phrase }
+         * Should not be used externally (but possible) but in replacement of match_phrase_prefix if parameter not analyzed
          */
         prefix,
         /**
