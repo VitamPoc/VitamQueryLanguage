@@ -28,10 +28,11 @@ public interface ResultInterface {
 
     /**
      * Set a new ID
+     * @param dbvitam 
      *
      * @param id
      */
-    public void setId(final String id);
+    public void setId(final MongoDbAccess dbvitam, final String id);
     /**
     *
     * @return the ID

@@ -19,7 +19,7 @@ package fr.gouv.vitam.mdbes;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

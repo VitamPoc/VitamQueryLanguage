@@ -21,6 +21,8 @@
 package fr.gouv.vitam.mdbes;
 
 import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +43,9 @@ import com.mongodb.MongoClient;
 
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
+import fr.gouv.vitam.utils.FileUtil;
 import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
@@ -65,6 +69,8 @@ public class MongoDbAccess {
     protected VitamCollection requests = null;
     private ElasticSearchAccess es = null;
     protected CouchbaseAccess cba = null;
+    protected RedisAccess ra = null;
+    protected MessageDigest md;
     
     private static enum LinkType {
         /**
@@ -98,8 +104,8 @@ public class MongoDbAccess {
     }
 
     protected static enum VitamCollections {
-        Cdomain(Domain.class), Cdaip(DAip.class), Cpaip(PAip.class), Csaip(SAip.class), Cdua(DuaRef.class), Crequests(
-                ResultMongodb.class);
+        Cdomain(Domain.class), Cdaip(DAip.class), Cpaip(PAip.class), Csaip(SAip.class), Cdua(DuaRef.class), 
+        Crequests(ResultMongodb.class);
 
         @SuppressWarnings("rawtypes")
         private Class clasz;
@@ -238,7 +244,7 @@ public class MongoDbAccess {
         paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(db, VitamCollections.Cpaip, recreate);
         saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(db, VitamCollections.Csaip, recreate);
         duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(db, VitamCollections.Cdua, recreate);
-        if (GlobalDatas.USECOUCHBASE || GlobalDatas.USELRUCACHE) {
+        if (GlobalDatas.USECOUCHBASE || GlobalDatas.USELRUCACHE || GlobalDatas.USEREDIS) {
             requests = null;
             collections[VitamCollections.Crequests.rank] = null;
         } else {
@@ -252,6 +258,14 @@ public class MongoDbAccess {
         // elasticsearch index
         LOGGER.info("ES on cluster name: " + esname + ":" + unicast);
         es = new ElasticSearchAccess(esname, unicast, GlobalDatas.localNetworkAddress);
+        try {
+            md = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error(e);
+        }
+        if (GlobalDatas.USEREDIS) {
+            ra = new RedisAccess(unicast, 20);
+        }
     }
     /**
      * Connect to Couchbase
@@ -271,6 +285,17 @@ public class MongoDbAccess {
      */
     public String getEsClusterName() {
         return es.getClusterName();
+    }
+    /**
+     * 
+     * @param tohash
+     * @return the corresponding digest as a "false" String
+     */
+    public final String createDigest(final String tohash) {
+        synchronized (md) {
+            md.update(tohash.getBytes(FileUtil.UTF8));
+            return UUID.toHex(md.digest());
+        }
     }
     /**
      * Drop all data and index from MongoDB and ElasticSearch
@@ -296,12 +321,23 @@ public class MongoDbAccess {
     }
 
     /**
-     * Close database access (in particular for ElasticSearch)
+     * Close database access (ElasticSearch, Couchbase, Redis, ...)
      */
     public final void close() {
         es.close();
         if (cba != null) {
             cba.close();
+        }
+        if (ra != null) {
+            ra.close();
+        }
+    }
+    /**
+     * To be called once only when closing the application
+     */
+    public final void closeFinal() {
+        if (ra != null) {
+            ra.finalClose();
         }
     }
 
@@ -318,7 +354,7 @@ public class MongoDbAccess {
         PAip.addIndexes(this);
         SAip.addIndexes(this);
         DuaRef.addIndexes(this);
-        if (!(GlobalDatas.USECOUCHBASE && GlobalDatas.USELRUCACHE)) {
+        if (!(GlobalDatas.USECOUCHBASE && GlobalDatas.USELRUCACHE && GlobalDatas.USEREDIS)) {
             ResultMongodb.addIndexes(this);
         }
     }
@@ -387,12 +423,15 @@ public class MongoDbAccess {
      * @return the size of the Result Cache
      */
     public long getCacheSize() {
-        if (requests != null) {
-            return requests.collection.count();
-        } else if (cba != null) {
+        if (GlobalDatas.USECOUCHBASE) {
+            // Couchbase
             return cba.getCount();
-        } else {
+        } else if (GlobalDatas.USELRUCACHE) {
             return ResultLRU.count();
+        } else if (GlobalDatas.USEREDIS) {
+            return ra.getCount();
+        } else {
+            return requests.collection.count();
         }
     }
 
@@ -480,17 +519,21 @@ public class MongoDbAccess {
      * @param id
      * @return True if one VitamType object exists with this id
      */
-    @SuppressWarnings("unused")
     public final boolean exists(final VitamCollections col, final String id) {
         if (id == null || id.length() == 0) {
             return false;
         }
-        if (col == VitamCollections.Crequests && (GlobalDatas.USECOUCHBASE || GlobalDatas.USELRUCACHE)) {
+        if (col == VitamCollections.Crequests) {
             if (GlobalDatas.USECOUCHBASE) {
                 // Couchbase
                 return cba.exists(id);
-            } else {
+            } else if (GlobalDatas.USELRUCACHE) {
                 return ResultLRU.exists(id);
+            } else if (GlobalDatas.USEREDIS) {
+                return ra.exists(id);
+            } else {
+                String nid = createDigest(id);
+                return col.collection.findOne(nid, IDONLY) != null;
             }
         }
         return col.collection.findOne(id, IDONLY) != null;
@@ -508,7 +551,7 @@ public class MongoDbAccess {
            JsonNode vt = cba.getFromId(id);
            if (vt != null) {
                ResultCouchbase ri = (ResultCouchbase) createOneResult();
-               ri.setId(id);
+               ri.setId(this, id);
                ri.loadFromJson(vt);
                return ri;
            }
@@ -516,10 +559,60 @@ public class MongoDbAccess {
        } else if (GlobalDatas.USELRUCACHE) {
            // Couchbase
            return ResultLRU.LRU_ResultCached.get(id);
+       } else if (GlobalDatas.USEREDIS) {
+           JsonNode vt = ra.getFromId(id);
+           if (vt != null) {
+               ResultRedis ri = (ResultRedis) createOneResult();
+               ri.setId(this, id);
+               ri.loadFromJson(vt);
+               return ri;
+           }
+           return null;
+       } else {
+           String nid = createDigest(id);
+           ResultMongodb rm = (ResultMongodb) requests.collection.findOne(nid);
+           if (rm != null) {
+               rm.getAfterLoad();
+               rm.loaded = true;
+           }
+           return rm;
+       }
+   }
+    /**
+    *
+    * @param id (possibly the modified id already)
+    * @return the ResultInterface if any (null else)
+    */
+    public final ResultInterface reload(final String id) {
+       if (id == null || id.length() == 0) {
+           return null;
+       }
+       if (GlobalDatas.USECOUCHBASE) {
+           JsonNode vt = cba.getFromId(id);
+           if (vt != null) {
+               ResultCouchbase ri = (ResultCouchbase) createOneResult();
+               ri.setId(this, id);
+               ri.loadFromJson(vt);
+               return ri;
+           }
+           return null;
+       } else if (GlobalDatas.USELRUCACHE) {
+           // Couchbase
+           return ResultLRU.LRU_ResultCached.get(id);
+       } else if (GlobalDatas.USEREDIS) {
+           JsonNode vt = ra.getFromId(id);
+           if (vt != null) {
+               ResultRedis ri = (ResultRedis) createOneResult();
+               ri.setId(this, id);
+               ri.loadFromJson(vt);
+               return ri;
+           }
+           return null;
        } else {
            ResultMongodb rm = (ResultMongodb) requests.collection.findOne(id);
            if (rm != null) {
                rm.getAfterLoad();
+               rm.loaded = true;
            }
            return rm;
        }
@@ -871,6 +964,8 @@ public class MongoDbAccess {
             return new ResultCouchbase();
         } else if (GlobalDatas.USELRUCACHE) {
             return new ResultLRU();
+        } else if (GlobalDatas.USEREDIS) {
+            return new ResultRedis();
         } else {
             return new ResultMongodb();
         }
@@ -885,6 +980,8 @@ public class MongoDbAccess {
             return new ResultCouchbase(collection);
         } else if (GlobalDatas.USELRUCACHE) {
             return new ResultLRU(collection);
+        } else if (GlobalDatas.USEREDIS) {
+            return new ResultRedis(collection);
         } else {
             return new ResultMongodb(collection);
         }

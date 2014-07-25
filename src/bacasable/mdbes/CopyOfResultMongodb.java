@@ -45,8 +45,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * @author "Frederic Bregier"
  *
  */
-public class ResultMongodb extends ResultAbstract implements DBObject {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResultMongodb.class);
+public class CopyOfResultMongodb extends ResultAbstract implements DBObject {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CopyOfResultMongodb.class);
     /**
      * TTL
      */
@@ -66,14 +66,14 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
     /**
      *
      */
-    public ResultMongodb() {
+    public CopyOfResultMongodb() {
 
     }
 
     /**
      * @param collection
      */
-    public ResultMongodb(final Collection<String> collection) {
+    public CopyOfResultMongodb(final Collection<String> collection) {
         currentDaip.addAll(collection);
         updateMinMax();
         // Path list so as loaded (never cached)
@@ -129,7 +129,7 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
         if (getId() == null) {
             return false;
         }
-        final ResultMongodb vt = (ResultMongodb) dbvitam.requests.collection.findOne(getId());
+        final CopyOfResultMongodb vt = (CopyOfResultMongodb) dbvitam.requests.collection.findOne(getId());
         if (vt != null) {
             final List<DBObject> list = new ArrayList<DBObject>();
             final Object obj = vt.obj.get(CURRENTDAIP);
@@ -233,15 +233,14 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
     }
     /**
      * Set a new ID
-     * @param dbvitam 
+     *
      * @param id
      */
     public final void setId(final MongoDbAccess dbvitam, final String id) {
         if (id == null) {
             return;
         }
-        final String nid = dbvitam.createDigest(id);
-        obj.append(ID, nid);
+        obj.append(ID, id);
     }
 
     /**

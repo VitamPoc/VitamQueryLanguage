@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.query.construct.request;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
 /**
@@ -160,6 +162,42 @@ public class InRequest extends Request {
      * @param value
      * @throws InvalidCreateOperationException
      */
+    public InRequest(final REQUEST inRequest, final String variableName, final Date value)
+            throws InvalidCreateOperationException {
+        super();
+        switch (inRequest) {
+            case in:
+            case nin: {
+                if (variableName == null || variableName.trim().isEmpty()) {
+                    throw new InvalidCreateOperationException("Request " + inRequest
+                            + " cannot be created with empty variable name");
+                }
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                final ArrayNode array = sub.putArray(variableName.trim());
+                final String sdate = value.toString();
+                ObjectNode elt = JsonHandler.createObjectNode().put(DATE, sdate);
+                array.add(elt);
+                stringVals = new HashSet<String>();
+                stringVals.add(sdate);
+                currentObject = array;
+                currentREQUEST = inRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request " + inRequest + " is not an In or Search Request");
+        }
+    }
+
+    /**
+     * In Request constructor
+     *
+     * @param inRequest
+     *            in, nin
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException
+     */
     public InRequest(final REQUEST inRequest, final String variableName, final boolean value)
             throws InvalidCreateOperationException {
         super();
@@ -210,6 +248,45 @@ public class InRequest extends Request {
                     if (!stringVals.contains(value)) {
                         array.add(value);
                         stringVals.add(value);
+                    }
+                }
+                currentObject = array;
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request " + inRequest + " is not an In Request");
+        }
+        currentREQUEST = inRequest;
+        setReady(true);
+    }
+
+    /**
+     * In Request constructor
+     *
+     * @param inRequest
+     *            in, nin
+     * @param variable
+     * @param values
+     * @throws InvalidCreateOperationException
+     */
+    public InRequest(final REQUEST inRequest, final String variable, final Date... values)
+            throws InvalidCreateOperationException {
+        super();
+        if (variable == null || variable.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request " + inRequest + " cannot be created with empty variable name");
+        }
+        switch (inRequest) {
+            case in:
+            case nin: {
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inRequest.exactToken());
+                final ArrayNode array = sub.putArray(variable.trim());
+                stringVals = new HashSet<String>();
+                for (final Date value : values) {
+                    final String sdate = value.toString();
+                    if (!stringVals.contains(sdate)) {
+                        ObjectNode elt = JsonHandler.createObjectNode().put(DATE, sdate);
+                        array.add(elt);
+                        stringVals.add(sdate);
                     }
                 }
                 currentObject = array;
@@ -337,6 +414,32 @@ public class InRequest extends Request {
             if (!stringVals.contains(val)) {
                 array.add(val);
                 stringVals.add(val);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Add an In Value to an existing In Request
+     *
+     * @param inValue
+     * @return the InRequest
+     * @throws InvalidCreateOperationException
+     */
+    public final InRequest addInValue(final Date... inValue) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.in && currentREQUEST != REQUEST.nin) {
+            throw new InvalidCreateOperationException("Cannot add an InValue since this is not an In Request: " + currentREQUEST);
+        }
+        final ArrayNode array = (ArrayNode) currentObject;
+        if (stringVals == null) {
+            stringVals = new HashSet<String>();
+        }
+        for (final Date val : inValue) {
+            final String sdate = val.toString();
+            if (!stringVals.contains(sdate)) {
+                ObjectNode elt = JsonHandler.createObjectNode().put(DATE, sdate);
+                array.add(elt);
+                stringVals.add(sdate);
             }
         }
         return this;

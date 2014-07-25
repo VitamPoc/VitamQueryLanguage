@@ -78,8 +78,8 @@ public abstract class AbstractQueryParser {
 
     protected List<String> sources = new ArrayList<String>();
     private final List<TypeRequest> requests = new ArrayList<TypeRequest>();
-    protected long limit = 0;
-    protected long offset = 0;
+    protected int limit = 0;
+    protected int offset = 0;
     protected ObjectNode orderBy = null;
     protected ObjectNode projection = null;
     protected String contractId;
@@ -194,7 +194,7 @@ public abstract class AbstractQueryParser {
                  * $maxScan: <number> / cursor.limit(n)
                  * "filter" : { "limit" : {"value" : n} } ou "from" : start, "size" : n
                  */
-                limit = rootNode.get(REQUESTFILTER.limit.exactToken()).asLong();
+                limit = rootNode.get(REQUESTFILTER.limit.exactToken()).asInt();
             }
             if (rootNode.has(REQUESTFILTER.offset.exactToken())) {
                 /*
@@ -202,7 +202,7 @@ public abstract class AbstractQueryParser {
                  * cursor.skip(start)
                  * "from" : start, "size" : n
                  */
-                offset = rootNode.get(REQUESTFILTER.offset.exactToken()).asLong();
+                offset = rootNode.get(REQUESTFILTER.offset.exactToken()).asInt();
             }
             if (rootNode.has(REQUESTFILTER.orderby.exactToken())) {
                 /*
@@ -706,6 +706,34 @@ public abstract class AbstractQueryParser {
      */
     public ObjectNode getOrderBy() {
         return orderBy;
+    }
+
+    /**
+     * @return the limit
+     */
+    public int getLimit() {
+        return limit;
+    }
+
+    /**
+     * @return the offset
+     */
+    public int getOffset() {
+        return offset;
+    }
+
+    /**
+     * @return the projection
+     */
+    public ObjectNode getProjection() {
+        return projection;
+    }
+
+    /**
+     * @return the contractId
+     */
+    public String getContractId() {
+        return contractId;
     }
 
     /**

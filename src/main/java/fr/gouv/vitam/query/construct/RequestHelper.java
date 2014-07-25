@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.query.construct;
 
+import java.util.Date;
 import java.util.Map;
 
 import fr.gouv.vitam.query.construct.request.BooleanRequest;
@@ -137,6 +138,17 @@ public final class RequestHelper {
      *
      * @param variableName
      * @param value
+     * @return a CompareRequest using EQ comparator
+     * @throws InvalidCreateOperationException
+     */
+    public static final CompareRequest eq(final String variableName, final Date value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.eq, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
      * @return a CompareRequest using NE (non equal) comparator
      * @throws InvalidCreateOperationException
      */
@@ -174,6 +186,17 @@ public final class RequestHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareRequest ne(final String variableName, final String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.ne, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a CompareRequest using NE (non equal) comparator
+     * @throws InvalidCreateOperationException
+     */
+    public static final CompareRequest ne(final String variableName, final Date value) throws InvalidCreateOperationException {
         return new CompareRequest(REQUEST.ne, variableName, value);
     }
 
@@ -225,6 +248,17 @@ public final class RequestHelper {
      *
      * @param variableName
      * @param value
+     * @return a CompareRequest using LT (less than) comparator
+     * @throws InvalidCreateOperationException
+     */
+    public static final CompareRequest lt(final String variableName, final Date value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lt, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
      * @return a CompareRequest using LTE (less than or equal) comparator
      * @throws InvalidCreateOperationException
      */
@@ -262,6 +296,17 @@ public final class RequestHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareRequest lte(final String variableName, final String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.lte, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a CompareRequest using LTE (less than or equal) comparator
+     * @throws InvalidCreateOperationException
+     */
+    public static final CompareRequest lte(final String variableName, final Date value) throws InvalidCreateOperationException {
         return new CompareRequest(REQUEST.lte, variableName, value);
     }
 
@@ -313,6 +358,17 @@ public final class RequestHelper {
      *
      * @param variableName
      * @param value
+     * @return a CompareRequest using GT (greater than) comparator
+     * @throws InvalidCreateOperationException
+     */
+    public static final CompareRequest gt(final String variableName, final Date value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gt, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
      * @return a CompareRequest using GTE (greater than or equal) comparator
      * @throws InvalidCreateOperationException
      */
@@ -350,6 +406,17 @@ public final class RequestHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareRequest gte(final String variableName, final String value) throws InvalidCreateOperationException {
+        return new CompareRequest(REQUEST.gte, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a CompareRequest using GTE (greater than or equal) comparator
+     * @throws InvalidCreateOperationException
+     */
+    public static final CompareRequest gte(final String variableName, final Date value) throws InvalidCreateOperationException {
         return new CompareRequest(REQUEST.gte, variableName, value);
     }
 
@@ -443,6 +510,17 @@ public final class RequestHelper {
      *
      * @param variableName
      * @param value
+     * @return an InRequest using IN operator
+     * @throws InvalidCreateOperationException
+     */
+    public static final InRequest in(final String variableName, final Date... value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.in, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
      * @return an InRequest using NIN (not in) operator
      * @throws InvalidCreateOperationException
      */
@@ -480,6 +558,17 @@ public final class RequestHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InRequest nin(final String variableName, final String... value) throws InvalidCreateOperationException {
+        return new InRequest(REQUEST.nin, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return an InRequest using NIN (not in) operator
+     * @throws InvalidCreateOperationException
+     */
+    public static final InRequest nin(final String variableName, final Date... value) throws InvalidCreateOperationException {
         return new InRequest(REQUEST.nin, variableName, value);
     }
 
@@ -565,12 +654,56 @@ public final class RequestHelper {
 
     /**
      *
+     * @param variableName
+     * @param value
+     * @return a TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public static final TermRequest term(final String variableName, final long value) throws InvalidCreateOperationException {
+        return new TermRequest(variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public static final TermRequest term(final String variableName, final double value) throws InvalidCreateOperationException {
+        return new TermRequest(variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public static final TermRequest term(final String variableName, final boolean value) throws InvalidCreateOperationException {
+        return new TermRequest(variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param value
+     * @return a TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public static final TermRequest term(final String variableName, final Date value) throws InvalidCreateOperationException {
+        return new TermRequest(variableName, value);
+    }
+
+    /**
+     *
      * @param variableNameValue
      *            Map of VariableName of Value
      * @return a TermRequest
      * @throws InvalidCreateOperationException
      */
-    public static final TermRequest term(final Map<String, String> variableNameValue) throws InvalidCreateOperationException {
+    public static final TermRequest term(final Map<String, Object> variableNameValue) throws InvalidCreateOperationException {
         return new TermRequest(variableNameValue);
     }
 
@@ -653,6 +786,23 @@ public final class RequestHelper {
      */
     public static final RangeRequest range(final String variableName, final String min, final boolean includeMin,
             final String max, final boolean includeMax) throws InvalidCreateOperationException {
+        final REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
+        final REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
+        return new RangeRequest(variableName, rmin, min, rmax, max);
+    }
+
+    /**
+     *
+     * @param variableName
+     * @param min
+     * @param includeMin
+     * @param max
+     * @param includeMax
+     * @return a RangeRequest
+     * @throws InvalidCreateOperationException
+     */
+    public static final RangeRequest range(final String variableName, final Date min, final boolean includeMin,
+            final Date max, final boolean includeMax) throws InvalidCreateOperationException {
         final REQUEST rmin = includeMin ? REQUEST.gte : REQUEST.gt;
         final REQUEST rmax = includeMax ? REQUEST.lte : REQUEST.lt;
         return new RangeRequest(variableName, rmin, min, rmax, max);

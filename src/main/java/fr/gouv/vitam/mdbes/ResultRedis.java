@@ -21,9 +21,17 @@
 package fr.gouv.vitam.mdbes;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.utils.GlobalDatas;
-import fr.gouv.vitam.utils.lru.SynchronizedLruCache;
+import fr.gouv.vitam.utils.logging.VitamLogger;
+import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
  * Result (potentially cached) object
@@ -31,33 +39,32 @@ import fr.gouv.vitam.utils.lru.SynchronizedLruCache;
  * @author "Frederic Bregier"
  *
  */
-public class ResultLRU extends ResultAbstract {
-    
-    /**
-     * Synchronized LRU cache
-     */
-    public static final SynchronizedLruCache<String, ResultLRU> LRU_ResultCached = new SynchronizedLruCache<String, ResultLRU>(1000000, GlobalDatas.TTLMS);
+public class ResultRedis extends ResultAbstract {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResultRedis.class);
 
     /**
      * Id of the result
      */
     public String id = null;
+
+    protected ObjectNode node = JsonHandler.createObjectNode();
     
     /**
      *
      */
-    public ResultLRU() {
+    public ResultRedis() {
 
     }
 
     /**
      * @param collection
      */
-    public ResultLRU(final Collection<String> collection) {
+    public ResultRedis(final Collection<String> collection) {
         currentDaip.addAll(collection);
         updateMinMax();
         // Path list so as loaded (never cached)
         loaded = true;
+        putBeforeSave();
     }
     /**
      * Set a new ID
@@ -79,35 +86,65 @@ public class ResultLRU extends ResultAbstract {
      * @param from
      */
     public void putFrom(final ResultInterface from) {
-        this.id = from.getId();
-        this.currentDaip.clear();
-        this.currentDaip.addAll(from.getCurrentDaip());
-        this.maxLevel = from.getMaxLevel();
-        this.minLevel = from.getMinLevel();
-        this.nbSubNodes = from.getNbSubNodes();
+        node = ((ResultRedis) from).node.deepCopy();
         loaded = true;
+        getAfterLoad();
     }
-    
+
     /**
      * To be called after a load from Database
      */
     public void getAfterLoad() {
+        if (node.has(CURRENTDAIP)) {
+            final ArrayNode obj = (ArrayNode) node.withArray(CURRENTDAIP);
+            final Set<String> vtset = new HashSet<String>();
+            for (JsonNode string : obj) {
+                vtset.add(string.asText());
+            }
+            currentDaip.clear();
+            currentDaip.addAll(vtset);
+        }
+        minLevel = node.path(MINLEVEL).asInt(0);
+        maxLevel = node.path(MAXLEVEL).asInt(0);
+        nbSubNodes = node.path(NBSUBNODES).asLong(-1);
     }
     /**
      * To be called before save to database
      */
     public void putBeforeSave() {
+        if (!currentDaip.isEmpty()) {
+            ArrayNode array =  node.putArray(CURRENTDAIP);
+            for (String string : currentDaip) {
+                array.add(string);
+            }
+        }
+        node.put(MINLEVEL, minLevel);
+        node.put(MAXLEVEL, maxLevel);
+        node.put(NBSUBNODES, nbSubNodes);
     }
     /**
      * Save to the Couchbase Database
      * @param dbvitam
      */
     public void save(final MongoDbAccess dbvitam) {
+        putBeforeSave();
+        if (GlobalDatas.PRINT_REQUEST) {
+            LOGGER.warn("SAVE: "+this);
+        }
         if (id == null) {
             return;
         }
+        dbvitam.ra.setToId(id, node, GlobalDatas.TTL);
         loaded = true;
-        LRU_ResultCached.put(id, this);
+    }
+    /**
+     * Load the object from the JsonNode
+     * @param node
+     */
+    public void loadFromJson(JsonNode node) {
+        this.node.setAll((ObjectNode) node);
+        getAfterLoad();
+        loaded = true;
     }
     /**
      * Update the TTL for this
@@ -117,25 +154,6 @@ public class ResultLRU extends ResultAbstract {
         if (id == null) {
             return;
         }
-        LRU_ResultCached.updateTtl(id);
-    }
-    /**
-     * *
-     * @param id
-     * @return True if the id is in the LRU
-     */
-    public static final boolean exists(String id) {
-        if (id == null) {
-            return false;
-        }
-        return LRU_ResultCached.contains(id);
-    }
-    /**
-     * 
-     * @return the number of element in the cache
-     */
-    public static final long count() {
-        LRU_ResultCached.forceClearOldest();
-        return LRU_ResultCached.size();
+        dbvitam.ra.updateTtl(id, GlobalDatas.TTL);
     }
 }

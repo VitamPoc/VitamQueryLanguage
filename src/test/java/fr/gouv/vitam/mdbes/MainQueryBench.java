@@ -132,7 +132,8 @@ public class MainQueryBench implements Runnable {
             hosts.add(new URI("http://192.168.56.110:8091/pools"));
             dbvitam.connectCouchbase(hosts, "VitamRequests", "");
             LOGGER.warn("USECOUCHBASE: "+GlobalDatas.USECOUCHBASE+" USEMEMCACHED: "+GlobalDatas.USEMEMCACHED+
-                    " USELRUCACHE: "+GlobalDatas.USELRUCACHE+" USECACHE: "+GlobalDatas.SAVERESULT);
+                    " USELRUCACHE: "+GlobalDatas.USELRUCACHE+" USEREDIS: "+GlobalDatas.USEREDIS+
+                    " USECACHE: "+GlobalDatas.SAVERESULT);
             LOGGER.warn("Cache starting with: "+dbvitam.getCacheSize());
 			int nbt = 1;
 			int nbloop = 2;
@@ -157,6 +158,7 @@ public class MainQueryBench implements Runnable {
 		} finally {
 			// release resources
 			dbvitam.close();
+			dbvitam.closeFinal();
 			mongoClient.close();
 		}
 	}

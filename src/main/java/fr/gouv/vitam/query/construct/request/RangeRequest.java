@@ -17,6 +17,8 @@
  */
 package fr.gouv.vitam.query.construct.request;
 
+import java.util.Date;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
@@ -141,6 +143,45 @@ public class RangeRequest extends Request {
         final ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
+        currentREQUEST = REQUEST.range;
+        setReady(true);
+    }
+
+    /**
+     * Range Query constructor
+     *
+     * @param variableName
+     * @param from
+     *            gt, gte
+     * @param valueFrom
+     * @param to
+     *            lt, lte
+     * @param valueTo
+     * @throws InvalidCreateOperationException
+     */
+    public RangeRequest(final String variableName, final REQUEST from, final Date valueFrom, final REQUEST to,
+            final Date valueTo) throws InvalidCreateOperationException {
+        super();
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
+        }
+        switch (from) {
+            case gt:
+            case gte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request " + from + " is not a valid Compare Request");
+        }
+        switch (to) {
+            case lt:
+            case lte:
+                break;
+            default:
+                throw new InvalidCreateOperationException("Request " + to + " is not a valid Compare Request");
+        }
+        final ObjectNode sub = ((ObjectNode) currentObject).putObject(REQUEST.range.exactToken()).putObject(variableName.trim());
+        sub.putObject(from.exactToken()).put(DATE, valueFrom.toString());
+        sub.putObject(to.exactToken()).put(DATE, valueTo.toString());
         currentREQUEST = REQUEST.range;
         setReady(true);
     }

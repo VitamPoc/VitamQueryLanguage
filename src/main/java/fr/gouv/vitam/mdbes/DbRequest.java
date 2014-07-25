@@ -32,15 +32,16 @@ import org.bson.BSONObject;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.query.parser.AbstractQueryParser;
-import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
 import fr.gouv.vitam.query.parser.TypeRequest;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
@@ -132,13 +133,6 @@ public class DbRequest {
         curId.append(source);
     }
 
-    private static final String getOrderByString(final AbstractQueryParser query) {
-        if (query.getOrderBy() != null) {
-            return "," + REQUESTFILTER.orderby.name() + ": " + query.getOrderBy().toString();
-        }
-        return "";
-    }
-
     /**
      * 
      * @return the last cache rank used
@@ -178,7 +172,7 @@ public class DbRequest {
         // Get last from list and load it if not already
         result = list.get(list.size() - 1);
         if (!result.isLoaded()) {
-            ResultInterface result2 = mdAccess.load(result.getId());
+            ResultInterface result2 = mdAccess.reload(result.getId());
             if (result2 == null) {
                 LOGGER.error("Cannot find searched result! = "+result.getId());
                 list.clear();
@@ -186,7 +180,6 @@ public class DbRequest {
             }
             result = result2;
         }
-        final String orderBy = getOrderByString(query);
         // Now from the lastlevel cached+1, execute each and every request
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("Start Request from level: "+lastCacheRank+":"+list.size()+"\n\tStartup: "+result);
@@ -198,7 +191,7 @@ public class DbRequest {
             result = executeRequest(request, result, true);
             lastCacheRank++;
             computeKey(curId, query.getSources().get(0));
-            result.setId(curId.toString() + orderBy);
+            result.setId(mdAccess, curId.toString());
             list.add(result);
             if (useCache && !result.isLoaded()) {
                 // Since not loaded means really executed and therefore to be saved
@@ -208,8 +201,9 @@ public class DbRequest {
             }
         }
         // Stops if no result (empty)
+        int nbRequests = query.getRequests().size();
         for (int rank = lastCacheRank + 1; 
-                (result != null && !result.getCurrentDaip().isEmpty()) && rank < query.getRequests().size(); 
+                (result != null && !result.getCurrentDaip().isEmpty()) && rank < nbRequests; 
                 rank++) {
             final TypeRequest request = query.getRequests().get(rank);
             if (GlobalDatas.PRINT_REQUEST) {
@@ -219,8 +213,8 @@ public class DbRequest {
             if (newResult != null && !newResult.getCurrentDaip().isEmpty()) {
                 // Compute next id
                 computeKey(curId, query.getSources().get(rank));
-                final String key = curId.toString() + orderBy;
-                newResult.setId(key);
+                final String key = curId.toString();
+                newResult.setId(mdAccess, key);
                 list.add(newResult);
                 result = newResult;
                 if (useCache && !result.isLoaded()) {
@@ -239,6 +233,16 @@ public class DbRequest {
                 LOGGER.debug("Request: {}\n\tResult: {}", request, result);
             }
         }
+        if ((result != null && !result.getCurrentDaip().isEmpty())) {
+            // Filter last result using orderBy, Limit, ...
+            ResultInterface newResult = lastFilter(query, result);
+            if (newResult != null) {
+                list.remove(result);
+                list.add(newResult);
+                result = newResult;
+            }
+        }
+        
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("LastResult: "+list.size());
             for (ResultInterface resultCached : list) {
@@ -271,7 +275,6 @@ public class DbRequest {
         for (String string : startup.getCurrentDaip()) {
             startupNodes.add(UUID.getLastAsString(string));
         }
-        final String orderBy = getOrderByString(query);
         final TypeRequest subrequest = query.getRequests().get(0);
         if (subrequest.refId != null && !subrequest.refId.isEmpty()) {
             // Path request
@@ -279,7 +282,7 @@ public class DbRequest {
             curId.setLength(0);
             computeKey(curId, query.getSources().get(0));
             final ResultInterface start = MongoDbAccess.createOneResult(subrequest.refId);
-            start.setId(curId.toString() + orderBy);
+            start.setId(mdAccess, curId.toString());
             // Now check if current results are ok with startup
             Set<String> firstNodes = new HashSet<String>();
             for (String idsource : start.getCurrentDaip()) {
@@ -298,11 +301,11 @@ public class DbRequest {
         }
         // build the cache id
         computeKey(curId, query.getSources().get(0));
-        String newId = curId.toString() + orderBy;
+        String newId = curId.toString();
         // now search into the cache
         if (simulate) {
             final ResultInterface start = createFalseResult(null, 1);
-            start.setId(newId);
+            start.setId(mdAccess, newId);
             list.add(start);
             if (debug) {
                 LOGGER.debug("CacheResult2: ({}) {}\n\t{}", 0, start, start.getCurrentDaip());
@@ -359,8 +362,7 @@ public class DbRequest {
     private int searchCacheEntry(final AbstractQueryParser query, final StringBuilder curId, final List<ResultInterface> list)
             throws InstantiationException, IllegalAccessException {
         // First one should check if previously the same (sub) request was already executed (cached)
-        // Cache concerns: request and orderBy, but not limit, offset, projection
-        final String orderBy = getOrderByString(query);
+        // Cache concerns: request and orderBy, but orderBy will be filter later on, but not limit, offset, projection
         int lastCacheRank = -1;
         ResultInterface previous = null;
         StringBuilder newCurId = new StringBuilder(curId);
@@ -382,7 +384,7 @@ public class DbRequest {
                 newCurId.setLength(0);
                 computeKey(newCurId, query.getSources().get(rank));
                 final ResultInterface start = MongoDbAccess.createOneResult(subrequest.refId);
-                start.setId(newCurId.toString() + orderBy);
+                start.setId(mdAccess, newCurId.toString());
                 lastCacheRank = rank;
                 curId.setLength(0);
                 curId.append(newCurId);
@@ -401,12 +403,12 @@ public class DbRequest {
             }
             // build the cache id
             computeKey(newCurId, query.getSources().get(rank));
-            String newId = newCurId.toString() + orderBy;
+            String newId = newCurId.toString();
             // now search into the cache
             if (simulate) {
                 lastCacheRank = rank;
                 final ResultInterface start = createFalseResult(previous, 1);
-                start.setId(newId);
+                start.setId(mdAccess, newId);
                 curId.setLength(0);
                 curId.append(newCurId);
                 list.add(start);
@@ -452,7 +454,8 @@ public class DbRequest {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    private ResultInterface executeRequest(final TypeRequest request, final ResultInterface previous, final boolean useStart)
+    private ResultInterface executeRequest(final TypeRequest request, final ResultInterface previous, 
+            final boolean useStart)
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
         if (request.refId != null && !request.refId.isEmpty()) {
             // path command
@@ -483,6 +486,8 @@ public class DbRequest {
         }
     }
 
+    private static final BasicDBObject ID_NBCHILD = new BasicDBObject(VitamType.ID, 1).append(DAip.NBCHILD, 1);
+
     private final ResultInterface getRequestDomain(final TypeRequest request, final ResultInterface previous, final boolean useStart)
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
         // must be MD
@@ -494,19 +499,18 @@ public class DbRequest {
         }
         final String srequest = request.requestModel[AbstractQueryParser.MONGODB].toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
-        final BasicDBObject idProjection = new BasicDBObject(VitamType.ID, 1).append(DAip.NBCHILD, 1);
         final ResultInterface newResult = MongoDbAccess.createOneResult();
         newResult.setMinLevel(1);
         newResult.setMaxLevel(1);
         if (simulate) {
-            LOGGER.info("ReqDomain: {}\n\t{}", condition, idProjection);
+            LOGGER.info("ReqDomain: {}\n\t{}", condition, ID_NBCHILD);
             return createFalseResult(null, 1);
         }
-        LOGGER.debug("ReqDomain: {}\n\t{}", condition, idProjection);
+        LOGGER.debug("ReqDomain: {}\n\t{}", condition, ID_NBCHILD);
         if (GlobalDatas.PRINT_REQUEST) {
-            LOGGER.warn("ReqDomain: {}\n\t{}", condition, idProjection);
+            LOGGER.warn("ReqDomain: {}\n\t{}", condition, ID_NBCHILD);
         }
-        final DBCursor cursor = mdAccess.find(mdAccess.domains, condition, idProjection);
+        final DBCursor cursor = mdAccess.find(mdAccess.domains, condition, ID_NBCHILD);
         long tempCount = 0;
         while (cursor.hasNext()) {
             final Domain dom = (Domain) cursor.next();
@@ -581,8 +585,6 @@ public class DbRequest {
             throw new InvalidExecOperationException("Expression is not valid for Maip Level 1 with ES only");
         }
     }
-
-    private static final BasicDBObject ID_NBCHILD = new BasicDBObject(VitamType.ID, 1).append(DAip.NBCHILD, 1);
 
     private final ResultInterface getRequest1LevelMaipFromMD(final TypeRequest request, final ResultInterface previous, final boolean useStart)
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
@@ -794,7 +796,66 @@ public class DbRequest {
         }
         return subresult;
     }
-
+    /**
+     * In MongoDB : <br/> 
+     * find(Query, Projection).sort(SortFilter).skip(SkipFilter).limit(LimitFilter);<br/>
+     * In addition, one shall limit the scan by: <br/>
+     * find(Query, Projection)._addSpecial( "$maxscan", highlimit)
+     *   .sort(SortFilter).skip(SkipFilter).limit(LimitFilter);
+     * 
+     * @param query
+     * @param result to be filtered using query
+     * @return the new result or null if the same
+     */
+    private ResultInterface lastFilter(final AbstractQueryParser query, final ResultInterface result) {
+        if (simulate) {
+            return null;
+        }
+        boolean filter = (query.getLimit() > 0 || query.getOffset() > 0);
+        if (!filter) {
+            return null;
+        }
+        ObjectNode orderBy = query.getOrderBy();
+        if (GlobalDatas.PRINT_REQUEST) {
+            LOGGER.warn("Req1LevelMD Filter on: Limit {} Offset {} OrderBy {}", query.getLimit(), query.getOffset(), orderBy);
+        }
+        final ResultInterface subresult = MongoDbAccess.createOneResult();
+        BasicDBObject inClause = getInClauseForField(DAip.ID, result.getCurrentDaip());
+        final DBCursor cursor = mdAccess.daips.collection.find(inClause, ID_NBCHILD);
+        if (query.getLimit() > 0) {
+            cursor.limit(query.getLimit());
+        }
+        if (query.getOffset() > 0) {
+            cursor.skip(query.getOffset());
+        }
+        if (orderBy != null) {
+            // orderBy is used only if limit and/or offset is set
+            cursor.sort((DBObject) orderBy);
+        }
+        long tempCount = 0;
+        while (cursor.hasNext()) {
+            final DAip maip = (DAip) cursor.next();
+            final String mid = maip.getId();
+            subresult.getCurrentDaip().add(mid);
+            tempCount += maip.getLong(DAip.NBCHILD);
+        }
+        cursor.close();
+        if (subresult.getCurrentDaip().containsAll(result.getCurrentDaip())) {
+            // same so don't change it
+            return null;
+        }
+        subresult.setNbSubNodes(tempCount);
+        // Not updateMinMax since result is not "valid" path but node UUID and not needed
+        subresult.setMinLevel(result.getMinLevel());
+        subresult.setMaxLevel(result.getMaxLevel());
+        subresult.setLoaded(true);
+        if (GlobalDatas.PRINT_REQUEST) {
+            subresult.putBeforeSave();
+            LOGGER.warn("Filtered: {}", subresult);
+        }
+        return subresult;
+    }
+    
     private static final BasicDBObject getInClauseForField(final String field, final Collection<String> ids) {
         if (ids.size() > 0) {
             return new BasicDBObject(field, new BasicDBObject("$in", ids));
@@ -920,7 +981,7 @@ public class DbRequest {
         ResultInterface finalresult = results.get(results.size() - 1);
         ResultInterface result = finalresult;
         if (! result.isLoaded()) {
-            ResultInterface result2 = mdAccess.load(result.getId());
+            ResultInterface result2 = mdAccess.reload(result.getId());
             if (result2 == null) {
                 LOGGER.error("Cannot load final result! ="+result.getId());
                 return null;
@@ -957,7 +1018,7 @@ public class DbRequest {
         for (int rank = results.size() - 2; rank >= 1; rank--) {
             result = results.get(rank);
             if (! result.isLoaded()) {
-                ResultInterface result2 = mdAccess.load(result.getId());
+                ResultInterface result2 = mdAccess.reload(result.getId());
                 if (result2 == null) {
                     LOGGER.error("Cannot load final result! =" + result.getId());
                     return null;
@@ -1024,7 +1085,7 @@ public class DbRequest {
             finalresult.setLoaded(true);
             finalresult.putBeforeSave();
             LOGGER.info("FinalizeResult: {}", finalresult);
-        } else  if (useCache) {
+        } else  if (useCache && finalresult.getId() != null) {
             finalresult.save(mdAccess);
         }
         if (GlobalDatas.PRINT_REQUEST) {

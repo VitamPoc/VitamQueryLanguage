@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -235,7 +236,7 @@ public class RequestTest {
     }
 
     @Test
-    public void testRequestREQUESTCompareString() {
+    public void testRequestCompareString() {
         CompareRequest request = null;
         try {
             request = new CompareRequest(REQUEST.lt, "var", "val");
@@ -270,7 +271,78 @@ public class RequestTest {
     }
 
     @Test
-    public void testRequestREQUESTSearch() {
+    public void testRequestCompareDate() {
+        CompareRequest request = null;
+        Date date = new Date(System.currentTimeMillis());
+        try {
+            request = new CompareRequest(REQUEST.lt, "var", date);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.lte, "var", date);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.gt, "var", date);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.gte, "var", date);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.eq, "var", date);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.ne, "var", date);
+            assertTrue(request.isReady());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        // last
+        try {
+            request = new CompareRequest(REQUEST.size, "var", date);
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+        try {
+            request = new CompareRequest(REQUEST.lt, "", date);
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void testRequestCompareBoolean() {
+        CompareRequest request = null;
+        try {
+            request = new CompareRequest(REQUEST.lt, "var", true);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.lte, "var", true);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.gt, "var", true);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.gte, "var", true);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.eq, "var", true);
+            assertTrue(request.isReady());
+            request = new CompareRequest(REQUEST.ne, "var", true);
+            assertTrue(request.isReady());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        // last
+        try {
+            request = new CompareRequest(REQUEST.size, "var", true);
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+        try {
+            request = new CompareRequest(REQUEST.lt, "", true);
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void testRequestSearch() {
         SearchRequest request = null;
         try {
             request = new SearchRequest(REQUEST.regex, "var", "val");
@@ -338,6 +410,7 @@ public class RequestTest {
     @Test
     public void testRequestIn() {
         InRequest request = null;
+        Date date = new Date(System.currentTimeMillis());
         try {
             request = new InRequest(REQUEST.in, "var", true);
             assertTrue(request.isReady());
@@ -354,6 +427,10 @@ public class RequestTest {
             request = new InRequest(REQUEST.in, "var", "val");
             assertTrue(request.isReady());
             request = new InRequest(REQUEST.nin, "var", "val");
+            assertTrue(request.isReady());
+            request = new InRequest(REQUEST.in, "var", date);
+            assertTrue(request.isReady());
+            request = new InRequest(REQUEST.nin, "var", date);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -390,6 +467,12 @@ public class RequestTest {
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
+        try {
+            request = new InRequest(REQUEST.in, "", date);
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
     }
 
     @Test
@@ -418,106 +501,9 @@ public class RequestTest {
             assertNotNull(e);
         }
     }
-
+    
     @Test
-    public void testRequestREQUESTCompareBoolean() {
-        CompareRequest request = null;
-        try {
-            request = new CompareRequest(REQUEST.lt, "var", true);
-            assertTrue(request.isReady());
-            request = new CompareRequest(REQUEST.lte, "var", true);
-            assertTrue(request.isReady());
-            request = new CompareRequest(REQUEST.gt, "var", true);
-            assertTrue(request.isReady());
-            request = new CompareRequest(REQUEST.gte, "var", true);
-            assertTrue(request.isReady());
-            request = new CompareRequest(REQUEST.eq, "var", true);
-            assertTrue(request.isReady());
-            request = new CompareRequest(REQUEST.ne, "var", true);
-            assertTrue(request.isReady());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        // last
-        try {
-            request = new CompareRequest(REQUEST.size, "var", true);
-            fail("Should have raized an exception due to incorrect argument");
-        } catch (final InvalidCreateOperationException e) {
-            assertNotNull(e);
-        }
-        try {
-            request = new CompareRequest(REQUEST.lt, "", true);
-            fail("Should have raized an exception due to incorrect argument");
-        } catch (final InvalidCreateOperationException e) {
-            assertNotNull(e);
-        }
-    }
-
-    @Test
-    public void testRequestREQUESTStringStringArray() {
-        try {
-            InRequest request = null;
-            request = new InRequest(REQUEST.in, "var", "val1", "val2");
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.nin, "var", "val1", "val2");
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request.addInValue("val1", "val2").addInValue("val3");
-            assertTrue(request.isReady());
-            assertEquals(3, request.getCurrentObject().size());
-            request.addInValue(1).addInValue(1.0);
-            assertTrue(request.isReady());
-            assertEquals(5, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.in, "var", 1, 2);
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.nin, "var", 1, 2);
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request.addInValue("val1", "val2").addInValue("val3");
-            assertTrue(request.isReady());
-            assertEquals(5, request.getCurrentObject().size());
-            request.addInValue(1).addInValue(1.0);
-            assertTrue(request.isReady());
-            assertEquals(6, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.in, "var", 1.0, 2.0);
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.nin, "var", 1.0, 2.0);
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request.addInValue("val1", "val2").addInValue("val3");
-            assertTrue(request.isReady());
-            assertEquals(5, request.getCurrentObject().size());
-            request.addInValue(1).addInValue(1.0);
-            assertTrue(request.isReady());
-            assertEquals(6, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.in, "var", true, false);
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request = new InRequest(REQUEST.nin, "var", true, false);
-            assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
-            request.addInValue("val1", "val2").addInValue("val3");
-            assertTrue(request.isReady());
-            assertEquals(5, request.getCurrentObject().size());
-            request.addInValue(1).addInValue(1.0);
-            assertTrue(request.isReady());
-            assertEquals(7, request.getCurrentObject().size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        // last
-        try {
-            @SuppressWarnings("unused")
-            final InRequest request = new InRequest(REQUEST.and, "var", "val1", "val2");
-            fail("Should have raized an exception due to incorrect argument");
-        } catch (final InvalidCreateOperationException e) {
-            assertNotNull(e);
-        }
+    public void testRequestMltMultipleVar() {
         try {
             MltRequest request = new MltRequest(REQUEST.mlt, "value", "var1", "var2");
             assertTrue(request.isReady());
@@ -550,23 +536,111 @@ public class RequestTest {
     }
 
     @Test
+    public void testRequestInArray() {
+        Date date1 = new Date(System.currentTimeMillis());
+        Date date2 = new Date(System.currentTimeMillis()+1000);
+        try {
+            InRequest request = null;
+            request = new InRequest(REQUEST.in, "var", "val1", "val2");
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.nin, "var", "val1", "val2");
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request.addInValue("val1", "val2").addInValue("val3");
+            assertTrue(request.isReady());
+            assertEquals(3, request.getCurrentObject().size());
+            request.addInValue(1).addInValue(1.0).addInValue(date2);
+            assertTrue(request.isReady());
+            assertEquals(6, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.in, "var", 1, 2);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.nin, "var", 1, 2);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request.addInValue("val1", "val2").addInValue("val3");
+            assertTrue(request.isReady());
+            assertEquals(5, request.getCurrentObject().size());
+            request.addInValue(1).addInValue(1.0).addInValue(date2);
+            assertTrue(request.isReady());
+            assertEquals(7, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.in, "var", 1.0, 2.0);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.nin, "var", 1.0, 2.0);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request.addInValue("val1", "val2").addInValue("val3").addInValue(date2).addInValue(1);
+            assertTrue(request.isReady());
+            assertEquals(7, request.getCurrentObject().size());
+            request.addInValue(1).addInValue(1.0).addInValue(date2).addInValue("val2");
+            assertTrue(request.isReady());
+            assertEquals(7, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.in, "var", true, false);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.nin, "var", true, false);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request.addInValue("val1", "val2").addInValue("val3").addInValue(date2);
+            assertTrue(request.isReady());
+            assertEquals(6, request.getCurrentObject().size());
+            request.addInValue(1).addInValue(1.0);
+            assertTrue(request.isReady());
+            assertEquals(8, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.in, "var", date1, date2);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request = new InRequest(REQUEST.nin, "var", date1, date2);
+            assertTrue(request.isReady());
+            assertEquals(2, request.getCurrentObject().size());
+            request.addInValue("val1", "val2").addInValue("val3").addInValue(false);
+            assertTrue(request.isReady());
+            assertEquals(6, request.getCurrentObject().size());
+            request.addInValue(1).addInValue(1.0);
+            assertTrue(request.isReady());
+            assertEquals(8, request.getCurrentObject().size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        // last
+        try {
+            @SuppressWarnings("unused")
+            final InRequest request = new InRequest(REQUEST.and, "var", "val1", "val2");
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+    @Test
     public void testRequestTerm() {
-        final Map<String, String> map = new HashMap<String, String>();
+        final Map<String, Object> map = new HashMap<String, Object>();
+        Date date1 = new Date(System.currentTimeMillis());
         map.put("var1", "val1");
         map.put("var2", "val2");
+        map.put("var3", date1);
+        map.put("var4", 1);
+        map.put("var5", 2.0);
+        map.put("var6", true);
         TermRequest request = null;
         try {
             request = new TermRequest("var", "val");
             assertTrue(request.isReady());
             request = new TermRequest(map);
-            assertEquals(2, request.getCurrentObject().size());
+            assertEquals(6, request.getCurrentObject().size());
             assertTrue(request.isReady());
-            request.addTermRequest("var2", "val2");
+            request.addTermRequest("var2", "val2bis");
             assertTrue(request.isReady());
-            assertEquals(2, request.getCurrentObject().size());
+            assertEquals(6, request.getCurrentObject().size());
             request.addTermRequest("var3", "val2");
             assertTrue(request.isReady());
-            assertEquals(3, request.getCurrentObject().size());
+            assertEquals(6, request.getCurrentObject().size());
+            request.addTermRequest("var7", "val7");
+            assertTrue(request.isReady());
+            assertEquals(7, request.getCurrentObject().size());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -601,6 +675,8 @@ public class RequestTest {
     @Test
     public void testRequestRange() {
         RangeRequest request = null;
+        Date date1 = new Date(System.currentTimeMillis());
+        Date date2 = new Date(System.currentTimeMillis()+100);
         try {
             request = new RangeRequest("var", REQUEST.gt, 1, REQUEST.lt, 2);
             assertTrue(request.isReady());
@@ -613,6 +689,10 @@ public class RequestTest {
             request = new RangeRequest("var", REQUEST.gt, "1", REQUEST.lt, "2");
             assertTrue(request.isReady());
             request = new RangeRequest("var", REQUEST.gte, "1", REQUEST.lte, "2");
+            assertTrue(request.isReady());
+            request = new RangeRequest("var", REQUEST.gt, date1, REQUEST.lt, date2);
+            assertTrue(request.isReady());
+            request = new RangeRequest("var", REQUEST.gte, date1, REQUEST.lte, date2);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();

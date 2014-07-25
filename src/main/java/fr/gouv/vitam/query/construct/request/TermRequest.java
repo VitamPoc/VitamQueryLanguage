@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.query.construct.request;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -43,22 +44,85 @@ public class TermRequest extends Request {
         currentREQUEST = REQUEST.term;
         setReady(true);
     }
+    /**
+     * Term Request constructor
+     *
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException
+     */
+    public TermRequest(final String variableName, final long value) throws InvalidCreateOperationException {
+        super();
+        createRequestVariableValue(REQUEST.term, variableName, value);
+        currentREQUEST = REQUEST.term;
+        setReady(true);
+    }
+    /**
+     * Term Request constructor
+     *
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException
+     */
+    public TermRequest(final String variableName, final double value) throws InvalidCreateOperationException {
+        super();
+        createRequestVariableValue(REQUEST.term, variableName, value);
+        currentREQUEST = REQUEST.term;
+        setReady(true);
+    }
+    /**
+     * Term Request constructor
+     *
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException
+     */
+    public TermRequest(final String variableName, final boolean value) throws InvalidCreateOperationException {
+        super();
+        createRequestVariableValue(REQUEST.term, variableName, value);
+        currentREQUEST = REQUEST.term;
+        setReady(true);
+    }
+    /**
+     * Term Request constructor
+     *
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException
+     */
+    public TermRequest(final String variableName, final Date value) throws InvalidCreateOperationException {
+        super();
+        createRequestVariableValue(REQUEST.term, variableName, value);
+        currentREQUEST = REQUEST.term;
+        setReady(true);
+    }
 
     /**
      * Term Request constructor from Map
      *
      * @param variableNameValue
      */
-    public TermRequest(final Map<String, String> variableNameValue) {
+    public TermRequest(final Map<String, Object> variableNameValue) {
         super();
         currentObject = ((ObjectNode) currentObject).putObject(REQUEST.term.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
-        for (final Entry<String, String> entry : variableNameValue.entrySet()) {
+        for (final Entry<String, Object> entry : variableNameValue.entrySet()) {
             final String name = entry.getKey();
             if (name == null || name.trim().isEmpty()) {
                 continue;
             }
-            node.put(name.trim(), entry.getValue());
+            Object val = entry.getValue();
+            if (val instanceof Boolean) {
+                node.put(name.trim(), (Boolean) val);
+            } else if (val instanceof Long) {
+                node.put(name.trim(), (Long) val);
+            } else if (val instanceof Double) {
+                node.put(name.trim(), (Double) val);
+            } else if (val instanceof Date) {
+                node.put(name.trim(), val.toString());
+            } else {
+                node.put(name.trim(), val.toString());
+            }
         }
         currentREQUEST = REQUEST.term;
         setReady(true);
@@ -81,6 +145,86 @@ public class TermRequest extends Request {
             throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
         }
         ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+
+    /**
+     * Add other Term sub requests to Term Request
+     *
+     * @param variableName
+     * @param value
+     * @return the TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public final TermRequest addTermRequest(final String variableName, final long value) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.term) {
+            throw new InvalidCreateOperationException("Cannot add a term element since this is not a Term Request: "
+                    + currentREQUEST);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+
+    /**
+     * Add other Term sub requests to Term Request
+     *
+     * @param variableName
+     * @param value
+     * @return the TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public final TermRequest addTermRequest(final String variableName, final double value) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.term) {
+            throw new InvalidCreateOperationException("Cannot add a term element since this is not a Term Request: "
+                    + currentREQUEST);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+
+    /**
+     * Add other Term sub requests to Term Request
+     *
+     * @param variableName
+     * @param value
+     * @return the TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public final TermRequest addTermRequest(final String variableName, final boolean value) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.term) {
+            throw new InvalidCreateOperationException("Cannot add a term element since this is not a Term Request: "
+                    + currentREQUEST);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+        return this;
+    }
+
+    /**
+     * Add other Term sub requests to Term Request
+     *
+     * @param variableName
+     * @param value
+     * @return the TermRequest
+     * @throws InvalidCreateOperationException
+     */
+    public final TermRequest addTermRequest(final String variableName, final Date value) throws InvalidCreateOperationException {
+        if (currentREQUEST != REQUEST.term) {
+            throw new InvalidCreateOperationException("Cannot add a term element since this is not a Term Request: "
+                    + currentREQUEST);
+        }
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException("Request " + currentREQUEST + " cannot be updated with empty variable name");
+        }
+        ((ObjectNode) currentObject).put(variableName.trim(), value.toString());
         return this;
     }
 

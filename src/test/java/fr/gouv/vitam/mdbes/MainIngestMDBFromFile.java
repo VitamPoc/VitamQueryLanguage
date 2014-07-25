@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,6 +39,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
+import com.mongodb.WriteResult;
 import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
@@ -251,29 +254,59 @@ public class MainIngestMDBFromFile implements Runnable {
             final long date11 = System.currentTimeMillis();
             String strLine;
             int nb = 0;
-            BulkWriteOperation bulk = dbvitam.daips.collection.initializeUnorderedBulkOperation();
-            while ((strLine = br.readLine()) != null) {
-                final DBObject bson = (DBObject) JSON.parse(strLine);
-                bulk.insert(bson);
-                nb++;
-                if (nb % GlobalDatas.LIMIT_MDB_NEW_INDEX == 0) {
+            
+            if (false) {
+                // Tokumx
+                List<DBObject> inserts = new ArrayList<DBObject>(GlobalDatas.LIMIT_MDB_NEW_INDEX);
+                while ((strLine = br.readLine()) != null) {
+                    final DBObject bson = (DBObject) JSON.parse(strLine);
+                    inserts.add(bson);
+                    nb++;
+                    if (nb % GlobalDatas.LIMIT_MDB_NEW_INDEX == 0) {
+                        WriteResult result = dbvitam.daips.collection.insert(inserts);
+                        if (result.getN() != nb) {
+                            LOGGER.error("Wrong bulk op: "+result);
+                        }
+                        MainIngestFile.cptMaip.addAndGet(nb);
+                        inserts.clear();
+                        nb = 0;
+                        System.out.print(".");
+                    }
+                }
+                if (nb != 0) {
+                    WriteResult result = dbvitam.daips.collection.insert(inserts);
+                    if (result.getN() != nb) {
+                        LOGGER.error("Wrong bulk op: "+result);
+                    }
+                    MainIngestFile.cptMaip.addAndGet(nb);
+                    inserts.clear();
+                    nb = 0;
+                }
+            } else {
+                BulkWriteOperation bulk = dbvitam.daips.collection.initializeUnorderedBulkOperation();
+                while ((strLine = br.readLine()) != null) {
+                    final DBObject bson = (DBObject) JSON.parse(strLine);
+                    bulk.insert(bson);
+                    nb++;
+                    if (nb % GlobalDatas.LIMIT_MDB_NEW_INDEX == 0) {
+                        BulkWriteResult result = bulk.execute();
+                        bulk = dbvitam.daips.collection.initializeUnorderedBulkOperation();
+                        if (result.getInsertedCount() != nb) {
+                            LOGGER.error("Wrong bulk op: "+result);
+                        }
+                        MainIngestFile.cptMaip.addAndGet(nb);
+                        nb = 0;
+                        System.out.print(".");
+                    }
+                }
+                if (nb != 0) {
                     BulkWriteResult result = bulk.execute();
-                    bulk = dbvitam.daips.collection.initializeUnorderedBulkOperation();
                     if (result.getInsertedCount() != nb) {
                         LOGGER.error("Wrong bulk op: "+result);
                     }
                     MainIngestFile.cptMaip.addAndGet(nb);
                     nb = 0;
-                    System.out.print(".");
                 }
-            }
-            if (nb != 0) {
-                BulkWriteResult result = bulk.execute();
-                if (result.getInsertedCount() != nb) {
-                    LOGGER.error("Wrong bulk op: "+result);
-                }
-                MainIngestFile.cptMaip.addAndGet(nb);
-                nb = 0;
             }
             final long date12 = System.currentTimeMillis();
             loadt.addAndGet(date12 - date11);

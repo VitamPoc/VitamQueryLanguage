@@ -104,4 +104,8 @@ public final class GlobalDatas {
      * Shall we use SynchronizedLruCache for cache of results
      */
     public static final boolean USELRUCACHE = false;
+    /**
+     * Shall we use Redis for cache of results
+     */
+    public static final boolean USEREDIS = true;
 }

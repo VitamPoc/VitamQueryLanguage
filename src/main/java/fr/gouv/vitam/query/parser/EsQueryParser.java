@@ -434,7 +434,6 @@ public class EsQueryParser extends AbstractQueryParser {
                 if (!multiple) {
                     if (isAttributeNotAnalyzed(key) || isDate) {
                         tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val);
-                        // XXX FIXME tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
                     } else {
                         tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
                     }
@@ -442,7 +441,6 @@ public class EsQueryParser extends AbstractQueryParser {
                 }
                 if (isAttributeNotAnalyzed(key) || isDate) {
                     arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val);
-                    // XXX FIXME arrayES.addObject().putObject(ES_KEYWORDS.term.name()).put(key, val.toLowerCase());
                 } else {
                     arrayES.addObject().putObject(REQUEST.match_phrase_prefix.name()).put(key, val);
                 }
@@ -478,7 +476,6 @@ public class EsQueryParser extends AbstractQueryParser {
         final JsonNode node = entry.getValue();
         final String val = node.asText();
         tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.wildcard.name()).put(key, val);
-        // XXX FIXME tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.wildcard.name()).put(key, val.toLowerCase());
     }
 
     /**
@@ -508,16 +505,27 @@ public class EsQueryParser extends AbstractQueryParser {
         tr0.requestModel[ELASTICSEARCH] = JsonHandler.createObjectNode();
         String key = entry.getKey();
         JsonNode node = entry.getValue().findValue(ParserTokens.REQUESTARGS.date.exactToken());
+        boolean isDate = false;
         if (node == null) {
             node = entry.getValue();
         } else {
+            isDate = true;
             key += "." + ParserTokens.REQUESTARGS.date.exactToken();
         }
-        if (req == REQUEST.ne) {
-            tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
-                .putObject(ES_KEYWORDS.term.name()).set(key, node);
+        if (isAttributeNotAnalyzed(key) || isDate) {
+            if (req == REQUEST.ne) {
+                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
+                    .putObject(ES_KEYWORDS.term.name()).set(key, node);
+            } else {
+                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(key, node);
+            }
         } else {
-            tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.term.name()).set(key, node);
+            if (req == REQUEST.ne) {
+                tr0.requestModel[ELASTICSEARCH].putObject(ES_KEYWORDS.bool.name()).putObject(ES_KEYWORDS.must_not.name())
+                    .putObject(REQUEST.match_phrase_prefix.name()).set(key, node);
+            } else {
+                tr0.requestModel[ELASTICSEARCH].putObject(REQUEST.match_phrase_prefix.name()).set(key, node);
+            }
         }
     }
 

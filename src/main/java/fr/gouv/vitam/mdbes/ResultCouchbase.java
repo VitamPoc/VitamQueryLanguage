@@ -45,7 +45,7 @@ public class ResultCouchbase extends ResultAbstract {
     /**
      * Id of the result
      */
-    public String id;
+    public String id = null;
 
     protected ObjectNode node = JsonHandler.createObjectNode();
     
@@ -71,7 +71,7 @@ public class ResultCouchbase extends ResultAbstract {
      *
      * @param id
      */
-    public final void setId(final String id) {
+    public final void setId(final MongoDbAccess dbvitam, final String id) {
         this.id = id;
     }
     /**

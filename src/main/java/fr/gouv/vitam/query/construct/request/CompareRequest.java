@@ -17,6 +17,8 @@
  */
 package fr.gouv.vitam.query.construct.request;
 
+import java.util.Date;
+
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 
@@ -94,6 +96,34 @@ public class CompareRequest extends Request {
      * @throws InvalidCreateOperationException
      */
     public CompareRequest(final REQUEST compareRequest, final String variableName, final String value)
+            throws InvalidCreateOperationException {
+        super();
+        switch (compareRequest) {
+            case eq:
+            case gt:
+            case gte:
+            case lt:
+            case lte:
+            case ne: {
+                createRequestVariableValue(compareRequest, variableName, value);
+                currentREQUEST = compareRequest;
+                setReady(true);
+                break;
+            }
+            default:
+                throw new InvalidCreateOperationException("Request " + compareRequest + " is not an Compare Request");
+        }
+    }
+    /**
+     * Compare Request constructor
+     *
+     * @param compareRequest
+     *            lt, gt, lte, gte, eq, ne
+     * @param variableName
+     * @param value
+     * @throws InvalidCreateOperationException
+     */
+    public CompareRequest(final REQUEST compareRequest, final String variableName, final Date value)
             throws InvalidCreateOperationException {
         super();
         switch (compareRequest) {
