@@ -59,7 +59,7 @@ public final class GlobalDatas {
     /**
      * limit before using ES in 1 level only (set to -1 means use ES at all time)
      */
-    public static long limitES = -1;//10001;
+    public static long limitES = 10001;
     /**
      * limit for loading result
      */

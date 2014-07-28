@@ -87,6 +87,7 @@
 						"Sensitivy" : { "__type" : "liste", "__liste" : [ "Normal", "Personal", "Private", "Confidential" ] },
 						"SentDate" : { "__type" : "random", "__ftype" : "date" },
 						"RecvDate" : { "__type" : "random", "__ftype" : "date" },
+						"OldDate" : { "__type" : "liste", "__ftype" : "date", "__liste" : [ "1515-09-15T12:00:00.000Z", "0768-10-09T12:00:00.000Z", "0002-02-11T12:00:00.000Z" ] },
 						"Subject" : { "__type" : "random", "__ftype" : "chaine" },
 						"From" : { "__type" : "random", "__ftype" : "chaine" },
 						"Sender": { "__type" : "random", "__ftype" : "chaine" },

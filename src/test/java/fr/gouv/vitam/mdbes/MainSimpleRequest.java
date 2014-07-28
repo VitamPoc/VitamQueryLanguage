@@ -18,8 +18,11 @@
 package fr.gouv.vitam.mdbes;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.apache.log4j.PropertyConfigurator;
+import org.joda.time.DateTime;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
@@ -45,6 +48,7 @@ public class MainSimpleRequest {
 	private static MongoClient mongoClient = null;
 	private static final int MAXTHREAD = 1;
     private static String request;
+    private static String ids = null;
     private static String host = "localhost";
     private static String database = "VitamLinks";
     private static String esbase = "vitam";
@@ -81,6 +85,9 @@ public class MainSimpleRequest {
         if (args.length > 5) {
             request = args[5];
         }
+        if (args.length > 6) {
+            ids = args[6];
+        }
 		// connect to the local database server
         MongoDbAccess dbvitam = null;
         try {
@@ -114,13 +121,43 @@ public class MainSimpleRequest {
 	protected static void oneShot(MongoDbAccess dbvitam) throws InvalidParseOperationException, InvalidExecOperationException, InstantiationException, IllegalAccessException {
         // Requesting
 		String comdtree = request.toString();
-		BasicDBObject query = (BasicDBObject) JSON.parse(comdtree);
-		final DBCursor cursor = dbvitam.find(dbvitam.daips, query, ID_NBCHILD);
-        while (cursor.hasNext()) {
-            final DAip maip = (DAip) cursor.next();
-            maip.load(dbvitam);
-            System.out.println(maip);
-        }
-        cursor.close();
+        BasicDBObject query = (BasicDBObject) JSON.parse(comdtree);
+		if (ids != null) {
+		    BasicDBObject id = (BasicDBObject) JSON.parse(ids);
+		    DateTime date = new DateTime(-123456789012345L);
+            query = new BasicDBObject("OldDate", date.toDate());
+            System.out.println("Date: "+date+" upd: "+query+" => "+date.getYear());
+		    dbvitam.daips.collection.update(id, query);
+            final DBCursor cursor = dbvitam.daips.collection.find(id);
+            while (cursor.hasNext()) {
+                final DAip maip = (DAip) cursor.next();
+                maip.load(dbvitam);
+                System.out.println(maip);
+            }
+            cursor.close();
+            System.out.println("====");
+            date = date.plusYears(10);
+            id.append("OldDate", new BasicDBObject("$lt", date.toDate()));
+            System.out.println("Date: "+date+" find: "+id+" => "+date.getYear());
+            final DBCursor cursor2 = dbvitam.daips.collection.find(id);
+            while (cursor2.hasNext()) {
+                final DAip maip = (DAip) cursor2.next();
+                Date madate = maip.getDate("OldDate");
+                System.out.println("Madate: "+madate);
+                System.out.println("Madate: "+madate.getTime());
+                System.out.println("Madate: "+new DateTime(madate));
+                maip.load(dbvitam);
+                System.out.println(maip);
+            }
+            cursor2.close();
+		} else {
+    		final DBCursor cursor = dbvitam.find(dbvitam.daips, query, ID_NBCHILD);
+            while (cursor.hasNext()) {
+                final DAip maip = (DAip) cursor.next();
+                maip.load(dbvitam);
+                System.out.println(maip);
+            }
+            cursor.close();
+		}
 	}
 }

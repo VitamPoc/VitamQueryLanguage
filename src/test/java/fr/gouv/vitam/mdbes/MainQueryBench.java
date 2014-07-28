@@ -56,6 +56,10 @@ public class MainQueryBench implements Runnable {
 	private static AtomicLong tree = new AtomicLong();
     private static AtomicLong cachedepthmax = new AtomicLong();
     private static AtomicLong cachetree = new AtomicLong();
+    private static AtomicLong cachedepthmaxcount = new AtomicLong();
+    private static AtomicLong cachetreecount = new AtomicLong();
+    private static AtomicLong querydepthmaxcount = new AtomicLong();
+    private static AtomicLong querytreecount = new AtomicLong();
 
 	private static MongoClient mongoClient = null;
 	private static final int MAXTHREAD = 4;
@@ -149,6 +153,10 @@ public class MainQueryBench implements Runnable {
     				MainQueryBench.depthmax.set(0);
     				MainQueryBench.cachetree.set(0);
     				MainQueryBench.cachedepthmax.set(0);
+                    MainQueryBench.cachetreecount.set(0);
+                    MainQueryBench.cachedepthmaxcount.set(0);
+                    MainQueryBench.querydepthmaxcount.set(0);
+                    MainQueryBench.querytreecount.set(0);
     				cptMaip.set(0);
     				runOnce(dbvitam);
     			}
@@ -175,7 +183,7 @@ public class MainQueryBench implements Runnable {
 			return;
 		}
 		Thread.sleep(2000);
-		//if (true) return;
+		if (GlobalDatas.PRINT_REQUEST) return;
 		LOGGER.warn("requests\n================================================================================================================================");
 		executorService = Executors.newFixedThreadPool(nbThread);
 		//int step = 0;
@@ -216,7 +224,9 @@ public class MainQueryBench implements Runnable {
                 / ((float) nbload * maxRequestsDepth * repeatNb * nbThread)+"\n");
 		LOGGER.warn("ResultCached: "+dbvitam.getCacheSize()+":"+
                 (cachetree.get()/ ((float) nbload * repeatNb * nbThread))+
-                ":"+(cachedepthmax.get()/ ((float) nbload * repeatNb * nbThread)));
+                "["+cachetreecount.get()+":"+querytreecount.get()+"]"+
+                ":"+(cachedepthmax.get()/ ((float) nbload * repeatNb * nbThread))+
+                "["+cachedepthmaxcount.get()+":"+querydepthmaxcount.get()+"]");
 	}
 
 	protected static void oneShot(MongoDbAccess dbvitam) throws InvalidParseOperationException, InvalidExecOperationException, InstantiationException, IllegalAccessException {
@@ -328,6 +338,10 @@ public class MainQueryBench implements Runnable {
 			MainQueryBench.depthmax.addAndGet(date3 - date2 - extraTimes[1]);
             MainQueryBench.cachetree.addAndGet(commandTree.cacheRanks);
             MainQueryBench.cachedepthmax.addAndGet(commandDepth.cacheRanks);
+            MainQueryBench.cachetreecount.addAndGet(commandTree.cacheCount);
+            MainQueryBench.cachedepthmaxcount.addAndGet(commandDepth.cacheCount);
+            MainQueryBench.querytreecount.addAndGet(commandTree.queryCount);
+            MainQueryBench.querydepthmaxcount.addAndGet(commandDepth.queryCount);
 		} catch (InvalidExecOperationException e1) {
 			LOGGER.error(e1);
 		} catch (InvalidParseOperationException e1) {

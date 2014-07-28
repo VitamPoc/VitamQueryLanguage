@@ -78,9 +78,11 @@ public class TypeRequest {
      * @param nbModel
      *            the number of model supported
      */
-    public TypeRequest(final int nbModel) {
+    public TypeRequest() {
         isOnlyES = false;
         requestModel = null;
+        query = null;
+        filter = null;
     }
 
     @Override

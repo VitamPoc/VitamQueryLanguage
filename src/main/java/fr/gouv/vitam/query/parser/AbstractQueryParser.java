@@ -51,15 +51,6 @@ public abstract class AbstractQueryParser {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractQueryParser.class);
 
-    /**
-     * Default position of MongoDB element
-     */
-    public static final int MONGODB = 0;
-    /**
-     * Default position of ElasticSearch element
-     */
-    public static final int ELASTICSEARCH = 1;
-
     protected boolean usingMongoDb = false;
     protected boolean usingCouchBase = false;
     protected boolean usingElasticSearch = false;
@@ -77,14 +68,12 @@ public abstract class AbstractQueryParser {
 
     protected boolean simulate = false;
     protected int lastDepth = 0;
-    protected int nbModel;
 
     /**
      * @param simul
      */
     public AbstractQueryParser(final boolean simul) {
         simulate = simul;
-        nbModel = 2;
     }
 
     /**
@@ -327,6 +316,14 @@ public abstract class AbstractQueryParser {
                 isDepth = true;
             }
         }
+        // Root may be empty: ok since it means validate all "start nodes"
+        if (command.size() == 0) {
+            TypeRequest tr = new TypeRequest();
+            tr.requestModel = JsonHandler.createObjectNode();
+            tr.type = REQUEST._all_;
+            getRequests().add(tr);
+            return;
+        }
         // now single element
         final Entry<String, JsonNode> requestItem = JsonHandler.checkUnicity("RootRequest", command);
         TypeRequest tr = null;
@@ -381,7 +378,7 @@ public abstract class AbstractQueryParser {
      */
     protected final TypeRequest analyzePath(final String refCommand, final JsonNode command)
             throws InvalidParseOperationException {
-        final TypeRequest tr0 = new TypeRequest(nbModel);
+        final TypeRequest tr0 = new TypeRequest();
         final REQUEST req = getRequestId(refCommand);
         tr0.type = req;
         if (command == null) {
@@ -411,7 +408,7 @@ public abstract class AbstractQueryParser {
 
     protected TypeRequest analyzeOneCommand(final String refCommand, final JsonNode command)
             throws InvalidParseOperationException {
-        final TypeRequest tr0 = new TypeRequest(nbModel);
+        final TypeRequest tr0 = new TypeRequest();
         final REQUEST req = getRequestId(refCommand);
         tr0.type = req;
         switch (req) {

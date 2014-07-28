@@ -1,5 +1,5 @@
 [	{ "model" : "courriel" },
-    {	"$term" : { "Fonds" : "ArchivesNationales" } },
+    {	 },
     {   "$term" : { "Subfonds" : "Courriel" } },
 	{	"$term" : { "NOMPJ" : "##fullname##" }, "$relativedepth" : 4,
 		"vary" : [ {"__name" : "##none##", "__type" : "setdistrib"}, 

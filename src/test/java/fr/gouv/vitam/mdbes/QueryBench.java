@@ -302,6 +302,8 @@ public class QueryBench extends MdEsQueryParser {
     List<JsonNode> levelRequests = new ArrayList<JsonNode>();
     String model;
     long cacheRanks = 0;
+    long queryCount = 0;
+    long cacheCount = 0;
     
 	/**
 	 * @param simul
@@ -556,6 +558,8 @@ public class QueryBench extends MdEsQueryParser {
         startSet.putBeforeSave();
         List<ResultInterface> list = dbrequest.execQuery(executeParser, startSet);
         cacheRanks += dbrequest.getLastCacheRank();
+        cacheCount += dbrequest.getLastCacheQueryCount();
+        queryCount += dbrequest.getLastRealExecutedQueryCount();
         return list;
 	}
 	

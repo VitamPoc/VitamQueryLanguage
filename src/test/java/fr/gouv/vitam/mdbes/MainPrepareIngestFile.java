@@ -18,29 +18,21 @@
 package fr.gouv.vitam.mdbes;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.PropertyConfigurator;
-import org.bson.BSONObject;
 
+import com.mongodb.DBCursor;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
-import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
@@ -58,39 +50,8 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * @author "Frederic Bregier"
  *
  */
-@SuppressWarnings("javadoc")
-public class MainIngestFile implements Runnable {
+public class MainPrepareIngestFile extends MainIngestFile {
     private static VitamLogger LOGGER = null;
-
-    protected static AtomicLong loadt = new AtomicLong(0);
-    protected static AtomicLong mongoLoad = new AtomicLong(0);
-
-    protected static MongoClient mongoClient = null;
-    protected static int MAXTHREAD = 1;
-
-    protected static boolean simulate = false;
-    protected static String ingest;
-    protected static String model;
-    protected static int startFrom = 0;
-    protected static String host = "localhost";
-    protected static String database = "VitamLinks";
-    protected static String esbase = "vitam";
-    protected static String unicast = "mdb002, mdb003, mdb004";
-    protected static String commandMongo = null;
-    protected static String fileout = null;
-    protected static List<File> files = new ArrayList<File>();
-
-    protected ParserIngest parserIngest;
-    protected int start, stop;
-
-    protected static int nb = 400;
-    protected static int firstLevel = 10;// was 100
-    protected static int lastLevel = 1000; // was 1000
-    protected static float nbr = 100; // could enhance the number of request with 1000
-    protected static long waitBetweenQuery = 200; // could be used to simulate Little's law, for instance = 100ms
-    protected static int minleveltofile = 0;
-    protected static AtomicLong cptMaip = new AtomicLong();
-    protected static int nbThread = 1;
 
     /**
      * Will save to a File and to ElasticSearch, then to MongoDB
@@ -126,7 +87,7 @@ public class MainIngestFile implements Runnable {
         final String log4j = args[0];
         PropertyConfigurator.configure(log4j);
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
-        LOGGER = VitamLoggerFactory.getInstance(MainIngestFile.class);
+        LOGGER = VitamLoggerFactory.getInstance(MainPrepareIngestFile.class);
         boolean reindex = false;
         if (args.length > 1) {
             reindex = args[1].equals("index");
@@ -213,11 +174,6 @@ public class MainIngestFile implements Runnable {
             loadt = new AtomicLong(0);
             cptMaip.set(0);
             runOnce(dbvitam);
-            // Continue with MongoDB Loading if setup
-            if (commandMongo != null) {
-                System.out.println("Launch MongoImport");
-                runOnceMongo(dbvitam, stopindex);
-            }
         } catch (Exception e) {
             LOGGER.error(e);
         } finally {
@@ -233,39 +189,15 @@ public class MainIngestFile implements Runnable {
 
     }
 
-    protected static final class ToClean implements Runnable {
-        MongoDbAccess dbvitam;
-
-        protected ToClean(final MongoDbAccess dbvitam) {
-            this.dbvitam = dbvitam;
-        }
-
-        @Override
-        public void run() {
-            dbvitam.close();
-            mongoClient.close();
-        }
-
-    }
-
-    protected static final class ToShutdown implements Runnable {
-
-        @Override
-        public void run() {
-            System.exit(0);
-        }
-
-    }
-
     private static final void runOnce(final MongoDbAccess dbvitam) throws InterruptedException, InstantiationException,
     IllegalAccessException, IOException {
-        MainIngestFile ingests = null;
+        MainPrepareIngestFile ingests = null;
         nb = nb / nbThread;
         int step = startFrom;
         final int interval = nb;
         LOGGER.warn("Load starting... " + nbThread + ":" + nb + ":" + interval);
         for (int i = 0; i < nbThread; i++) {
-            ingests = new MainIngestFile();
+            ingests = new MainPrepareIngestFile();
             ingests.start = step;
             ingests.stop = step + interval - 1;
             step += interval;
@@ -273,20 +205,27 @@ public class MainIngestFile implements Runnable {
         }
         System.out.println("Load ended");
         final FileOutputStream outputStream = new FileOutputStream(fileout);
-        final Map<String, String> esIndex = new HashMap<String, String>();
         for (DAip daip : ParserIngest.savedDaips.values()) {
-            daip.load(dbvitam);
+            daip = DAip.findOne(dbvitam, daip.getId());
+            //daip.load(dbvitam);
             daip.toFile(outputStream);
-            final BSONObject bson = (BSONObject) JSON.parse(daip.toStringDirect());
-            ElasticSearchAccess.addEsIndex(dbvitam, model, esIndex, bson);
         }
         outputStream.close();
-        if (!esIndex.isEmpty()) {
-            MainIngestFile.cptMaip.addAndGet(esIndex.size());
-            System.out.println("Last bulk ES");
-            dbvitam.addEsEntryIndex(true, esIndex, model);
-            esIndex.clear();
+
+        final FileOutputStream outputStreamDomain = new FileOutputStream(fileout+".domain.json");
+        Domain domain = null;
+        DBCursor cursor = dbvitam.domains.collection.find();
+        while (cursor.hasNext()) {
+            domain = (Domain) cursor.next();
+            String toprint = domain.toStringDirect() + "\n";
+            try {
+                outputStreamDomain.write(toprint.getBytes());
+            } catch (final IOException e) {
+                LOGGER.error("Cannot save to File", e);
+            }
+            toprint = null;
         }
+        outputStreamDomain.close();
 
         /*
          * System.out.println("All elements\n================================================================");
@@ -317,7 +256,7 @@ public class MainIngestFile implements Runnable {
             parserIngest.bufferedOutputStream = new BufferedOutputStream(outputStream);
             System.out.println("Start to File: "+filename);
             parserIngest.parse(ingest);
-            parserIngest.executeToFile(dbvitam, start, stop, true);
+            parserIngest.executeToFile(dbvitam, start, stop, false);
             final long date12 = System.currentTimeMillis();
             loadt.addAndGet(date12 - date11);
             cptMaip.addAndGet(parserIngest.getTotalCount());
@@ -355,107 +294,6 @@ public class MainIngestFile implements Runnable {
             if (dbvitam != null) {
                 dbvitam.close();
             }
-        }
-    }
-
-    private static final void runOnceMongo(final MongoDbAccess dbvitam, final boolean stopindex) throws InterruptedException,
-    InstantiationException, IllegalAccessException, IOException {
-        if (stopindex) {
-            dbvitam.removeIndexBeforeImport();
-        }
-        final MongoRunImport[] ingests = new MongoRunImport[nbThread];
-        ExecutorService executorService = null;
-        executorService = Executors.newFixedThreadPool(nbThread);
-        System.out.print("Load starting... " + nbThread + ":" + nb);
-        for (int i = 1; i < nbThread; i++) {
-            ingests[i] = new MongoRunImport();
-            ingests[i].file = files.get(i);
-            executorService.execute(ingests[i]);
-        }
-        Thread.sleep(1000);
-        executorService.shutdown();
-        while (!executorService.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
-            ;
-        }
-        System.out.println("Load ended");
-        final long start = System.currentTimeMillis();
-        if (stopindex) {
-            dbvitam.resetIndexAfterImport();
-        }
-        final long stop = System.currentTimeMillis();
-        System.out.println("End of MongoImport MaipES:MaipMD:MaipReindex:MaipTotal:MAIP/s");
-        System.out.println("End of MongoImport " + (loadt.get()) / ((float) cptMaip.get()) + ":" + (mongoLoad.get())
-                / ((float) cptMaip.get()) + ":" + (stop - start) / ((float) cptMaip.get()) + ":"
-                + (loadt.get() + mongoLoad.get() + stop - start) / ((float) cptMaip.get()) + ":"
-                + (cptMaip.get() / ((double) (loadt.get() + mongoLoad.get() + stop - start))));
-    }
-
-    private static class MongoRunImport implements Runnable {
-        private File file;
-
-        @Override
-        public void run() {
-            final long date11 = System.currentTimeMillis();
-            System.out.println("Launch MongoImport");
-            final Runtime runtime = Runtime.getRuntime();
-            final String cmd = commandMongo + " -h " + host + " -d VitamLinks -c DAip --upsert --file " + file.getAbsolutePath();
-            System.out.println("after removing index, start cmd: " + cmd);
-            final Process process;
-            try {
-                process = runtime.exec(cmd);
-            } catch (final IOException e1) {
-                // TODO Auto-generated catch block
-                LOGGER.error(e1);
-                return;
-            }
-            // Consommation de la sortie standard de l'application externe dans un Thread separe
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                        String line = "";
-                        try {
-                            while ((line = reader.readLine()) != null) {
-                                System.out.println(line);
-                                // Traitement du flux de sortie de l'application si besoin est
-                            }
-                        } finally {
-                            reader.close();
-                        }
-                    } catch (final IOException ioe) {
-                        LOGGER.error(ioe);
-                    }
-                }
-            }.start();
-
-            // Consommation de la sortie d'erreur de l'application externe dans un Thread separe
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                        String line = "";
-                        try {
-                            while ((line = reader.readLine()) != null) {
-                                System.err.println(line);
-                                // Traitement du flux d'erreur de l'application si besoin est
-                            }
-                        } finally {
-                            reader.close();
-                        }
-                    } catch (final IOException ioe) {
-                        LOGGER.error(ioe);
-                    }
-                }
-            }.start();
-            try {
-                process.waitFor();
-            } catch (final InterruptedException e) {
-                LOGGER.error(e);
-            }
-            final long date12 = System.currentTimeMillis();
-            mongoLoad.addAndGet(date12 - date11);
         }
     }
 }

@@ -54,6 +54,7 @@ public class MainIngestESFromFile {
     public static String host = "localhost";
     public static String esbase = "vitam";
     public static String unicast = "mdb002, mdb003, mdb004";
+    
 
     /**
      * @param args
@@ -89,11 +90,13 @@ public class MainIngestESFromFile {
             dbvitam.updateEsIndex(model);
             MainIngestESFromFile.loadt = new AtomicLong(0);
             MainIngestFile.cptMaip.set(0);
-            for (int i = 5; i < args.length; i++) {
+            for (int i = 5; i < args.length-1; i++) {
                 System.out.println("Load "+args[i]);
-                runOnce(dbvitam, args[i]);
+                runOnce(dbvitam, args[i], true);
             }
-
+            int i = args.length-1;
+            System.out.println("Load "+args[i]);
+            runOnce(dbvitam, args[i], false);
         } catch (final Exception e) {
             System.err.println("ERROR: " + e.getMessage());
             e.printStackTrace();
@@ -135,7 +138,7 @@ public class MainIngestESFromFile {
 
     }
 
-    private static final void runOnce(final MongoDbAccess dbvitam, final String file) throws InterruptedException, InstantiationException,
+    private static final void runOnce(final MongoDbAccess dbvitam, final String file, boolean insert) throws InterruptedException, InstantiationException,
     IllegalAccessException, IOException {
         System.out.println("Load starting... ");
 
@@ -149,8 +152,13 @@ public class MainIngestESFromFile {
         // Read File Line By Line
         while ((strLine = br.readLine()) != null) {
             final BSONObject bson = (BSONObject) JSON.parse(strLine);
-            final int nbEs = ElasticSearchAccess.addEsIndex(dbvitam, model, esIndex, bson);
-            MainIngestFile.cptMaip.addAndGet(nbEs);
+            if (insert) {
+                final int nbEs = ElasticSearchAccess.addEsIndex(dbvitam, model, esIndex, bson);
+                MainIngestFile.cptMaip.addAndGet(nbEs);
+            } else {
+                ElasticSearchAccess.addEsIndex(dbvitam, model, bson);
+                MainIngestFile.cptMaip.incrementAndGet();
+            }
         }
         // Close the input stream
         br.close();

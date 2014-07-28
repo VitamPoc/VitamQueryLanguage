@@ -54,7 +54,13 @@ public class RedisAccess {
                 pool = new JedisPool(jedisPoolConfig, host);
             }
         }
-        jedis = pool.getResource();
+        try {
+            jedis = pool.getResource();
+        } catch (Exception e) {
+            LOGGER.error("Could not connect to jedis", e);
+            jedis = null;
+            finalClose();
+        }
         /*try {
             md = MessageDigest.getInstance("SHA-512");
         } catch (NoSuchAlgorithmException e) {
@@ -88,6 +94,9 @@ public class RedisAccess {
      * @return the number of ResultCached documents
      */
     public final long getCount() {
+        if (jedis == null) {
+            return 0;
+        }
         //LOGGER.warn(jedis.info("Keyspace"));
         return jedis.dbSize();
     }
@@ -110,6 +119,9 @@ public class RedisAccess {
      * @return True if this item exists
      */
     public final boolean exists(final String id) {
+        if (jedis == null) {
+            return false;
+        }
         final String nid = createDigest(id);
         return jedis.exists(nid);
     }
@@ -120,6 +132,9 @@ public class RedisAccess {
      * or if not found
      */
     public final JsonNode getFromId(final String id) {
+        if (jedis == null) {
+            return null;
+        }
         final String nid = createDigest(id);
         String value = jedis.get(nid);
         if (value == null)
@@ -139,6 +154,9 @@ public class RedisAccess {
      * @return True if OK
      */
     public final boolean setToId(final String id, final JsonNode node, final int ttl) {
+        if (jedis == null) {
+            return true;
+        }
         final String nid = createDigest(id);
         String value = node.toString();
         String status = jedis.set(nid, value);

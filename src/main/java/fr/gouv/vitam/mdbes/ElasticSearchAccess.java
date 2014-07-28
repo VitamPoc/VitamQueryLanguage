@@ -30,6 +30,7 @@ import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -178,8 +179,8 @@ public class ElasticSearchAccess {
                 // Will keep DAIPDEPTHS and NBCHILD as value to get (_id is implicit)
                 // Change since DAIPDEPTHS not useful as source
                 // " : { _source : { includes : [\""+DAip.DAIPDEPTHS+".*\", \""+DAip.NBCHILD+"\"] },"+
-                " : { _source : { includes : [\"" 
-                + DAip.NBCHILD + "\"] },"
+                " : { "
+                + "_source : { includes : [\"" + DAip.NBCHILD + "\"] },"
                 +
                 // DAIPDEPTHS will not be parsed and analyzed since it cannot be requested efficiently { UUID1 : depth2, UUID2 :
                 // depth2 }
@@ -230,15 +231,17 @@ public class ElasticSearchAccess {
      * @return True if ok
      */
     public final boolean addEntryIndex(final String indexName, final String type, final String id, final String json) {
-        return client.prepareIndex(indexName, type, id).setSource(json).execute().actionGet().getVersion() > 0;
+        return client.prepareIndex(indexName, type, id).setSource(json).setOpType(OpType.INDEX).execute().actionGet().getVersion() > 0;
     }
 
     private final ListenableActionFuture<BulkResponse> addEntryIndexesInternal(final String indexName, final String type, final Map<String, String> mapIdJson) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        bulkRequest.setRefresh(false);
+        //bulkRequest.setRefresh(false);
         // either use client#prepare, or use Requests# to directly build index/delete requests
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey()).setSource(val.getValue()));
+            bulkRequest.add(client.prepareIndex(indexName, type, val.getKey()).setSource(val.getValue())
+                    //.setOpType(OpType.INDEX)
+                    );
         }
 
         return bulkRequest.execute(); // new thread
@@ -249,11 +252,10 @@ public class ElasticSearchAccess {
      * @param indexName
      * @param type
      * @param mapIdJson
-     * @return True if ok
+     * @return the listener on bulk insert
      */
-    public final boolean addEntryIndexes(final String indexName, final String type, final Map<String, String> mapIdJson) {
-        addEntryIndexesInternal(indexName, type, mapIdJson);
-        return true;
+    public final ListenableActionFuture<BulkResponse> addEntryIndexes(final String indexName, final String type, final Map<String, String> mapIdJson) {
+        return addEntryIndexesInternal(indexName, type, mapIdJson);
     }
 
     /**
@@ -266,6 +268,9 @@ public class ElasticSearchAccess {
      */
     public final boolean addEntryIndexesBlocking(final String indexName, final String type, final Map<String, String> mapIdJson) {
         final BulkResponse bulkResponse = addEntryIndexesInternal(indexName, type, mapIdJson).actionGet();
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("ES previous insert in error: "+bulkResponse.buildFailureMessage());
+        }
         return !bulkResponse.hasFailures();
         // Should process failures by iterating through each bulk response item
     }
@@ -325,7 +330,7 @@ public class ElasticSearchAccess {
             dbvitam.addEsEntryIndex(indexes, model);
             // dbvitam.flushOnDisk();
             indexes.clear();
-            System.out.print(".");
+            System.out.print("o");
         }
         maip.clear();
         maip = null;
@@ -623,7 +628,7 @@ public class ElasticSearchAccess {
             LOGGER.warn("Warning, more than " + GlobalDatas.limitLoad + " hits: " + hits.getTotalHits());
         }
         if (hits.getTotalHits() == 0) {
-            LOGGER.info("No result from : " + request);
+            LOGGER.error("No result from : " + request);
             return null;
         }
         long nb = 0;

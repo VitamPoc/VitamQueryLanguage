@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
+import org.elasticsearch.action.ListenableActionFuture;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 
@@ -68,6 +70,7 @@ public class MongoDbAccess {
     protected VitamCollection duarefs = null;
     protected VitamCollection requests = null;
     private ElasticSearchAccess es = null;
+    private ListenableActionFuture<BulkResponse> bulkResponseListener = null;
     protected CouchbaseAccess cba = null;
     protected RedisAccess ra = null;
     protected MessageDigest md;
@@ -693,18 +696,32 @@ public class MongoDbAccess {
         addEsEntryIndex(GlobalDatas.BLOCKING, indexes, model);
     }
 
+    private final void checkPreviousBulkEs() {
+        synchronized (this) {
+            if (bulkResponseListener != null) {
+                BulkResponse response = bulkResponseListener.actionGet();
+                if (response.hasFailures()) {
+                    LOGGER.error("ES previous insert in error: "+response.buildFailureMessage());
+                }
+                bulkResponseListener = null;
+            }
+        }
+    }
     /**
      * Add indexes to ES model
      *
      * @param blocking
      * @param indexes
      * @param model
+     * @return True if done (and if blocking)
      */
-    public final void addEsEntryIndex(final boolean blocking, final Map<String, String> indexes, final String model) {
+    public final boolean addEsEntryIndex(final boolean blocking, final Map<String, String> indexes, final String model) {
+        checkPreviousBulkEs();
         if (blocking) {
-            es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
+            return es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
         } else {
-            es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
+            bulkResponseListener = es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
+            return true;
         }
     }
 

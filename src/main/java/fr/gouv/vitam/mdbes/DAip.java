@@ -213,14 +213,7 @@ public class DAip extends VitamType {
             }
         }
         append(NBCHILD, nb);
-        String toprint = toStringDirect() + "\n";
-        try {
-            outputStream.write(toprint.getBytes());
-        } catch (final IOException e) {
-            LOGGER.error("Cannot save to File", e);
-        }
-        toprint = null;
-        LOGGER.debug("{}", this);
+        toFile(outputStream);
     }
 
     /**
@@ -237,7 +230,6 @@ public class DAip extends VitamType {
             LOGGER.error("Cannot save to File", e);
         }
         toprint = null;
-        LOGGER.debug("{}", this);
     }
 
     @Override

@@ -250,7 +250,11 @@ public class ParserTokens {
          * Selects a node by its exact path (succession of ids)
          * $path : [ id1, id2, ... ]
          */
-        path;
+        path,
+        /**
+         * Special ALL for root
+         */
+        _all_;
 
         /**
          * @return the exact token to be used in Mongo ($+code)

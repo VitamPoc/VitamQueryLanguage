@@ -42,6 +42,7 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.query.parser.AbstractQueryParser;
+import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 import fr.gouv.vitam.query.parser.TypeRequest;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
@@ -65,6 +66,8 @@ public class DbRequest {
     boolean simulate = true;
     boolean defaultUseCache = false;
     int lastCacheRankUsed = -1;
+    int lastRealExecutedQueryCount = 0;
+    int lastCachedQueryCount = 0;
     
     /**
      * @param mongoClient
@@ -129,6 +132,20 @@ public class DbRequest {
         this.defaultUseCache = useCache;
     }
 
+    /**
+     * @return the lastCacheQueryCount
+     */
+    public int getLastCacheQueryCount() {
+        return lastCachedQueryCount;
+    }
+
+    /**
+     * @return the lastRealExecutedQueryCount
+     */
+    public int getLastRealExecutedQueryCount() {
+        return lastRealExecutedQueryCount;
+    }
+
     private static final void computeKey(final StringBuilder curId, final String source) {
         curId.append(source);
     }
@@ -180,6 +197,7 @@ public class DbRequest {
             }
             result = result2;
         }
+        lastCachedQueryCount += (lastCacheRank+1);
         // Now from the lastlevel cached+1, execute each and every request
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("Start Request from level: "+lastCacheRank+":"+list.size()+"\n\tStartup: "+result);
@@ -189,6 +207,7 @@ public class DbRequest {
             // Execute first one with StartSet
             final TypeRequest request = query.getRequests().get(0);
             result = executeRequest(request, result, true);
+            lastRealExecutedQueryCount++;
             lastCacheRank++;
             computeKey(curId, query.getSources().get(0));
             result.setId(mdAccess, curId.toString());
@@ -209,7 +228,14 @@ public class DbRequest {
             if (GlobalDatas.PRINT_REQUEST) {
                 LOGGER.warn("Rank: "+rank+"\n\tPrevious: "+result+"\n\tRequest: "+request);
             }
+            if (request.type == REQUEST._all_) {
+                LOGGER.error("Empty Request not allowed at rank: "+rank + " from "+request+" \n\twhere previous is "+result);
+                // clear also the list since no result
+                list.clear();
+                break;
+            }
             final ResultInterface newResult = executeRequest(request, result, false);
+            lastRealExecutedQueryCount++;
             if (newResult != null && !newResult.getCurrentDaip().isEmpty()) {
                 // Compute next id
                 computeKey(curId, query.getSources().get(rank));
@@ -276,6 +302,21 @@ public class DbRequest {
             startupNodes.add(UUID.getLastAsString(string));
         }
         final TypeRequest subrequest = query.getRequests().get(0);
+        if (subrequest.type == REQUEST._all_) {
+            // validate all startup nodes
+            // build the cache id
+            computeKey(curId, startup.getCurrentDaip().toString());
+            String newId = curId.toString();
+            final ResultInterface start = MongoDbAccess.createOneResult(startup.getCurrentDaip());
+            start.setId(mdAccess, newId);
+            start.updateMinMax();
+            list.add(start);
+            if (debug) {
+                start.putBeforeSave();
+                LOGGER.debug("CacheResult: ({}) {}\n\t{}", 0, start, start.getCurrentDaip());
+            }
+            return start;
+        }
         if (subrequest.refId != null && !subrequest.refId.isEmpty()) {
             // Path request
             // ignore previous steps since results already known

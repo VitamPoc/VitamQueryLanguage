@@ -27,8 +27,10 @@ import java.util.Set;
 import org.elasticsearch.index.query.BoolFilterBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.SimpleQueryStringFlag;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -515,19 +517,18 @@ public class EsQueryParser extends AbstractQueryParser {
                 ((BoolQueryBuilder)tr0.query).must(QueryBuilders.termQuery(key, getAsObject(node)));
             } else {
                 final String val = node.asText();
+                QueryBuilder query = null;
+                if (isAttributeNotAnalyzed(key) || isDate) {
+                    query = QueryBuilders.termQuery(key, val);
+                } else {
+                    query = QueryBuilders.simpleQueryString("\""+val+"\"").field(key).flags(SimpleQueryStringFlag.PHRASE);
+                    //tr0.query = QueryBuilders.matchPhrasePrefixQuery(key, val).maxExpansions(0);
+                }
                 if (!multiple) {
-                    if (isAttributeNotAnalyzed(key) || isDate) {
-                        tr0.query = QueryBuilders.termQuery(key, val);
-                    } else {
-                        tr0.query = QueryBuilders.matchPhrasePrefixQuery(key, val).maxExpansions(0);
-                    }
+                    tr0.query = query;
                     return;
                 }
-                if (isAttributeNotAnalyzed(key) || isDate) {
-                    ((BoolQueryBuilder)tr0.query).must(QueryBuilders.termQuery(key, val));
-                } else {
-                    ((BoolQueryBuilder)tr0.query).must(QueryBuilders.matchPhrasePrefixQuery(key, val).maxExpansions(0));
-                }
+                ((BoolQueryBuilder)tr0.query).must(query);
             }
         }
     }
@@ -600,7 +601,8 @@ public class EsQueryParser extends AbstractQueryParser {
                 tr0.query = QueryBuilders.boolQuery().mustNot(tr0.query);
             }
         } else {
-            tr0.query = QueryBuilders.matchPhrasePrefixQuery(key, getAsObject(node)).maxExpansions(0);
+            tr0.query = QueryBuilders.simpleQueryString("\""+getAsObject(node)+"\"").field(key).flags(SimpleQueryStringFlag.PHRASE);
+            //tr0.query = QueryBuilders.matchPhrasePrefixQuery(key, getAsObject(node)).maxExpansions(0);
             if (req == REQUEST.ne) {
                 tr0.query = QueryBuilders.boolQuery().mustNot(tr0.query);
             }

@@ -18,7 +18,6 @@
 package fr.gouv.vitam.mdbes;
 
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollections;
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
-import fr.gouv.vitam.utils.FileUtil;
 import fr.gouv.vitam.utils.GlobalDatas;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
@@ -748,11 +746,12 @@ public class ParserIngest {
      * @param dbvitam
      * @param start
      * @param stop
-     * @return
+     * @param saveEs True means save to ES
+     * @return the number of element inserted
      * @throws InvalidExecOperationException
      * @throws InvalidUuidOperationException
      */
-    public long executeToFile(final MongoDbAccess dbvitam, final int start, final int stop) throws InvalidExecOperationException,
+    public long executeToFile(final MongoDbAccess dbvitam, final int start, final int stop, final boolean saveEs) throws InvalidExecOperationException,
     InvalidUuidOperationException {
         if (simulate) {
             return executeSimulate(start, stop);
@@ -795,7 +794,10 @@ public class ParserIngest {
         ArrayList<DAip> listmetaaips;
         final HashMap<String, Integer> subdepth = new HashMap<>();
         subdepth.put(domobj.getId(), 1);
-        final HashMap<String, String> esIndex = new HashMap<>();
+        HashMap<String, String> esIndex = null;
+        if (saveEs) {
+            esIndex = new HashMap<>();            
+        }
         try {
             listmetaaips = execDAipNewToFile(null, subdepth, esIndex, 1, occurence, lstart, lstop, cpt, fields);
         } catch (InstantiationException | IllegalAccessException e) {
@@ -809,22 +811,26 @@ public class ParserIngest {
         if (listmetaaips != null && !listmetaaips.isEmpty()) {
             if (MainIngestFile.minleveltofile > 1) {
                 domobj.addDAip(dbvitam, listmetaaips);
+                System.out.println("To be saved: "+listmetaaips.size());
                 for (DAip dAip : listmetaaips) {
-                    dAip.addEsIndex(dbvitam, esIndex, model);
                     savedDaips.put(dAip.getId(), dAip);
                 }
             } else {
                 // XXX NO SAVE OF MAIP!
                 domobj.addDAipNoSave(dbvitam, bufferedOutputStream, listmetaaips);
+                if (saveEs) {
+                    for (DAip dAip : listmetaaips) {
+                        final BSONObject bson = (BSONObject) JSON.parse(dAip.toStringDirect());
+                        ElasticSearchAccess.addEsIndex(dbvitam, model, esIndex, bson);
+                    }
+                }
             }
             domobj.save(dbvitam);
             listmetaaips.clear();
             listmetaaips = null;
         }
-        if (!esIndex.isEmpty()) {
-            if (GlobalDatas.PRINT_REQUEST) {
-                System.out.println("Last bulk ES");
-            }
+        if (saveEs && !esIndex.isEmpty()) {
+            System.out.println("Last bulk ES");
             dbvitam.addEsEntryIndex(true, esIndex, model);
             esIndex.clear();
         }
@@ -914,7 +920,10 @@ public class ParserIngest {
                         listmetaaips.add(metaaip2);
                     }
                     metaaip2.save(dbvitam);
-                    metaaip2.addEsIndex(dbvitam, esIndex, model);
+                    if (esIndex != null) {
+                        final BSONObject bson = (BSONObject) JSON.parse(maip.toStringDirect());
+                        ElasticSearchAccess.addEsIndex(dbvitam, model, esIndex, bson);
+                    }
                     continue;
                 }
             }
@@ -952,18 +961,6 @@ public class ParserIngest {
                     listsubmetaaips.clear();
                     listsubmetaaips = null;
                 }
-                /*
-                 * if (listsubmetaaips != null && ! listsubmetaaips.isEmpty()) {
-                 * maip.addMetaAip(dbvitam, listsubmetaaips);
-                 * listsubmetaaips.clear();
-                 * } else if (occurence2.notempty && metaCreated) {
-                 * // should not be empty so delete it if created
-                 * maip.delete(dbvitam.metaaips);
-                 * //System.out.println("removed: "+maip.refid);
-                 * continue;
-                 * }
-                 * listsubmetaaips = null;
-                 */
             } else {
                 // now check data
                 if (paips != null) {
@@ -1002,7 +999,10 @@ public class ParserIngest {
                 listmetaaips.add(maip);
             } else if (father != null && ! fromDatabase) {
                 maip.saveToFile(dbvitam, bufferedOutputStream);
-                maip.addEsIndex(dbvitam, esIndex, model);
+                if (esIndex != null) {
+                    final BSONObject bson = (BSONObject) JSON.parse(maip.toStringDirect());
+                    ElasticSearchAccess.addEsIndex(dbvitam, model, esIndex, bson);
+                }
             }
         }
         return listmetaaips;
@@ -1330,42 +1330,5 @@ public class ParserIngest {
             sb.append(AB.charAt(rnd.nextInt(AB.length())));
         }
         return sb.toString();
-    }
-
-    private static final String example = "{ Domain: 'domainName', __model : 'modelName',"
-            + " DAip : [ { __occur : 100},	{ champ1 : 'chaine', champ2 : { __type : 'liste', __liste : [ 'val1', 'val2' ] } },"
-            + " { DAip : [ { __occur : 1000, __idcpt : 'moncpt' }, { champ3 : { __type : 'serie', __serie : { __prefix : 'Pref_', __idcpt : 'moncpt', __modulo: 100 } } },"
-            + " { DAip : [ { __occur : 10 }, { champ4 : { __type : 'listeorder', __listeorder : [ 'val3', 'val4' ] }, "
-            + " champ5 : { __type : 'serie', __serie : { __prefix : 'do_' } },"
-            + " champ6 : { __type : 'subfield', __subfield : { subchamp : { __type : 'chaine' } } } },"
-            + " { PAip : { champ7 : 'chaine' } } ] } ] } ] }";
-
-    public static void main(final String[] args) {
-        String ingest = example;
-        if (args.length < 1) {
-            System.err.println("Need a file ingest as argument => will use default test example");
-        } else {
-            try {
-                ingest = FileUtil.readFile(args[0]);
-            } catch (final IOException e) {
-                e.printStackTrace();
-                return;
-            }
-        }
-        try {
-            final ParserIngest ingested = new ParserIngest(true);
-            ingested.parse(ingest);
-            System.out.println(ingested.ingest);
-            System.out.println(ingested.toString());
-            System.out.println("Simulate Execution\n=====================");
-            ingested.executeSimulate(11, 20);
-        } catch (final InvalidParseOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (final InvalidExecOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
     }
 }
