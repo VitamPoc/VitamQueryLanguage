@@ -18,17 +18,20 @@
 package fr.gouv.vitam.mdbes;
 
 import java.io.IOException;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCursor;
+import com.mongodb.MapReduceCommand;
+import com.mongodb.MapReduceCommand.OutputType;
+import com.mongodb.DBObject;
+import com.mongodb.MapReduceOutput;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
-import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
 import fr.gouv.vitam.query.exception.InvalidParseOperationException;
@@ -42,30 +45,32 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * @author "Frederic Bregier"
  * 
  */
-public class MainSimpleRequest {
+public class MainMapReduce {
     private static VitamLogger LOGGER = null;
 	private static MongoClient mongoClient = null;
 	private static final int MAXTHREAD = 1;
-    private static String request;
-    private static String ids = null;
     private static String host = "localhost";
     private static String database = "VitamLinks";
     private static String esbase = "vitam";
     private static String unicast = "mdb002, mdb003, mdb004";
+    private static String map = null;
+    private static String reduce = null;
+    private static String output = null;
+    private static String options = null;
     
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		if (args.length < 6) {
-			System.err.println("need: logfile host database esbase unicast type query");
+		if (args.length < 4) {
+			System.err.println("need: logfile host database esbase unicast [map] [reduce] [output] [options-commaEqualities separated list]");
 			return;
 		}
         final String log4j = args[0];
         PropertyConfigurator.configure(log4j);
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.DEBUG));
-        LOGGER = VitamLoggerFactory.getInstance(MainSimpleRequest.class);
+        LOGGER = VitamLoggerFactory.getInstance(MainMapReduce.class);
         final String networkHost = "192.168.56.102";
         GlobalDatas.localNetworkAddress = networkHost;
         // connect to the local database server
@@ -82,10 +87,16 @@ public class MainSimpleRequest {
             unicast = args[4];
         }
         if (args.length > 5) {
-            request = args[5];
+            map = args[5];
         }
         if (args.length > 6) {
-            ids = args[6];
+            reduce = args[6];
+        }
+        if (args.length > 7) {
+            output = args[7];
+        }
+        if (args.length > 8) {
+            options = args[8];
         }
 		// connect to the local database server
         MongoDbAccess dbvitam = null;
@@ -106,7 +117,6 @@ public class MainSimpleRequest {
 
 	protected static void runOnce(MongoDbAccess dbvitam) throws InterruptedException,
 			InstantiationException, IllegalAccessException, IOException {
-		LOGGER.warn("Unitary test\n================================================================================================================================");
 		try {
 			oneShot(dbvitam);
 		} catch (InvalidParseOperationException | InvalidExecOperationException e) {
@@ -115,48 +125,81 @@ public class MainSimpleRequest {
 		}
 	}
 
-	private static final BasicDBObject ID_NBCHILD = new BasicDBObject(VitamType.ID, 1).append(DAip.NBCHILD, 1);
-
+	protected static final Object getParsedString(String value) {
+	    try {
+	        return Long.parseLong(value);
+	    } catch (Exception e) {
+	        try {
+	            return Double.parseDouble(value);
+	        } catch (Exception e2) {
+	            try {
+	                return DateTime.parse(value);
+	            } catch (Exception e3) {
+	                try {
+	                    return Boolean.parseBoolean(value);
+	                } catch (Exception e4) {
+	                    return value;
+	                }
+	            }
+	        }
+	    }
+	}
 	protected static void oneShot(MongoDbAccess dbvitam) throws InvalidParseOperationException, InvalidExecOperationException, InstantiationException, IllegalAccessException {
         // Requesting
-		String comdtree = request.toString();
-        BasicDBObject query = (BasicDBObject) JSON.parse(comdtree);
-		if (ids != null) {
-		    BasicDBObject id = (BasicDBObject) JSON.parse(ids);
-		    DateTime date = new DateTime(-123456789012345L);
-            query = new BasicDBObject("OldDate", date.toDate());
-            System.out.println("Date: "+date+" upd: "+query+" => "+date.getYear());
-		    dbvitam.daips.collection.update(id, query);
-            final DBCursor cursor = dbvitam.daips.collection.find(id);
-            while (cursor.hasNext()) {
-                final DAip maip = (DAip) cursor.next();
-                maip.load(dbvitam);
-                System.out.println(maip);
+	    if (map == null) {
+	        map = "function() {"
+                + "flattened = serializeDocFiltered(this, MAXDEPTH, FILTER);"
+                + "for (var key in flattened) {"
+                + "var value = flattened[key];" 
+                + "var valueType = varietyTypeOf(value);"
+                + "var finalvalue = { types : [ valueType ], occurences : 1};"
+//                + "var finalvalue = { occurences : 1};"
+                + "emit(key, finalvalue); } }";
+	    }
+	    if (reduce == null) {
+	        reduce = "function(key,values) {"
+                + "var typeset = new Set();"
+                + "var occur = 0;"
+                + "for (var idx = 0; idx < values.length; idx++) {"
+                + "occur += values[idx].occurences;"
+                + "typeset.add(values[idx].types);" 
+                + "} return { types : typeset.asArray(), occurences : occur }; }";
+//                + "} return { occurences : occur }; }";
+
+	    }
+	    if (output == null) {
+	        output = "AttributeUsage";
+	    }
+        MapReduceCommand mapReduceCommand = new MapReduceCommand(dbvitam.daips.collection, 
+                map, reduce, 
+                output, OutputType.REDUCE, 
+                new BasicDBObject());
+        if (options != null) {
+            String []optionsArray = options.split(",");
+		    Map<String, Object> mapScope = new HashMap<String, Object>();
+		    for (String string : optionsArray) {
+		        String []kv = string.split("=");
+                mapScope.put(kv[0], getParsedString(kv[1]));
             }
-            cursor.close();
-            System.out.println("====");
-            date = date.plusYears(10);
-            id.append("OldDate", new BasicDBObject("$lt", date.toDate()));
-            System.out.println("Date: "+date+" find: "+id+" => "+date.getYear());
-            final DBCursor cursor2 = dbvitam.daips.collection.find(id);
-            while (cursor2.hasNext()) {
-                final DAip maip = (DAip) cursor2.next();
-                Date madate = maip.getDate("OldDate");
-                System.out.println("Madate: "+madate);
-                System.out.println("Madate: "+madate.getTime());
-                System.out.println("Madate: "+new DateTime(madate));
-                maip.load(dbvitam);
-                System.out.println(maip);
-            }
-            cursor2.close();
-		} else {
-    		final DBCursor cursor = dbvitam.find(dbvitam.daips, query, ID_NBCHILD);
-            while (cursor.hasNext()) {
-                final DAip maip = (DAip) cursor.next();
-                maip.load(dbvitam);
-                System.out.println(maip);
-            }
-            cursor.close();
-		}
+		    mapReduceCommand.setScope(mapScope);
+        } else {
+            Map<String, Object> mapScope = new HashMap<String, Object>();
+            mapScope.put("MAXDEPTH", 5);
+            mapScope.put("FILTER", "_dds");
+            mapReduceCommand.setScope(mapScope);
+        }
+        mapReduceCommand.addExtraOption("nonAtomic", true);
+        mapReduceCommand.addExtraOption("jsMode", true);
+        MapReduceOutput output = dbvitam.daips.collection.mapReduce(mapReduceCommand);
+        System.out.println("Duration: "+output.getDuration()+
+                " Saved into: "+output.getCollectionName()+
+                " Input: "+output.getInputCount()+
+                " Emit: "+output.getEmitCount()+
+                " Output: "+output.getOutputCount()+
+                "\nCmd: "+output.getCommand());
+        Iterable<DBObject> iterable = output.results();
+        for (DBObject dbObject : iterable) {
+            System.out.println(dbObject.toString());
+        }
 	}
 }

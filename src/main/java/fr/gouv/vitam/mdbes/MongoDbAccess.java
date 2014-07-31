@@ -720,7 +720,9 @@ public class MongoDbAccess {
         if (blocking) {
             return es.addEntryIndexesBlocking(GlobalDatas.INDEXNAME, model, indexes);
         } else {
-            bulkResponseListener = es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
+            synchronized(this) {
+                bulkResponseListener = es.addEntryIndexes(GlobalDatas.INDEXNAME, model, indexes);
+            }
             return true;
         }
     }
