@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>VitamQueryLanguage</groupId>
   <artifactId>VitamQueryLanguage</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <build>
     <plugins>
       <plugin>
@@ -133,4 +133,17 @@
   <properties>
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  <distributionManagement>
+    <repository>
+        <id>depl</id>
+        <name>Internal Releases</name>
+        <url>http://127.0.0.1/nexus/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+        <id>depl</id>
+        <name>Internal Releases</name>
+        <url>http://127.0.0.1/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  
 </project>
