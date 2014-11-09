@@ -18,48 +18,51 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cases;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.bson.BSONObject;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.Metadata;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.utils.FileUtil;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
 import fr.gouv.vitam.utils.exception.InvalidUuidOperationException;
+import fr.gouv.vitam.utils.json.JsonHandler;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
 /**
- * MongoDb Access base class
+ * Cassandra Access base class
  *
  * @author "Frederic Bregier"
  *
  */
-public class MongoDbAccess {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
+public class CassandraAccess {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CassandraAccess.class);
 
-    private DB db = null;
-    private DB dbadmin = null;
+    private static volatile Cluster cluster = null;
+    protected Session session = null;
+    private String dbname = null;
     private VitamCollection[] collections = null;
     protected VitamCollection domains = null;
     protected VitamCollection daips = null;
@@ -111,7 +114,7 @@ public class MongoDbAccess {
         private Class clasz;
         private String name;
         private int rank;
-        private DBCollection collection = null;
+        private VitamCollection collection;
 
         @SuppressWarnings("rawtypes")
         private VitamCollections(final Class clasz) {
@@ -123,31 +126,222 @@ public class MongoDbAccess {
         protected String getName() {
             return name;
         }
-
-        protected DBCollection getCollection() {
-            return collection;
-        }
     }
 
     protected static class VitamCollection {
 
         private final VitamCollections coll;
-        protected DBCollection collection;
-
-        protected VitamCollection(final DB db, final VitamCollections coll, final boolean recreate) {
+        private final CassandraAccess ca;
+        protected VitamCollection(final CassandraAccess ca, final VitamCollections coll, final String extra) {
             this.coll = coll;
-            collection = db.getCollection(coll.name);
-            collection.setObjectClass(coll.clasz);
-            if (recreate) {
-                // this.collection.dropIndexes();
-                collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
-                // db.command(new BasicDBObject("collMod", coll.name).append("usePowerOf2Sizes", true));
-            }
-            this.coll.collection = collection;
+            this.coll.collection = this;
+            this.ca = ca;
+            ca.session.execute("CREATE TABLE IF NOT EXISTS "+coll.name+" (id varchar PRIMARY KEY, json varchar"+extra+");");
         }
-
-        protected DBCollection getCollection() {
-            return collection;
+        protected void drop() {
+            ca.session.execute("DROP TABLE IF EXISTS "+coll.name+";");
+        }
+        protected void createIndex(String field) {
+            ca.session.execute("CREATE INDEX IF NOT EXISTS idx_"+field+" ON "+coll.name+" ("+field+");");
+        }
+        protected void dropIndex(String field) {
+            ca.session.execute("DROP INDEX IF EXISTS idx_"+field+";");
+        }
+        protected long count() {
+            ResultSet rs = ca.session.execute("SELECT COUNT(*) FROM "+coll.name);
+            Row row = rs.one();
+            if (row != null) {
+                return row.getLong(0);
+            }
+            return -1;
+        }
+        protected ResultSet getAll() {
+            return ca.session.execute("SELECT * FROM "+coll.name+";");
+        }
+        protected ResultSet get(String id) {
+            return ca.session.execute("SELECT * FROM "+coll.name+" WHERE "+VitamType.ID+" = ?;", id);
+        }
+        protected boolean exists(String id) {
+            ResultSet rs = ca.session.execute("SELECT "+VitamType.ID+" FROM "+coll.name+" WHERE "+VitamType.ID+" = ?;", id);
+            return ! rs.isExhausted();
+        }
+        protected VitamType getObject(ResultSet rs) throws InstantiationException, IllegalAccessException {
+            Row row = rs.one();
+            if (row != null) {
+                VitamType vt = (VitamType) coll.clasz.newInstance();
+                vt.setFromResultSetRow(row);
+                return vt;
+            }
+            throw new InstantiationException("Cannot find element");
+        }
+        protected VitamType getObject(String id) throws InstantiationException, IllegalAccessException {
+            ResultSet rs = get(id);
+            return getObject(rs);
+        }
+        protected ResultSet find(String projection, String []keys, Object []values) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("SELECT ").append(projection);
+            builder.append(" FROM ").append(coll.name);
+            builder.append(" WHERE ");
+            for (int i = 0; i < keys.length - 1; i++) {
+                builder.append(keys[i]).append(" = ? AND ");
+            }
+            builder.append(keys[keys.length-1]).append(" = ?;");
+            PreparedStatement writeStatement = ca.session.prepare(builder.toString());
+            BoundStatement bs = writeStatement.bind();
+            int i = 0;
+            for (Object obj : values) {
+                if (obj instanceof Integer || obj instanceof Long) {
+                    bs.setLong(i, (Long) obj);
+                } else {
+                    bs.setString(i, (String) obj);
+                }
+                i++;
+            }
+            return ca.session.execute(bs);
+        }
+        protected void delete(String id) {
+            ca.session.execute("DELETE FROM "+coll.name+" WHERE "+VitamType.ID+" = ?;", id);
+        }
+        protected void save(VitamType type, int ttl) {
+            String []keys = type.getSpecificKeys();
+            StringBuilder builder = new StringBuilder();
+            builder.append("INSERT INTO ").append(coll.name);
+            builder.append(" (").append(VitamType.ID).append(", ");
+            for (String key : keys) {
+                builder.append(key).append(", ");
+            }
+            builder.append(VitamType.JSONFIELD).append(") VALUES (?, ");
+            for (@SuppressWarnings("unused") String key : keys) {
+                builder.append("?, ");
+            }
+            if (ttl > 0) {
+                builder.append("?) USING TTL ").append(ttl).append(';');
+            } else {
+                builder.append("?);");
+            }
+            PreparedStatement writeStatement = ca.session.prepare(builder.toString());
+            ObjectNode copy = type.deepCopy();
+            BoundStatement bs = writeStatement.bind();
+            int i = 0;
+            bs.setString(i, type.getId());
+            i++;
+            for (String elt : keys) {
+                Object obj = copy.remove(elt);
+                if (obj instanceof Integer || obj instanceof Long) {
+                    bs.setLong(i, (Long) obj);
+                } else {
+                    bs.setString(i, (String) obj);
+                }
+                i++;
+            }
+            try {
+                bs.setString(i, JsonHandler.writeAsString(copy));
+            } catch (InvalidParseOperationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            ca.session.execute(bs);
+        }
+        protected void update(VitamType type, int ttl) {
+            String []keys = type.getSpecificKeys();
+            StringBuilder builder = new StringBuilder();
+            builder.append("UPDATE ").append(coll.name);
+            if (ttl > 0) {
+                builder.append(" USING TTL ").append(ttl);
+            }
+            builder.append(" SET ");
+            for (String key : keys) {
+                builder.append(key).append(" = ?, ");
+            }
+            builder.append(VitamType.JSONFIELD).append(" = ? WHERE ");
+            builder.append(VitamType.ID).append(" = ?;");
+            PreparedStatement writeStatement = ca.session.prepare(builder.toString());
+            ObjectNode copy = type.deepCopy();
+            BoundStatement bs = writeStatement.bind();
+            int i = 0;
+            for (String elt : keys) {
+                Object obj = copy.remove(elt);
+                if (obj instanceof Integer || obj instanceof Long) {
+                    bs.setLong(i, (Long) obj);
+                } else {
+                    bs.setString(i, (String) obj);
+                }
+                i++;
+            }
+            try {
+                bs.setString(i, JsonHandler.writeAsString(copy));
+            } catch (InvalidParseOperationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            i++;
+            bs.setString(i, type.getId());
+            ca.session.execute(bs);
+        }
+        protected void update(String id, String []keys, Object []values) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("UPDATE ").append(coll.name).append(" SET ");
+            boolean first = true;
+            int i = 0;
+            for (String key : keys) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                if (values[i] instanceof Set) {
+                    builder.append(key).append(" = ").append(key).append(" + ?");
+                } else if (values[i] instanceof Map) {
+                    builder.append(key).append(" = ").append(key).append(" + ?");
+                } else {
+                    builder.append(key).append(" = ?");
+                }
+                i++;
+            }
+            builder.append(" WHERE ").append(VitamType.ID).append(" = ?;");
+            PreparedStatement writeStatement = ca.session.prepare(builder.toString());
+            BoundStatement bs = writeStatement.bind();
+            i = 0;
+            for (Object obj : values) {
+                if (obj instanceof Integer || obj instanceof Long) {
+                    bs.setLong(i, (Long) obj);
+                } else if (obj instanceof Set) {
+                    bs.setSet(i, (Set) obj);
+                } else if (obj instanceof Map) {
+                    bs.setMap(i, (Map) obj);
+                } else {
+                    bs.setString(i, (String) obj);
+                }
+                i++;
+            }
+            bs.setString(i, id);
+            ca.session.execute(bs);
+        }
+        protected void update(String id, String key, Object value) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("UPDATE ").append(coll.name).append(" SET ");
+            if (value instanceof Set) {
+                builder.append(key).append(" = ").append(key).append(" + ?");
+            } else if (value instanceof Map) {
+                builder.append(key).append(" = ").append(key).append(" + ?");
+            } else {
+                builder.append(key).append(" = ?");
+            }
+            builder.append(" WHERE ").append(VitamType.ID).append(" = ?;");
+            PreparedStatement writeStatement = ca.session.prepare(builder.toString());
+            BoundStatement bs = writeStatement.bind();
+            if (value instanceof Integer || value instanceof Long) {
+                bs.setLong(0, (Long) value);
+            } else if (value instanceof Set) {
+                bs.setSet(0, (Set) value);
+            } else if (value instanceof Map) {
+                bs.setMap(0, (Map) value);
+            } else {
+                bs.setString(0, (String) value);
+            }
+            bs.setString(1, id);
+            ca.session.execute(bs);
         }
     }
 
@@ -217,10 +411,10 @@ public class MongoDbAccess {
 
     /**
      *
-     * @param mongoClient
-     *            the current valid MongoClient to use as connector to the database
+     * @param node
+     *            the node address of the server
      * @param dbname
-     *            the MongoDB database name
+     *            the Cassandra database name
      * @param esname
      *            the ElasticSearch name
      * @param unicast
@@ -230,29 +424,38 @@ public class MongoDbAccess {
      * @throws InvalidUuidOperationException
      */
     @SuppressWarnings("unused")
-    public MongoDbAccess(final MongoClient mongoClient, final String dbname, final String esname, final String unicast,
+    public CassandraAccess(final String node, final String dbname, final String esname, final String unicast,
             final boolean recreate) throws InvalidUuidOperationException {
-        db = mongoClient.getDB(dbname);
-        dbadmin = mongoClient.getDB("admin");
+        synchronized (LOGGER) {
+            if (cluster == null) {
+                cluster = Cluster.builder().addContactPoint(node).build();
+            }
+        }
+        session = cluster.connect();
+        this.dbname = dbname;
+        session.execute("CREATE KEYSPACE IF NOT EXISTS "+this.dbname+" WITH replication "
+                + "= {'class': 'SimpleStrategy', 'replication_factor':1};");
+        session.execute("USE "+dbname);
         // Authenticate - optional
         // boolean auth = db.authenticate("foo", "bar");
 
         collections = new VitamCollection[VitamCollections.values().length];
         // get a collection object to work with
-        domains = collections[VitamCollections.Cdomain.rank] = new VitamCollection(db, VitamCollections.Cdomain, recreate);
-        daips = collections[VitamCollections.Cdaip.rank] = new VitamCollection(db, VitamCollections.Cdaip, recreate);
-        paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(db, VitamCollections.Cpaip, recreate);
-        saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(db, VitamCollections.Csaip, recreate);
-        duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(db, VitamCollections.Cdua, recreate);
+        domains = collections[VitamCollections.Cdomain.rank] = new VitamCollection(this, VitamCollections.Cdomain, Domain.createTable());
+        daips = collections[VitamCollections.Cdaip.rank] = new VitamCollection(this, VitamCollections.Cdaip, DAip.createTable());
+        paips = collections[VitamCollections.Cpaip.rank] = new VitamCollection(this, VitamCollections.Cpaip, PAip.createTable());
+        saips = collections[VitamCollections.Csaip.rank] = new VitamCollection(this, VitamCollections.Csaip, SAip.createTable());
+        duarefs = collections[VitamCollections.Cdua.rank] = new VitamCollection(this, VitamCollections.Cdua, DuaRef.createTable());
         if (GlobalDatas.USELRUCACHE || GlobalDatas.USEREDIS) {
             requests = null;
             collections[VitamCollections.Crequests.rank] = null;
         } else {
-            requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(db, VitamCollections.Crequests, recreate);
+            requests = collections[VitamCollections.Crequests.rank] = new VitamCollection(this, VitamCollections.Crequests, ResultMongodb.createTable());
         }
-        final DBCursor cursor = domains.collection.find();
-        for (final DBObject dbObject : cursor) {
-            final Domain dom = (Domain) dbObject;
+        ResultSet rs = domains.getAll();
+        Domain dom = new Domain();
+        for (final Row row : rs) {
+            dom.setFromResultSetRow(row);
             dom.setRoot();
         }
         // elasticsearch index
@@ -286,14 +489,14 @@ public class MongoDbAccess {
         }
     }
     /**
-     * Drop all data and index from MongoDB and ElasticSearch
+     * Drop all data and index from Cassandra and ElasticSearch
      *
      * @param model
      */
     public final void reset(final String model) {
         for (int i = 0; i < collections.length; i++) {
-            if (collections[i] != null && collections[i].collection != null) {
-                collections[i].collection.drop();
+            if (collections[i] != null) {
+                collections[i].drop();
             }
         }
         es.deleteIndex(GlobalDatas.INDEXNAME);
@@ -311,13 +514,14 @@ public class MongoDbAccess {
     }
 
     /**
-     * Close database access (ElasticSearch, Couchbase, Redis, ...)
+     * Close database access (ElasticSearch, Cassandra, Redis, ...)
      */
     public final void close() {
         es.close();
         if (ra != null) {
             ra.close();
         }
+        this.session.close();
     }
     /**
      * To be called once only when closing the application
@@ -326,16 +530,18 @@ public class MongoDbAccess {
         if (ra != null) {
             ra.finalClose();
         }
+        if (cluster != null) {
+            cluster.close();
+        }
     }
 
     /**
-     * Ensure that all MongoDB database schema are indexed
+     * Ensure that all Cassandra database schema are indexed
      */
-    @SuppressWarnings("unused")
     public void ensureIndex() {
         for (int i = 0; i < collections.length; i++) {
-            if (collections[i] != null && collections[i].collection != null) {
-                collections[i].collection.createIndex(new BasicDBObject(VitamType.ID, "hashed"));
+            if (collections[i] != null) {
+                collections[i].createIndex(VitamType.ID);
             }
         }
         Domain.addIndexes(this);
@@ -349,47 +555,37 @@ public class MongoDbAccess {
     }
 
     /**
-     * Remove temporarily the MongoDB Index (import optimization?)
+     * Remove temporarily the Cassandra Index (import optimization?)
      */
     public void removeIndexBeforeImport() {
         try {
-            daips.collection.dropIndex(new BasicDBObject(VitamLinks.DAip2DAip.field2to1, 1));
-            daips.collection.dropIndex(new BasicDBObject(VitamLinks.Domain2DAip.field2to1, 1));
-            daips.collection.dropIndex(new BasicDBObject(DAip.DAIPDEPTHS, 1));
+            daips.dropIndex(VitamLinks.DAip2DAip.field2to1);
+            daips.dropIndex(VitamLinks.Domain2DAip.field2to1);
+            daips.dropIndex(DAip.DAIPDEPTHS);
         } catch (final Exception e) {
             LOGGER.error("Error while removing indexes before import", e);
         }
     }
 
     /**
-     * Reset MongoDB Index (import optimization?)
+     * Reset Cassandra Index (import optimization?)
      */
     public void resetIndexAfterImport() {
         LOGGER.info("Rebuild indexes");
-        daips.collection.createIndex(new BasicDBObject(VitamLinks.DAip2DAip.field2to1, 1));
-        daips.collection.createIndex(new BasicDBObject(VitamLinks.Domain2DAip.field2to1, 1));
-        daips.collection.createIndex(new BasicDBObject(DAip.DAIPDEPTHS, 1));
+        daips.createIndex(VitamLinks.DAip2DAip.field2to1);
+        daips.createIndex(VitamLinks.Domain2DAip.field2to1);
+        daips.createIndex(DAip.DAIPDEPTHS);
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         // get a list of the collections in this database and print them out
-        final Set<String> collectionNames = db.getCollectionNames();
-        for (final String s : collectionNames) {
-            builder.append(s);
+        Metadata md = cluster.getMetadata();
+        
+        for (final KeyspaceMetadata s : md.getKeyspaces()) {
+            builder.append(s.exportAsString());
             builder.append('\n');
-        }
-        for (final VitamCollection coll : collections) {
-            if (coll != null && coll.collection != null) {
-                final List<DBObject> list = coll.collection.getIndexInfo();
-                for (final DBObject dbObject : list) {
-                    builder.append(coll.coll.name);
-                    builder.append(' ');
-                    builder.append(dbObject);
-                    builder.append('\n');
-                }
-            }
         }
         return builder.toString();
     }
@@ -399,7 +595,7 @@ public class MongoDbAccess {
      * @return the current number of DAip
      */
     public long getDaipSize() {
-        return daips.collection.count();
+        return daips.count();
     }
 
     /**
@@ -407,7 +603,7 @@ public class MongoDbAccess {
      * @return the current number of PAip
      */
     public long getPaipSize() {
-        return paips.collection.count();
+        return paips.count();
     }
     /**
      * 
@@ -419,15 +615,8 @@ public class MongoDbAccess {
         } else if (GlobalDatas.USEREDIS) {
             return ra.getCount();
         } else {
-            return requests.collection.count();
+            return requests.count();
         }
-    }
-
-    /**
-     * Force flush on disk (MongoDB): should not be used
-     */
-    protected void flushOnDisk() {
-        dbadmin.command(new BasicDBObject("fsync", 1).append("async", true));
     }
 
     /**
@@ -437,11 +626,17 @@ public class MongoDbAccess {
      * @return a VitamType generic object from ID ref value
      */
     public final VitamType loadFromObjectId(final VitamCollection collection, final String ref) {
-        return (VitamType) collection.collection.findOne(ref);
+        try {
+            return (VitamType) collection.getObject(ref);
+        } catch (InstantiationException | IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
-     * Load a BSONObject into VitamType
+     * Load a ObjectNode into VitamType
      *
      * @param obj
      * @param coll
@@ -449,11 +644,10 @@ public class MongoDbAccess {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public final VitamType loadFromBSONObject(final BSONObject obj, final VitamCollections coll) throws InstantiationException,
+    public final VitamType loadFromObjectNode(final ObjectNode obj, final VitamCollections coll) throws InstantiationException,
     IllegalAccessException {
         final VitamType vt = (VitamType) coll.clasz.newInstance();
-        vt.putAll(obj);
-        vt.getAfterLoad();
+        vt.load(obj);
         return vt;
     }
 
@@ -466,14 +660,14 @@ public class MongoDbAccess {
      * @return the VitamType casted object
      */
     public final VitamType fineOne(final VitamCollections col, final String field, final String ref) {
-        final BasicDBObject obj = new BasicDBObject(field, ref);
-        final VitamType vitobj = (VitamType) col.collection.findOne(obj);
-        if (vitobj == null) {
+        ResultSet rs = session.execute("SELECT * FROM "+col.name+" WHERE "+field+" = ?;", ref);
+        try {
+            return (VitamType) col.collection.getObject(rs);
+        } catch (InstantiationException | IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
             return null;
-        } else {
-            vitobj.getAfterLoad();
         }
-        return vitobj;
     }
 
     /**
@@ -490,16 +684,8 @@ public class MongoDbAccess {
         if (id == null || id.length() == 0) {
             return null;
         }
-        final VitamType vitobj = (VitamType) col.collection.findOne(id);
-        if (vitobj == null) {
-            return null;
-        } else {
-            vitobj.getAfterLoad();
-        }
-        return vitobj;
+        return (VitamType) col.collection.getObject(id);
     }
-    
-    private static BasicDBObject IDONLY = new BasicDBObject(VitamType.ID, 1);
 
     /**
      *
@@ -518,10 +704,10 @@ public class MongoDbAccess {
                 return ra.exists(id);
             } else {
                 String nid = createDigest(id);
-                return col.collection.findOne(nid, IDONLY) != null;
+                return col.collection.exists(nid);
             }
         }
-        return col.collection.findOne(id, IDONLY) != null;
+        return col.collection.exists(id);
     }
     /**
     *
@@ -533,7 +719,6 @@ public class MongoDbAccess {
            return null;
        }
        if (GlobalDatas.USELRUCACHE) {
-           // LRU Cache
            return ResultLRU.LRU_ResultCached.get(id);
        } else if (GlobalDatas.USEREDIS) {
            JsonNode vt = ra.getFromId(id);
@@ -546,9 +731,14 @@ public class MongoDbAccess {
            return null;
        } else {
            String nid = createDigest(id);
-           ResultMongodb rm = (ResultMongodb) requests.collection.findOne(nid);
+           ResultMongodb rm;
+            try {
+                rm = (ResultMongodb) requests.getObject(nid);
+            } catch (InstantiationException | IllegalAccessException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
            if (rm != null) {
-               rm.getAfterLoad();
                rm.loaded = true;
            }
            return rm;
@@ -564,7 +754,6 @@ public class MongoDbAccess {
            return null;
        }
        if (GlobalDatas.USELRUCACHE) {
-           // LRU Cache
            return ResultLRU.LRU_ResultCached.get(id);
        } else if (GlobalDatas.USEREDIS) {
            JsonNode vt = ra.getFromId(id);
@@ -576,27 +765,34 @@ public class MongoDbAccess {
            }
            return null;
        } else {
-           ResultMongodb rm = (ResultMongodb) requests.collection.findOne(id);
+           ResultMongodb rm;
+            try {
+                rm = (ResultMongodb) requests.getObject(id);
+            } catch (InstantiationException | IllegalAccessException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
            if (rm != null) {
-               rm.getAfterLoad();
                rm.loaded = true;
            }
            return rm;
        }
-   }
+    }
 
     /**
      *
      * @param collection
      *            domain of request
-     * @param condition
-     *            where condition
+     * @param keys
+     *            where condition on left side
+     * @param values
+     *            where condition on right side
      * @param idProjection
      *            select condition
-     * @return the DbCursor on the find request based on the given collection
+     * @return the ResultSet on the find request based on the given collection
      */
-    public final DBCursor find(final VitamCollection collection, final BasicDBObject condition, final BasicDBObject idProjection) {
-        return collection.collection.find(condition, idProjection);
+    public final ResultSet find(final VitamCollection collection, final String []keys, final Object[]values, final String idProjection) {
+        return collection.find(idProjection, keys, values);
     }
 
     /**
@@ -695,258 +891,72 @@ public class MongoDbAccess {
      * @param obj2
      * @return a {@link DBObject} that hold a possible update part (may be null)
      */
-    protected final DBObject addLink(final VitamType obj1, final VitamLinks relation, final VitamType obj2) {
+    protected final String addLink(final VitamType obj1, final VitamLinks relation, final VitamType obj2) {
         switch (relation.type) {
             case AsymLink1:
-                MongoDbAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
+                switch (relation) {
+                    case DAip2Dua:
+                        VitamType.addDuaAsymmetricLinkset(obj1, obj2, false);
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case SymLink11:
-                MongoDbAccess.addAsymmetricLink(obj1, relation.field1to2, obj2);
-                return MongoDbAccess.addAsymmetricLinkUpdate(obj2, relation.field2to1, obj1);
+                switch (relation) {
+                    case PAip2SAip:
+                        VitamType.addSaipAsymmetricLink(obj1, obj2);
+                        return VitamType.addPaipAsymmetricLinkUpdate(obj2, obj1);
+                    default:
+                        break;
+                }
+                break;
             case AsymLinkN:
-                MongoDbAccess.addAsymmetricLinkset(obj1, relation.field1to2, obj2, false);
+                switch (relation) {
+                    case PAip2Dua:
+                        VitamType.addDuaAsymmetricLinkset(obj1, obj2, false);
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case SymLink1N:
-                return MongoDbAccess.addSymmetricLink(obj1, relation.field1to2, obj2, relation.field2to1);
+                switch (relation) {
+                    case DAip2PAip:
+                        return VitamType.addUpPaipSymmetricLink(obj1, obj2);
+                    default:
+                        break;
+                }
+                break;
             case SymLinkN1:
-                return MongoDbAccess.addReverseSymmetricLink(obj1, relation.field1to2, obj2, relation.field2to1);
+                switch (relation) {
+                    //return VitamType.addReverseSymmetricLink(obj1, relation.field1to2, obj2, relation.field2to1);
+                    default:
+                        break;
+                }
+                break;
             case SymLinkNN:
-                return MongoDbAccess.addSymmetricLinkset(obj1, relation.field1to2, obj2, relation.field2to1);
+                switch (relation) {
+                    case Domain2DAip:
+                        return VitamType.addDaipDomSymmetricLinkset(obj1, obj2);
+                    default:
+                        break;
+                }
+                break;
             case SymLink_N_N:
-                return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);
+                switch (relation) {
+                    case DAip2DAip:
+                        return VitamType.addDaipsAsymmetricLinkset(obj2, obj1, true);
+                    default:
+                        break;
+                }
+                break;
             default:
                 break;
         }
         return null;
     }
 
-    /**
-     * Update the link
-     *
-     * @param obj1
-     * @param vtReloaded
-     * @param relation
-     * @param src
-     * @return the update part
-     */
-    protected final BasicDBObject updateLink(final VitamType obj1, final VitamType vtReloaded, final VitamLinks relation,
-            final boolean src) {
-        // DBCollection coll = (src ? relation.col1.collection : relation.col2.collection);
-        final String fieldname = (src ? relation.field1to2 : relation.field2to1);
-        // VitamType vt = (VitamType) coll.findOne(new BasicDBObject("_id", obj1.get("_id")));
-        if (vtReloaded != null) {
-            String srcOid = (String) vtReloaded.remove(fieldname);
-            final String targetOid = (String) obj1.get(fieldname);
-            if (srcOid != null && targetOid != null) {
-                if (targetOid.equals(srcOid)) {
-                    srcOid = null;
-                } else {
-                    srcOid = targetOid;
-                }
-            } else if (targetOid != null) {
-                srcOid = targetOid;
-            } else if (srcOid != null) {
-                obj1.put(fieldname, srcOid);
-                srcOid = null;
-            }
-            if (srcOid != null) {
-                // need to add $set
-                return new BasicDBObject(fieldname, srcOid);
-            }
-        } else {
-            // nothing since save will be done just after
-        }
-        return null;
-    }
-
-    /**
-     * Update the links
-     *
-     * @param obj1
-     * @param vtReloaded
-     * @param relation
-     * @param src
-     * @return the update part
-     */
-    protected final BasicDBObject updateLinks(final VitamType obj1, final VitamType vtReloaded, final VitamLinks relation,
-            final boolean src) {
-        // DBCollection coll = (src ? relation.col1.collection : relation.col2.collection);
-        final String fieldname = (src ? relation.field1to2 : relation.field2to1);
-        // VitamType vt = (VitamType) coll.findOne(new BasicDBObject("_id", obj1.get("_id")));
-        if (vtReloaded != null) {
-            @SuppressWarnings("unchecked")
-            final List<String> srcList = (List<String>) vtReloaded.remove(fieldname);
-            @SuppressWarnings("unchecked")
-            final List<String> targetList = (List<String>) obj1.get(fieldname);
-            if (srcList != null && targetList != null) {
-                targetList.removeAll(srcList);
-            } else if (targetList != null) {
-                // srcList empty
-            } else {
-                // targetList empty
-                obj1.put(fieldname, srcList);
-            }
-            if (targetList != null && !targetList.isEmpty()) {
-                // need to add $addToSet
-                return new BasicDBObject(fieldname, new BasicDBObject("$each", targetList));
-            }
-        } else {
-            // nothing since save will be done just after, except checking array exists
-            if (!obj1.containsField(fieldname)) {
-                obj1.put(fieldname, new ArrayList<>());
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Update links (not saved to database but to file)
-     *
-     * @param obj1
-     * @param relation
-     * @param src
-     */
-    protected final void updateLinksToFile(final VitamType obj1, final VitamLinks relation, final boolean src) {
-        final String fieldname = (src ? relation.field1to2 : relation.field2to1);
-        // nothing since save will be done just after, except checking array exists
-        if (!obj1.containsField(fieldname)) {
-            obj1.put(fieldname, new ArrayList<>());
-        }
-    }
-
-    /**
-     * Add an asymmetric relation (n-1) between Obj1 and Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param obj2ToObj1
-     * @return a {@link DBObject} for update
-     */
-    private final static DBObject addReverseSymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
-            final String obj2ToObj1) {
-        addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
-        return addAsymmetricLinkUpdate(obj2, obj2ToObj1, obj1);
-    }
-
-    /**
-     * Add an asymmetric relation (1-n) between Obj1 and Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param obj2ToObj1
-     * @return a {@link DBObject} for update
-     */
-    private final static DBObject addSymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
-            final String obj2ToObj1) {
-        addAsymmetricLink(obj1, obj1ToObj2, obj2);
-        return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
-    }
-
-    /**
-     * Add a symmetric relation (n-n) between Obj1 and Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param obj2ToObj1
-     * @return a {@link DBObject} for update
-     */
-    private final static DBObject addSymmetricLinkset(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
-            final String obj2ToObj1) {
-        addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
-        return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
-    }
-
-    /**
-     * Add a single relation (1) from Obj1 to Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     */
-    private final static void addAsymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
-        final String refChild = (String) obj2.get(VitamType.ID);
-        obj1.put(obj1ToObj2, refChild);
-    }
-
-    /**
-     * Add a single relation (1) from Obj1 to Obj2 in update mode
-     *
-     * @param db
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @return a {@link DBObject} for update
-     */
-    private final static DBObject addAsymmetricLinkUpdate(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
-        final String refChild = (String) obj2.get(VitamType.ID);
-        if (obj1.containsField(obj1ToObj2)) {
-            if (obj1.get(obj1ToObj2).equals(refChild)) {
-                return null;
-            }
-        }
-        obj1.put(obj1ToObj2, refChild);
-        return new BasicDBObject("$set", new BasicDBObject(obj1ToObj2, refChild));
-    }
-
-    /**
-     * Add a one way relation (n) from Obj1 to Obj2, with no Save
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @return true if the link is updated
-     */
-    protected final static boolean addAsymmetricLinksetNoSave(final VitamType obj1, final String obj1ToObj2,
-            final VitamType obj2) {
-        @SuppressWarnings("unchecked")
-        ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
-        final String oid2 = (String) obj2.get(VitamType.ID);
-        if (relation12 == null) {
-            relation12 = new ArrayList<String>();
-        }
-        if (relation12.contains(oid2)) {
-            return false;
-        }
-        relation12.add(oid2);
-        obj1.put(obj1ToObj2, relation12);
-        return true;
-    }
-
-    /**
-     * Add a one way relation (n) from Obj1 to Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param toUpdate
-     *            True if this element will be updated through $addToSet only
-     * @return a {@link DBObject} for update
-     */
-    private final static DBObject addAsymmetricLinkset(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
-            final boolean toUpdate) {
-        @SuppressWarnings("unchecked")
-        ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
-        final String oid2 = (String) obj2.get(VitamType.ID);
-        if (relation12 == null) {
-            if (toUpdate) {
-                return new BasicDBObject("$addToSet", new BasicDBObject(obj1ToObj2, oid2));
-            }
-            relation12 = new ArrayList<String>();
-        }
-        if (relation12.contains(oid2)) {
-            return null;
-        }
-        if (toUpdate) {
-            return new BasicDBObject("$addToSet", new BasicDBObject(obj1ToObj2, oid2));
-        } else {
-            relation12.add(oid2);
-            obj1.put(obj1ToObj2, relation12);
-            return null;
-        }
-    }
 
     /**
      * 

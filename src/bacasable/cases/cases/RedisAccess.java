@@ -16,7 +16,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cases;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;

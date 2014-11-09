@@ -13,9 +13,9 @@ import fr.gouv.vitam.query.construct.request.BooleanRequest;
 import fr.gouv.vitam.query.construct.request.ExistsRequest;
 import fr.gouv.vitam.query.construct.request.PathRequest;
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.ACTIONFILTER;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
+import fr.gouv.vitam.utils.json.JsonHandler;
 
 @SuppressWarnings("javadoc")
 public class InsertTest {

@@ -24,10 +24,10 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
-import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.RANGEARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
+import fr.gouv.vitam.utils.json.JsonHandler;
 
 /**
  * Version using CouchBase and ElasticSearch

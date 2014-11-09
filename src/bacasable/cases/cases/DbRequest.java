@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vitam . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cases;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,7 +58,7 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 public class DbRequest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
 
-    private final MongoDbAccess mdAccess;
+    private final CassandraAccess mdAccess;
     private String indexName;
     private String typeName;
     // future private CouchbaseAccess cbAccess = new ...;
@@ -81,7 +81,7 @@ public class DbRequest {
      */
     public DbRequest(final MongoClient mongoClient, final String dbname, final String esname, final String unicast,
             final boolean recreate, final String indexName, final String typeName) throws InvalidUuidOperationException {
-        mdAccess = new MongoDbAccess(mongoClient, dbname, esname, unicast, recreate);
+        mdAccess = new CassandraAccess(mongoClient, dbname, esname, unicast, recreate);
         this.indexName = indexName;
         this.typeName = typeName;
     }
@@ -93,7 +93,7 @@ public class DbRequest {
      * @param indexName
      * @param typeName
      */
-    public DbRequest(final MongoDbAccess mdAccess, final String indexName, final String typeName) {
+    public DbRequest(final CassandraAccess mdAccess, final String indexName, final String typeName) {
         this.mdAccess = mdAccess;
         this.indexName = indexName;
         this.typeName = typeName;
@@ -174,7 +174,7 @@ public class DbRequest {
         useCache = defaultUseCache || query.hintCache();
         final List<ResultInterface> list = new ArrayList<ResultInterface>(query.getRequests().size() + 1);
         // Init the list with startSet
-        ResultInterface result = MongoDbAccess.createOneResult();
+        ResultInterface result = CassandraAccess.createOneResult();
         result.putFrom(startSet);
         list.add(result);
         // cache entry search
@@ -279,7 +279,7 @@ public class DbRequest {
     }
 
     private static final ResultInterface createFalseResult(final ResultInterface previous, final int depth) {
-        final ResultInterface start = MongoDbAccess.createOneResult();
+        final ResultInterface start = CassandraAccess.createOneResult();
         start.getCurrentDaip().add(new UUID().toString());
         start.setNbSubNodes(1);
         start.setLoaded(true);
@@ -307,7 +307,7 @@ public class DbRequest {
             // build the cache id
             computeKey(curId, startup.getCurrentDaip().toString());
             String newId = curId.toString();
-            final ResultInterface start = MongoDbAccess.createOneResult(startup.getCurrentDaip());
+            final ResultInterface start = CassandraAccess.createOneResult(startup.getCurrentDaip());
             start.setId(mdAccess, newId);
             start.updateMinMax();
             list.add(start);
@@ -322,7 +322,7 @@ public class DbRequest {
             // ignore previous steps since results already known
             curId.setLength(0);
             computeKey(curId, query.getSources().get(0));
-            final ResultInterface start = MongoDbAccess.createOneResult(subrequest.refId);
+            final ResultInterface start = CassandraAccess.createOneResult(subrequest.refId);
             start.setId(mdAccess, curId.toString());
             // Now check if current results are ok with startup
             Set<String> firstNodes = new HashSet<String>();
@@ -424,7 +424,7 @@ public class DbRequest {
                 // ignore previous steps since results already known
                 newCurId.setLength(0);
                 computeKey(newCurId, query.getSources().get(rank));
-                final ResultInterface start = MongoDbAccess.createOneResult(subrequest.refId);
+                final ResultInterface start = CassandraAccess.createOneResult(subrequest.refId);
                 start.setId(mdAccess, newCurId.toString());
                 lastCacheRank = rank;
                 curId.setLength(0);
@@ -500,7 +500,7 @@ public class DbRequest {
             throws InvalidExecOperationException, InstantiationException, IllegalAccessException {
         if (request.refId != null && !request.refId.isEmpty()) {
             // path command
-            final ResultInterface result = MongoDbAccess.createOneResult(request.refId);
+            final ResultInterface result = CassandraAccess.createOneResult(request.refId);
             // now check if path is a correct successor of previous result
             if (!previous.checkAncestor(mdAccess, result)) {
                 // issue since this path refers to incorrect successor
@@ -540,7 +540,7 @@ public class DbRequest {
         }
         final String srequest = request.requestModel.toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
-        final ResultInterface newResult = MongoDbAccess.createOneResult();
+        final ResultInterface newResult = CassandraAccess.createOneResult();
         newResult.setMinLevel(1);
         newResult.setMaxLevel(1);
         if (simulate) {
@@ -634,15 +634,15 @@ public class DbRequest {
             query = getInClauseForField(DAip.ID, previous.getCurrentDaip());
         } else {
             if (previous.getMinLevel() == 1) {
-                query = getInClauseForField(MongoDbAccess.VitamLinks.Domain2DAip.field2to1, previous.getCurrentDaip());
+                query = getInClauseForField(CassandraAccess.VitamLinks.Domain2DAip.field2to1, previous.getCurrentDaip());
             } else {
-                query = getInClauseForField(MongoDbAccess.VitamLinks.DAip2DAip.field2to1, previous.getCurrentDaip());
+                query = getInClauseForField(CassandraAccess.VitamLinks.DAip2DAip.field2to1, previous.getCurrentDaip());
             }
         }
         final String srequest = request.requestModel.toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         query.putAll((BSONObject) condition);
-        final ResultInterface subresult = MongoDbAccess.createOneResult();
+        final ResultInterface subresult = CassandraAccess.createOneResult();
         if (simulate) {
             LOGGER.info("Req1LevelMD: {}", query);
             return createFalseResult(previous, 1);
@@ -713,7 +713,7 @@ public class DbRequest {
         final String srequest = request.requestModel.toString();
         final BasicDBObject condition = (BasicDBObject) JSON.parse(srequest);
         query.putAll((BSONObject) condition);
-        final ResultInterface subresult = MongoDbAccess.createOneResult();
+        final ResultInterface subresult = CassandraAccess.createOneResult();
         LOGGER.debug("Req-xLevelMD: {}", query);
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("Req-xLevelMD: {}", query);
@@ -850,7 +850,7 @@ public class DbRequest {
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("Req1LevelMD Filter on: Limit {} Offset {} OrderBy {}", query.getLimit(), query.getOffset(), orderBy);
         }
-        final ResultInterface subresult = MongoDbAccess.createOneResult();
+        final ResultInterface subresult = CassandraAccess.createOneResult();
         BasicDBObject inClause = getInClauseForField(DAip.ID, result.getCurrentDaip());
         final DBCursor cursor = mdAccess.daips.collection.find(inClause, ID_NBCHILD);
         if (query.getLimit() > 0) {

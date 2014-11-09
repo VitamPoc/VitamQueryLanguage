@@ -27,15 +27,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.mdbes.VitamType;
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
-import fr.gouv.vitam.query.json.JsonHandler;
+import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.query.parser.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.GLOBAL;
 import fr.gouv.vitam.query.parser.ParserTokens.PROJECTION;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
+import fr.gouv.vitam.utils.json.JsonHandler;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 

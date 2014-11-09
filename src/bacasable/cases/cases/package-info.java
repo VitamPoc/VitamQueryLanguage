@@ -12,11 +12,11 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with Vitam. If not, see
+ * You should have received a copy of the GNU General Public License along with Vitam . If not, see
  * <http://www.gnu.org/licenses/>.
  */
 /**
  * @author "Frederic Bregier"
  *
  */
-package fr.gouv.vitam.utils;
+package fr.gouv.vitam.cases;

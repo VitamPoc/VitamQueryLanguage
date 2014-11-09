@@ -28,9 +28,9 @@ import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollection;
-import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 

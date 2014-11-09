@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.construct.request.Request;
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.GLOBAL;
 import fr.gouv.vitam.query.parser.ParserTokens.PROJECTION;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUESTFILTER;
+import fr.gouv.vitam.utils.json.JsonHandler;
 
 /**
  * @author "Frederic Bregier"

@@ -18,7 +18,6 @@ import static fr.gouv.vitam.query.construct.RequestHelper.search;
 import static fr.gouv.vitam.query.construct.RequestHelper.size;
 import static fr.gouv.vitam.query.construct.RequestHelper.term;
 import static fr.gouv.vitam.query.construct.RequestHelper.wildcard;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -40,9 +39,9 @@ import fr.gouv.vitam.query.construct.request.BooleanRequest;
 import fr.gouv.vitam.query.construct.request.ExistsRequest;
 import fr.gouv.vitam.query.construct.request.InRequest;
 import fr.gouv.vitam.query.construct.request.PathRequest;
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
 import fr.gouv.vitam.utils.logging.VitamLogLevel;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 

@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.utils;
+package fr.gouv.vitam.query;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -96,10 +96,6 @@ public final class GlobalDatas {
      * Default TTL in ms : 24H
      */
     public static final int TTLMS = 3600*24*1000;
-    /**
-     * Shall we use Couchbase for cache of results
-     */
-    public static final boolean USECOUCHBASE = false;
     /**
      * In conjunction with Couchbase (if USECOUCHBASE is False, it is ignored)
      */

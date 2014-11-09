@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cases;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,13 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.bson.BSONObject;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-
-import fr.gouv.vitam.mdbes.MongoDbAccess.VitamCollection;
 import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
@@ -45,7 +38,7 @@ import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
  * @author "Frederic Bregier"
  *
  */
-public class ResultMongodb extends ResultAbstract implements DBObject {
+public class ResultMongodb extends ResultAbstract {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResultMongodb.class);
     /**
      * TTL
@@ -125,7 +118,7 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
     }
 
     @SuppressWarnings("unchecked")
-    protected boolean updated(final MongoDbAccess dbvitam) {
+    protected boolean updated(final CassandraAccess dbvitam) {
         if (getId() == null) {
             return false;
         }
@@ -209,7 +202,7 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
     }
     
     @Override
-    public void save(final MongoDbAccess dbvitam) {
+    public void save(final CassandraAccess dbvitam) {
         putBeforeSave();
         if (updated(dbvitam)) {
             loaded = true;
@@ -222,7 +215,7 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
      * Update the TTL for this
      * @param dbvitam
      */
-    public void updateTtl(final MongoDbAccess dbvitam) {
+    public void updateTtl(final CassandraAccess dbvitam) {
         final String id = (String) obj.get(ID);
         if (id == null) {
             return;
@@ -236,7 +229,7 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
      * @param dbvitam 
      * @param id
      */
-    public final void setId(final MongoDbAccess dbvitam, final String id) {
+    public final void setId(final CassandraAccess dbvitam, final String id) {
         if (id == null) {
             return;
         }
@@ -296,8 +289,11 @@ public class ResultMongodb extends ResultAbstract implements DBObject {
         return obj.isPartialObject();
     }
 
-    protected static void addIndexes(final MongoDbAccess mongoDbAccess) {
-        mongoDbAccess.requests.collection.createIndex(new BasicDBObject(TTL, 1), new BasicDBObject("expireAfterSeconds", 0));
+    protected static void addIndexes(final CassandraAccess cassandraAccess) {
+        //cassandraAccess.requests.collection.createIndex(new BasicDBObject(TTL, 1), new BasicDBObject("expireAfterSeconds", 0));
+    }
+    protected static String createTable() {
+        return "";
     }
 
 }

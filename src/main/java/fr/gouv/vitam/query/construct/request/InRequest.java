@@ -27,8 +27,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.query.parser.ParserTokens.REQUEST;
+import fr.gouv.vitam.utils.json.JsonHandler;
 
 /**
  * In and Nin requests

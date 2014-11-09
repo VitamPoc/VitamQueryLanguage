@@ -35,12 +35,11 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
 
-import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
-import fr.gouv.vitam.query.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.FileUtil;
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
+import fr.gouv.vitam.utils.exception.InvalidUuidOperationException;
 import fr.gouv.vitam.utils.logging.LogbackLoggerFactory;
 import fr.gouv.vitam.utils.logging.VitamLogLevel;
 import fr.gouv.vitam.utils.logging.VitamLogger;
@@ -134,8 +133,7 @@ public class MainQueryBench implements Runnable {
             dbvitam = new MongoDbAccess(mongoClient, database, esbase, unicast, false);
             List<URI> hosts = new ArrayList<URI>();
             hosts.add(new URI("http://192.168.56.110:8091/pools"));
-            dbvitam.connectCouchbase(hosts, "VitamRequests", "");
-            LOGGER.warn("USECOUCHBASE: "+GlobalDatas.USECOUCHBASE+" USEMEMCACHED: "+GlobalDatas.USEMEMCACHED+
+            LOGGER.warn(" USEMEMCACHED: "+GlobalDatas.USEMEMCACHED+
                     " USELRUCACHE: "+GlobalDatas.USELRUCACHE+" USEREDIS: "+GlobalDatas.USEREDIS+
                     " USECACHE: "+GlobalDatas.SAVERESULT);
             LOGGER.warn("Cache starting with: "+dbvitam.getCacheSize());
@@ -291,7 +289,6 @@ public class MainQueryBench implements Runnable {
 		    dbvitam = new MongoDbAccess(mongoClient, database, esbase, unicast, false);
             List<URI> hosts = new ArrayList<URI>();
             hosts.add(new URI("http://192.168.56.110:8091/pools"));
-            dbvitam.connectCouchbase(hosts, "VitamRequests", "");
 
 	        QueryBench commandTree = new QueryBench(simulate);
 	        commandTree.prepareParse(comdtree);
@@ -353,8 +350,6 @@ public class MainQueryBench implements Runnable {
         } catch (IllegalAccessException e1) {
             LOGGER.error(e1);
         } catch (URISyntaxException e1) {
-            LOGGER.error(e1);
-        } catch (InvalidCreateOperationException e1) {
             LOGGER.error(e1);
         } finally {
 			// release resources

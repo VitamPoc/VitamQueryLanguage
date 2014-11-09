@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cases;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -71,7 +71,7 @@ public class ResultRedis extends ResultAbstract {
      *
      * @param id
      */
-    public final void setId(final MongoDbAccess dbvitam, final String id) {
+    public final void setId(final CassandraAccess dbvitam, final String id) {
         this.id = id;
     }
     /**
@@ -126,7 +126,7 @@ public class ResultRedis extends ResultAbstract {
      * Save to the Couchbase Database
      * @param dbvitam
      */
-    public void save(final MongoDbAccess dbvitam) {
+    public void save(final CassandraAccess dbvitam) {
         putBeforeSave();
         if (GlobalDatas.PRINT_REQUEST) {
             LOGGER.warn("SAVE: "+this);
@@ -150,7 +150,7 @@ public class ResultRedis extends ResultAbstract {
      * Update the TTL for this
      * @param dbvitam
      */
-    public void updateTtl(final MongoDbAccess dbvitam) {
+    public void updateTtl(final CassandraAccess dbvitam) {
         if (id == null) {
             return;
         }

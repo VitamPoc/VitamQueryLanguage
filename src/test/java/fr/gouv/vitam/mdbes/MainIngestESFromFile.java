@@ -36,7 +36,7 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
 import com.mongodb.util.JSON;
 
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.query.GlobalDatas;
 
 /**
  * Load ingest file into ElasticSearch

@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with POC MongoDB ElasticSearch . If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.gouv.vitam.mdbes;
+package fr.gouv.vitam.cases;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -298,7 +298,7 @@ public class ElasticSearchAccess {
      * @param bson
      * @return True if inserted in ES
      */
-    public static final boolean addEsIndex(final MongoDbAccess dbvitam, final String model,
+    public static final boolean addEsIndex(final CassandraAccess dbvitam, final String model,
             final BSONObject bson) {
         BasicDBObject maip = getFiltered(bson);
         final String id = maip.getString(VitamType.ID);
@@ -316,7 +316,7 @@ public class ElasticSearchAccess {
      * @param bson
      * @return the number of DAip incorporated (0 if none)
      */
-    public static final int addEsIndex(final MongoDbAccess dbvitam, final String model, final Map<String, String> indexes,
+    public static final int addEsIndex(final CassandraAccess dbvitam, final String model, final Map<String, String> indexes,
             final BSONObject bson) {
         BasicDBObject maip = getFiltered(bson);
         final String id = maip.getString(VitamType.ID);
@@ -632,7 +632,7 @@ public class ElasticSearchAccess {
             return null;
         }
         long nb = 0;
-        final ResultInterface resultRequest = MongoDbAccess.createOneResult();
+        final ResultInterface resultRequest = CassandraAccess.createOneResult();
         final Iterator<SearchHit> iterator = hits.iterator();
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();

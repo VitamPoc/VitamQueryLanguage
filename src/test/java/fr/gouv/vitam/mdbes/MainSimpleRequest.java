@@ -30,9 +30,9 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadPreference;
 import com.mongodb.util.JSON;
 
+import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
 import fr.gouv.vitam.utils.logging.LogbackLoggerFactory;
 import fr.gouv.vitam.utils.logging.VitamLogLevel;
 import fr.gouv.vitam.utils.logging.VitamLogger;

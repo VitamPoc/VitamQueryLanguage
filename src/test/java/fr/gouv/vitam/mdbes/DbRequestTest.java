@@ -29,9 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.query.exception.InvalidExecOperationException;
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
 import fr.gouv.vitam.query.parser.MdEsQueryParser;
 import fr.gouv.vitam.utils.UUID;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
 import fr.gouv.vitam.utils.logging.VitamLogLevel;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 

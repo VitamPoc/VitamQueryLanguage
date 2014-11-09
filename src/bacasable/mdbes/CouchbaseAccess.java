@@ -40,11 +40,11 @@ import com.couchbase.client.protocol.views.ViewResponse;
 import com.couchbase.client.protocol.views.ViewRow;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.query.GlobalDatas;
 import fr.gouv.vitam.query.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.query.exception.InvalidParseOperationException;
-import fr.gouv.vitam.query.json.JsonHandler;
 import fr.gouv.vitam.utils.FileUtil;
-import fr.gouv.vitam.utils.GlobalDatas;
+import fr.gouv.vitam.utils.exception.InvalidParseOperationException;
+import fr.gouv.vitam.utils.json.JsonHandler;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
 
