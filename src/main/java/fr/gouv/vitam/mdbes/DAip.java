@@ -38,6 +38,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
 import fr.gouv.vitam.mdbes.MongoDbAccess.VitamLinks;
+import fr.gouv.vitam.utils.FileUtil;
 import fr.gouv.vitam.utils.UUID;
 import fr.gouv.vitam.utils.logging.VitamLogger;
 import fr.gouv.vitam.utils.logging.VitamLoggerFactory;
@@ -225,7 +226,7 @@ public class DAip extends VitamType {
     public void toFile(final OutputStream outputStream) {
         String toprint = toStringDirect() + "\n";
         try {
-            outputStream.write(toprint.getBytes());
+            outputStream.write(toprint.getBytes(FileUtil.UTF8));
         } catch (final IOException e) {
             LOGGER.error("Cannot save to File", e);
         }

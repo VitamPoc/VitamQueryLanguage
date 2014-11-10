@@ -137,8 +137,9 @@ public class RedisAccess {
         }
         final String nid = createDigest(id);
         String value = jedis.get(nid);
-        if (value == null)
+        if (value == null) {
             return null;
+        }
         try {
             return JsonHandler.getFromString(value);
         } catch (InvalidParseOperationException e) {

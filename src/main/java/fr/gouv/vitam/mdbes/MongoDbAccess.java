@@ -823,7 +823,7 @@ public class MongoDbAccess {
      * @param obj2ToObj1
      * @return a {@link DBObject} for update
      */
-    private final static DBObject addReverseSymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
+    private static final DBObject addReverseSymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
             final String obj2ToObj1) {
         addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
         return addAsymmetricLinkUpdate(obj2, obj2ToObj1, obj1);
@@ -838,7 +838,7 @@ public class MongoDbAccess {
      * @param obj2ToObj1
      * @return a {@link DBObject} for update
      */
-    private final static DBObject addSymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
+    private static final DBObject addSymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
             final String obj2ToObj1) {
         addAsymmetricLink(obj1, obj1ToObj2, obj2);
         return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
@@ -853,7 +853,7 @@ public class MongoDbAccess {
      * @param obj2ToObj1
      * @return a {@link DBObject} for update
      */
-    private final static DBObject addSymmetricLinkset(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
+    private static final DBObject addSymmetricLinkset(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
             final String obj2ToObj1) {
         addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
         return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
@@ -866,7 +866,7 @@ public class MongoDbAccess {
      * @param obj1ToObj2
      * @param obj2
      */
-    private final static void addAsymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
+    private static final void addAsymmetricLink(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
         final String refChild = (String) obj2.get(VitamType.ID);
         obj1.put(obj1ToObj2, refChild);
     }
@@ -880,7 +880,7 @@ public class MongoDbAccess {
      * @param obj2
      * @return a {@link DBObject} for update
      */
-    private final static DBObject addAsymmetricLinkUpdate(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
+    private static final DBObject addAsymmetricLinkUpdate(final VitamType obj1, final String obj1ToObj2, final VitamType obj2) {
         final String refChild = (String) obj2.get(VitamType.ID);
         if (obj1.containsField(obj1ToObj2)) {
             if (obj1.get(obj1ToObj2).equals(refChild)) {
@@ -899,7 +899,7 @@ public class MongoDbAccess {
      * @param obj2
      * @return true if the link is updated
      */
-    protected final static boolean addAsymmetricLinksetNoSave(final VitamType obj1, final String obj1ToObj2,
+    protected static final boolean addAsymmetricLinksetNoSave(final VitamType obj1, final String obj1ToObj2,
             final VitamType obj2) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
@@ -925,7 +925,7 @@ public class MongoDbAccess {
      *            True if this element will be updated through $addToSet only
      * @return a {@link DBObject} for update
      */
-    private final static DBObject addAsymmetricLinkset(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
+    private static final DBObject addAsymmetricLinkset(final VitamType obj1, final String obj1ToObj2, final VitamType obj2,
             final boolean toUpdate) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);

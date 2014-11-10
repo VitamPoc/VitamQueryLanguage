@@ -138,7 +138,7 @@ public class ElasticSearchAccess {
     }
 
     /**
-     * Delete the index
+     * Delete one index
      *
      * @param idxName
      * @return True if ok
@@ -601,6 +601,7 @@ public class ElasticSearchAccess {
      */
     protected final ResultInterface search(final String indexName, final String type, final QueryBuilder query,
             final FilterBuilder filter) {
+        // Note: Could change the code to allow multiple indexes and multiple types
         SearchRequestBuilder request = client.prepareSearch(indexName).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setTypes(type).setExplain(false).setSize(GlobalDatas.limitLoad);
         if (filter != null) {

@@ -222,7 +222,7 @@ public class DbRequest {
         // Stops if no result (empty)
         int nbRequests = query.getRequests().size();
         for (int rank = lastCacheRank + 1; 
-                (result != null && !result.getCurrentDaip().isEmpty()) && rank < nbRequests; 
+                !result.getCurrentDaip().isEmpty() && rank < nbRequests; 
                 rank++) {
             final TypeRequest request = query.getRequests().get(rank);
             if (GlobalDatas.PRINT_REQUEST) {
@@ -259,7 +259,7 @@ public class DbRequest {
                 LOGGER.debug("Request: {}\n\tResult: {}", request, result);
             }
         }
-        if ((result != null && !result.getCurrentDaip().isEmpty())) {
+        if (!result.getCurrentDaip().isEmpty()) {
             // Filter last result using orderBy, Limit, ...
             ResultInterface newResult = lastFilter(query, result);
             if (newResult != null) {
@@ -1006,7 +1006,7 @@ public class DbRequest {
             LOGGER.error("No List of results");
             return null;
         }
-        useCache |= defaultUseCache;
+        boolean specUseCache = useCache || defaultUseCache;
         final Set<String> paths = new HashSet<String>();
         final Set<String> current = new HashSet<String>();
         ResultInterface finalresult = results.get(results.size() - 1);
@@ -1036,10 +1036,10 @@ public class DbRequest {
                     finalresult.setLoaded(true);
                     finalresult.putBeforeSave();
                     LOGGER.info("FinalizeResult: {}", finalresult);
-                } else if (useCache) {
+                } else if (specUseCache) {
                     finalresult.save(mdAccess);
                 }
-            } else if (useCache) {
+            } else if (specUseCache) {
                 finalresult.updateTtl(mdAccess);
             }
             return finalresult;
@@ -1056,7 +1056,7 @@ public class DbRequest {
                 }
                 result = result2;
             }
-            if (useCache) {
+            if (specUseCache) {
                 result.updateTtl(mdAccess);
             }
             if (result.getMinLevel() > lastlevel) {
@@ -1116,7 +1116,7 @@ public class DbRequest {
             finalresult.setLoaded(true);
             finalresult.putBeforeSave();
             LOGGER.info("FinalizeResult: {}", finalresult);
-        } else  if (useCache && finalresult.getId() != null) {
+        } else  if (specUseCache && finalresult.getId() != null) {
             finalresult.save(mdAccess);
         }
         if (GlobalDatas.PRINT_REQUEST) {
